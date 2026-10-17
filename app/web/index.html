@@ -53,6 +53,13 @@
     @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
     .note { display: block; margin-top: 6px; font-size: 0.8rem; color: var(--muted); font-style: italic; }
     .assistant.command { border-style: dashed; font-size: 0.92rem; }   /* BEYOND's own reply to a /command */
+    .assistant.reminder { border-color: var(--accent); border-width: 2px; }   /* a reminder that went off */
+    .reminder-banner { position: fixed; z-index: 50; left: 50%; transform: translateX(-50%);
+                       top: calc(var(--view-top, 0px) + 64px); width: min(520px, calc(100vw - 32px));
+                       display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px;
+                       background: var(--panel); color: var(--text); border: 2px solid var(--accent);
+                       box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18); }
+    .reminder-banner span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
     .note-msg { align-self: flex-start; background: transparent; color: var(--muted); font-size: 0.85rem;
                 padding: 4px 6px; margin-top: -4px; }
     .picture { display: block; margin-top: 10px; width: 260px; max-width: 100%; height: auto; border-radius: 8px;
@@ -357,7 +364,8 @@
       if (!chat.messages.length) list.innerHTML = WELCOME;
       for (const m of chat.messages) {
         if (m.kind === 'note') { noteBubble(m.content); continue; }
-        const el = bubble(m.role + (m.kind === 'command' && m.role === 'assistant' ? ' command' : ''), m.content);
+        const el = bubble(m.role + (m.kind === 'command' && m.role === 'assistant' ? ' command' : '') +
+                          (m.kind === 'reminder' ? ' reminder' : ''), m.content);
         if (m.stopped) addNote(el, 'Stopped');
         if (m.kind === 'retried') addNote(el, RETRIED);
         showLookup(el, m.lookup);
@@ -591,6 +599,46 @@
     if (fromAddress) openChat(Number(fromAddress[1])); else newChat();
     refreshStatus();
     setInterval(refreshStatus, 30000);
+
+    // ---------- reminders that go off ----------
+    // BEYOND posts a due reminder in its chat; the page asks every few seconds whether one went off since it last
+    // looked. In the open chat it appears as a message; otherwise a banner offers to open that chat.
+    let reminderMark = -1;
+    const pageTitle = document.title;
+    async function checkReminders() {
+      let data;
+      try { data = await api('/api/reminders/fired?after=' + reminderMark); } catch { return; }
+      if (reminderMark >= 0) data.items.forEach(showReminder);
+      reminderMark = data.latest;
+    }
+    function showReminder(r) {
+      if (r.chat_id === chatId) {
+        const el = bubble('assistant reminder', r.content);
+        showButtons(el, r.id, r.buttons);
+      } else {
+        document.querySelector('.reminder-banner')?.remove();
+        const banner = document.createElement('div');
+        banner.className = 'reminder-banner';
+        banner.setAttribute('role', 'alert');
+        const text = document.createElement('span');
+        text.textContent = r.content.split('\n')[0] + (r.chat_title ? `  (in “${r.chat_title}”)` : '');
+        const open = document.createElement('button');
+        open.type = 'button'; open.className = 'chip'; open.textContent = 'Open';
+        open.onclick = () => { banner.remove(); openChat(r.chat_id); };
+        const close = document.createElement('button');
+        close.type = 'button'; close.className = 'chip'; close.textContent = '✕'; close.ariaLabel = 'Dismiss';
+        close.onclick = () => banner.remove();
+        banner.append(text, open, close);
+        document.body.appendChild(banner);
+      }
+      document.title = '⏰ ' + pageTitle;   // shows in the tab until you come back to it
+      loadList();
+    }
+    const titleBack = () => { if (!document.hidden) document.title = pageTitle; };
+    document.addEventListener('visibilitychange', titleBack);
+    window.addEventListener('focus', titleBack);
+    checkReminders();
+    setInterval(checkReminders, 5000);
     autoGrow();
   </script>
 </body>

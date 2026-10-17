@@ -6,6 +6,23 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 19: reminders, in the app** (version 0.19.0), ported from PromptetheusBot (one user, this PC's time zone).
+  - New `app/reminders.py`: the bot's reading of one-time times ("30m", "in two hours", "tomorrow at 6pm",
+    "friday", "March 3") and repeating schedules (daily, weekdays, weekends, days of the week, every N hours or
+    days, monthly, yearly), stored in BEYOND's database. Also refuses "yesterday at 5pm" (the bot moved it to
+    today).
+  - **/remind** (with ↩️ Undo) and **/reminders** (🗑 per reminder, or `/reminders cancel <number>`).
+  - The server checks every 5 seconds (a background task started with the app) and posts a due reminder in the
+    chat where it was set (or a "⏰ Reminders" chat if that one was deleted), with ✅ Done, 😴 10 min and 😴 1 hour.
+    A repeating reminder moves on to its next time; one missed while BEYOND was off goes off once.
+  - The page asks every 5 seconds (`GET /api/reminders/fired`): in the open chat the reminder appears as a message;
+    otherwise a ⏰ banner names the chat and offers Open. The tab title shows ⏰ until you look.
+  - Commands can now run code once their reply is saved (`Reply.on_saved`), and button handlers can read the
+    pressed message (`commands.PRESSED`).
+  - Tested: usage, a missing time, Undo, repeating and one-time reminders, a time in the past, /reminders with 🗑 and
+    cancel by number; a 15-second reminder through the API; in the browser a 2-minute reminder that appeared in the
+    open chat exactly on time (set 4:33:40 PM, shown 4:35:41 PM), a 1-minute one from another chat as a banner,
+    Snooze (back in /reminders for 10 minutes later) and Done.
 - **Phase 18: expenses** (version 0.18.0), ported from PromptetheusBot (one user).
   - New `app/expenses.py`: amounts stored as whole cents, this PC's local dates, ten built-in categories matched
     from words ("lunch", "gas", "rent", "costco"…), and words you teach it. Dates like "yesterday", "oct 3",

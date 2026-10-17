@@ -143,6 +143,22 @@ def previous_answer(chat_id, before):
     return get_message(row['id']) if row else None
 
 
+def latest_message_id(kind):
+    """The newest message id of one kind (0 if none), e.g. the last reminder that went off."""
+    with connect() as db:
+        return db.execute('SELECT COALESCE(MAX(id), 0) FROM messages WHERE kind = ?', (kind,)).fetchone()[0]
+
+
+def messages_after(kind, after, limit=20):
+    """Messages of one kind newer than id `after`, oldest first, with their chat's name (for the page's notices)."""
+    with connect() as db:
+        rows = db.execute('SELECT m.id, m.chat_id, m.content, m.buttons, c.title FROM messages m '
+                          'JOIN chats c ON c.id = m.chat_id WHERE m.kind = ? AND m.id > ? ORDER BY m.id LIMIT ?',
+                          (kind, after, limit)).fetchall()
+    return [{'id': r['id'], 'chat_id': r['chat_id'], 'content': r['content'], 'buttons': _buttons(r['buttons']),
+             'chat_title': r['title']} for r in rows]
+
+
 def remove_message(message_id):
     with connect() as db:
         db.execute('DELETE FROM messages WHERE id = ?', (message_id,))

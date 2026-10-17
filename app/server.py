@@ -3,6 +3,8 @@ import asyncio
 import json
 import logging
 import re
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from typing import Any, Literal
 
 from fastapi import FastAPI, Request
@@ -11,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app import (chats, checklists, commands, config, engine, expenses, learning, lookups, memory, notes, ports,
-                 rules, settings)
+                 reminders, rules, settings)
 
 chats.initialize()
 rules.initialize()
@@ -20,7 +22,52 @@ learning.initialize()
 notes.initialize()
 checklists.initialize()
 expenses.initialize()
-app = FastAPI(title='BEYOND', version=config.VERSION, docs_url=None, redoc_url=None)
+reminders.initialize()
+
+REMINDERS_CHAT = '⏰ Reminders'   # where a reminder goes off if the chat it was set in was deleted
+
+
+def _fire_reminders():
+    """Post every reminder whose time has come in its chat, with ✅ Done and 😴 Snooze. Each one is moved on first
+    (to its next time, or marked sent), so a problem can't make it go off again and again. A repeating reminder
+    missed while BEYOND was off goes off once, then continues."""
+    for reminder_id, chat_id, message, recur, tz, due_at in reminders.due():
+        repeat = ''
+        if recur:
+            rule, tz = json.loads(recur), tz or reminders.local_zone()
+            previous = datetime.strptime(due_at, reminders.FMT).replace(tzinfo=timezone.utc)
+            upcoming = reminders.next_due(rule, tz, previous_utc=previous)
+            reminders.reschedule(reminder_id, upcoming)
+            described = reminders.describe_rule(rule)
+            repeat = f'\n🔁 {described[:1].upper() + described[1:]} · next {reminders.when_text(upcoming, tz)}'
+        else:
+            reminders.mark_sent(reminder_id)
+        if not chat_id or not chats.exists(chat_id):
+            chat_id = next((c['id'] for c in chats.list_chats() if c['title'] == REMINDERS_CHAT), None) or \
+                chats.create(REMINDERS_CHAT)
+        chats.add_message(chat_id, 'assistant', f'⏰ Reminder: {message}{repeat}', kind='reminder',
+                          buttons=commands.reminder_buttons(reminder_id))
+
+
+async def _reminder_loop():
+    """Runs for as long as BEYOND does: checks for due reminders every few seconds."""
+    await asyncio.to_thread(reminders.warm_up)   # dateparser's first use is slow; do it now, not on the first /remind
+    while True:
+        try:
+            await asyncio.to_thread(_fire_reminders)
+        except Exception:
+            logging.exception('Checking reminders failed')
+        await asyncio.sleep(5)
+
+
+@asynccontextmanager
+async def lifespan(_app):
+    task = asyncio.create_task(_reminder_loop())
+    yield
+    task.cancel()
+
+
+app = FastAPI(title='BEYOND', version=config.VERSION, docs_url=None, redoc_url=None, lifespan=lifespan)
 app.mount('/static', StaticFiles(directory=config.WEB_DIR), name='static')
 
 
@@ -309,6 +356,8 @@ def _command_reply(chat_id, content):
             yield json.dumps({'type': 'question', 'text': reply.saved_command}) + '\n'
         message_id = chats.add_message(current, 'assistant', reply.text, kind='command', buttons=reply.buttons,
                                        image=reply.image)
+        if reply.on_saved:   # e.g. /remind: the reminder goes off in this chat
+            reply.on_saved(current)
         yield json.dumps({'type': 'token', 'text': reply.text, 'kind': 'command'}) + '\n'
         # The saved message's id, buttons and picture, so the page can show them and send presses back.
         yield json.dumps({'type': 'message', 'id': message_id, 'buttons': reply.buttons,
@@ -316,6 +365,16 @@ def _command_reply(chat_id, content):
         yield json.dumps({'type': 'done'}) + '\n'
 
     return StreamingResponse(events(), media_type='application/x-ndjson')
+
+
+@app.get('/api/reminders/fired')
+def fired_reminders(after: int = -1):
+    """Reminders that went off since message `after`, for the page (which asks every few seconds). after=-1 only
+    returns where to start, so opening the page doesn't replay old reminders."""
+    latest = chats.latest_message_id('reminder')
+    if after < 0:
+        return {'latest': latest, 'items': []}
+    return {'latest': latest, 'items': chats.messages_after('reminder', after)}
 
 
 @app.post('/api/messages/{message_id}/press')
@@ -329,7 +388,7 @@ async def press_button(message_id: int, body: ButtonPress):
     if body.action not in allowed:
         return JSONResponse({'error': 'That button is no longer available.'}, status_code=409)
     try:
-        reply = await asyncio.to_thread(commands.press, body.action)
+        reply = await asyncio.to_thread(commands.press, body.action, message)
     except Exception:
         logging.exception('Button failed: %s', body.action.split(':')[0])
         return JSONResponse({'error': 'That button ran into a problem. Please try again.'}, status_code=500)

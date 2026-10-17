@@ -9,14 +9,15 @@ Buttons: a command can answer with a Reply that has buttons under it. Each butto
 message's new text and buttons, so the message changes in place. The server only accepts actions that are on that
 message's own buttons.
 """
+import contextvars
 import difflib
 from dataclasses import dataclass, field
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Callable
 
 import httpx
 
-from app import chats, checklists, expenses, learning, memory, notes, rules, settings
+from app import chats, checklists, expenses, learning, memory, notes, reminders, rules, settings
 from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewrite, weather, web_search, wikipedia
 from app.tools.calculator import calculate
 from app.tools.dice import roll_dice
@@ -33,6 +34,7 @@ class Reply:
     toast: str = ''
     image: str = ''            # a picture under the text, as a data: URL (e.g. /qr's code)
     saved_command: str = ''    # how to save the typed command instead (e.g. /qr wifi with the password hidden)
+    on_saved: Callable = None  # called with the chat's id once the reply is saved (e.g. where a reminder goes off)
 
 
 def button(label, action):
@@ -509,6 +511,90 @@ def _spent_button(what, detail):
     return updated
 
 
+# ---------- reminders ----------
+
+def _remind(args):
+    if not args or args.lower() == 'help':
+        return reminders.USAGE
+    if reminders.active_count() >= reminders.MAX_ACTIVE:
+        return f'You already have {reminders.MAX_ACTIVE} reminders. Cancel some with /reminders first.'
+    try:
+        plan = reminders.plan_reminder(args)
+    except reminders.ReminderError as exc:
+        return str(exc)
+    reminder_id = reminders.create(None, plan['message'], plan['due'], plan['recur'], plan['tz'])
+    when = reminders.when_text(plan['due'], plan['tz'])
+    text = (f'🔁 Got it: “{plan["message"]}” {reminders.describe_rule(plan["recur"])}.\nNext: {when}.'
+            if plan['recur'] else f'⏰ Got it: “{plan["message"]}” {when}.')
+    return Reply(text + '\nIt will pop up in this chat. /reminders lists or cancels it.',
+                 [[button('↩️ Undo', f'remind:undo:{reminder_id}')]],
+                 on_saved=lambda chat_id: reminders.set_chat(reminder_id, chat_id))
+
+
+def _reminders_list():
+    upcoming = reminders.active()
+    if not upcoming:
+        return Reply('⏰ You have no upcoming reminders.\n\n' + reminders.USAGE)
+    lines = []
+    for number, (_, message, due_at, recur, tz) in enumerate(upcoming[:30], 1):
+        repeat = f' 🔁 {reminders.describe_rule(recur)}' if recur else ''
+        lines.append(f'{number}. {message[:120]}\n    ⏰ {reminders.when_text(due_at, tz)}{repeat}')
+    more = f'\n…and {len(upcoming) - 30} more.' if len(upcoming) > 30 else ''
+    return Reply(f'⏰ Your reminders ({len(upcoming)}):\n\n' + '\n'.join(lines) + more +
+                 '\n\nTap 🗑 and a number to cancel that reminder.',
+                 rows([button(f'🗑 {n}', f'remind:del:{row[0]}') for n, row in enumerate(upcoming[:30], 1)], 5))
+
+
+def _reminders(args=''):
+    words = args.lower().split()
+    if words[:1] in (['delete'], ['cancel'], ['remove']) and len(words) > 1 and words[1].lstrip('#').isdigit():
+        upcoming = reminders.active()
+        number = int(words[1].lstrip('#'))
+        if not 1 <= number <= len(upcoming):
+            return 'No reminder has that number. Send /reminders to see the list.'
+        return f'🗑 Cancelled: “{reminders.delete(upcoming[number - 1][0])}”'
+    return _reminders_list()
+
+
+def reminder_buttons(reminder_id):
+    """Under a reminder that went off."""
+    return [[button('✅ Done', f'remind:done:{reminder_id}'), button('😴 10 min', f'remind:snooze:{reminder_id}:10'),
+             button('😴 1 hour', f'remind:snooze:{reminder_id}:60')]]
+
+
+def _remind_button(what, detail):
+    number, _, minutes = detail.partition(':')
+    if not number.isdigit():
+        return None
+    reminder_id = int(number)
+    if what == 'undo':
+        removed = reminders.delete(reminder_id)
+        return Reply(f'↩️ Undone: “{removed}” was removed.' if removed else
+                     'That reminder was already cancelled or has gone off.')
+    if what == 'del':   # 🗑 under /reminders
+        removed = reminders.delete(reminder_id)
+        updated = _reminders_list()
+        updated.toast = f'Cancelled: {removed[:80]}' if removed else 'That reminder is already gone.'
+        return updated
+    pressed = PRESSED.get()
+    if pressed is None:
+        return None
+    if what == 'done':
+        return Reply(pressed['content'], [[button('✅ Done', f'remind:ok:{reminder_id}')]], 'Marked as done.')
+    if what == 'ok':
+        return Reply(pressed['content'], pressed['buttons'])
+    if what == 'snooze' and minutes in ('10', '60'):
+        found = reminders.get(reminder_id)
+        if not found:
+            return Reply(pressed['content'], [], 'That reminder is no longer available.')
+        due_at = datetime.now(timezone.utc) + timedelta(minutes=int(minutes))
+        reminders.create(pressed['chat_id'], found[2], due_at)
+        label = '1 hour' if minutes == '60' else '10 minutes'
+        return Reply(pressed['content'], [[button(f'😴 Snoozed {label}', f'remind:ok:{reminder_id}')]],
+                     f'Snoozed: it will pop up again in {label}.')
+    return None
+
+
 # ---------- /qr ----------
 
 def _qr(args):
@@ -622,6 +708,9 @@ COMMANDS = [
     Command('notes', 'Your recent notes (or /notes <words> to search)', '/notes', _notes, group='Notes and lists'),
     Command('list', 'Checklists: groceries, packing, to-dos; tap items to check them off',
             '/list groceries add milk, eggs, bread', _list, aliases=('lists',), group='Notes and lists'),
+    Command('remind', 'A reminder that pops up in this chat: once, or repeating', '/remind tomorrow at 6pm call Dan',
+            _remind, aliases=('reminder',), group='Reminders'),
+    Command('reminders', 'Your upcoming reminders (and cancel them)', '/reminders', _reminders, group='Reminders'),
     Command('spent', 'Log an expense, or see a report (this month, a month, a year, all) with a CSV download',
             '/spent 12.50 lunch', _spent, aliases=('expenses',), group='Notes and lists'),
     Command('remember', 'Tell BEYOND something to remember in every chat', '/remember my dog is named Max',
@@ -674,15 +763,26 @@ ACTIONS = {
     'note': _note_button,
     'list': _list_button,
     'spent': _spent_button,
+    'remind': _remind_button,
 }
 
 
-def press(action):
-    """Run a button's action. Returns the message's new Reply, or None if the action isn't understood."""
+PRESSED = contextvars.ContextVar('pressed_message', default=None)   # the message whose button is being pressed
+
+
+def press(action, message=None):
+    """Run a button's action. Returns the message's new Reply, or None if the action isn't understood.
+    `message`: the message the button is under (handlers that need its text read PRESSED)."""
     name, _, rest = action.partition(':')
     what, _, detail = rest.partition(':')
     handler = ACTIONS.get(name)
-    return _as_reply(handler(what, detail)) if handler else None
+    if not handler:
+        return None
+    token = PRESSED.set(message)
+    try:
+        return _as_reply(handler(what, detail))
+    finally:
+        PRESSED.reset(token)
 
 
 def menu():

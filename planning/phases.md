@@ -179,7 +179,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 - `/spent` with categories, monthly and yearly reports, and a CSV file download.
 - **Done when:** expenses are logged, a report shows totals, and the CSV opens in Excel.
 
-### Phase 19: Reminders, in the app
+### Phase 19: Reminders, in the app ✅ (done 2026-10-17)
 - `/remind` (one-time and repeating) and `/reminders`, with the bot's natural date reading. Reminders appear in the
   chat with Done and Snooze buttons.
 - **Done when:** a reminder set for 2 minutes from now pops up in the chat on time.
