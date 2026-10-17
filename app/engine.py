@@ -9,12 +9,39 @@ import httpx
 
 from app import config, settings
 
-SYSTEM_PROMPT = ("You are BEYOND, a friendly and helpful assistant that runs entirely on the user's own computer. "
-                 "Answer clearly and get to the point.")   # replaced by the full personality in Phase 6
+FALLBACK_PROMPT = ("You are BEYOND, a friendly and helpful assistant that runs entirely on the user's own computer. "
+                   "Answer clearly and get to the point.")
 
 
 class EngineError(Exception):
     """A problem explained in plain words, ready to show on the page."""
+
+
+def system_prompt():
+    """BEYOND's personality (app/personality.md). Read on every message, so edits to it apply straight away."""
+    try:
+        return config.PERSONALITY_FILE.read_text(encoding='utf-8').strip() or FALLBACK_PROMPT
+    except OSError:
+        return FALLBACK_PROMPT
+
+
+def history_window(total):
+    """How many recent messages to send with a question (including the question itself).
+
+    The AI server reuses ("caches") the start of the prompt when it matches the previous one exactly, and only reads
+    the rest. So the window grows from half the limit to the limit and is then cut back in one step (6 → 11, then
+    6 again with the default 12), instead of sliding by one message every turn, which would change the start each
+    time and make the AI re-read the whole conversation. Ported from PromptetheusBot."""
+    step = max(2, config.HISTORY_LIMIT // 2)
+    return min(config.HISTORY_LIMIT, step + total % step)
+
+
+def trim(messages):
+    """Keep the prompt small: a very long earlier message would otherwise slow down every later reply.
+    The newest message (the question) is never shortened."""
+    limit = config.HISTORY_MESSAGE_CHARS
+    return [m if len(m['content']) <= limit or i == len(messages) - 1
+            else {**m, 'content': m['content'][:limit] + ' …(shortened)'} for i, m in enumerate(messages)]
 
 
 def _base_url(url):
@@ -48,9 +75,12 @@ def _prepare(messages, stream):
     values = settings.load()
     url = values['ai_server_url']
     if not url:
-        raise EngineError("No AI is set up yet. On this version, set 'ai_server_url' in data/settings.json to an AI "
-                          "server's address (for example Local AI Studio's engine).")
-    payload = {'messages': [{'role': 'system', 'content': SYSTEM_PROMPT}, *messages], 'stream': stream}
+        raise EngineError('No AI is set up yet. Open Settings and enter the address of an AI server you run '
+                          '(for example Local AI Studio\'s engine).')
+    # The personality comes first and never changes between messages, so the AI server can reuse it (see
+    # history_window); the conversation follows, newest message last.
+    payload = {'messages': [{'role': 'system', 'content': system_prompt()}, *trim(messages)], 'stream': stream,
+               'max_tokens': config.ANSWER_MAX_TOKENS, 'temperature': config.TEMPERATURE, 'cache_prompt': True}
     if values['ai_model']:
         payload['model'] = values['ai_model']
     return _base_url(url) + '/v1/chat/completions', url, payload

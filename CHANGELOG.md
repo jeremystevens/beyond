@@ -6,6 +6,25 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 6: personality and conversation memory.**
+  - `app/personality.md`: BEYOND's personality, adapted from PromptetheusBot's system prompt (same character and
+    wording, named BEYOND, Telegram replaced by "a chat page in a browser on your own computer"). A **What You Can
+    Do Right Now** section lists only what exists (conversation and saved chats) so the AI says it can't do
+    lookups, reminders, photos or images *yet* instead of pretending; to be updated as each phase adds features.
+    Asks for plain text (the page shows no Markdown yet) and 2–4 sentence answers by default. Read on every
+    message, so edits apply at once.
+  - The **history window** from PromptetheusBot (`engine.history_window`): up to 12 recent messages, growing from
+    6 and cut back in one step, so the start of the prompt stays identical and the AI server reuses what it already
+    read. Earlier messages over 1,500 characters are shortened (`engine.trim`); the question never is.
+  - Answers are capped at 700 tokens (PromptetheusBot: 350, which cut off longer requests), temperature 0.7, and
+    `cache_prompt` is requested explicitly. New settings in `app/config.py`: `HISTORY_LIMIT`,
+    `HISTORY_MESSAGE_CHARS`, `ANSWER_MAX_TOKENS`, `TEMPERATURE`, `PERSONALITY_FILE`.
+  - The "No AI set up yet" message now points to the Settings page.
+  - Tested over 7 messages: Promptetheus-style answers in plain text (no Markdown in any answer); honest "can't"
+    for the weather and a reminder; remembered the person's name and interest 4 messages later; after the first
+    message the AI re-read only 60–229 tokens per reply. The first message of a new chat read the whole personality
+    (~1,000 tokens, 42 s) because on the owner's PC the Telegram bot shares the same AI engine and replaces its
+    cached prompt; with BEYOND's own engine (Phase 33) it should stay cached.
 - **Phase 5: saved conversations.**
   - `app/chats.py`: chats and their messages in a SQLite database, `data/beyond.sqlite3` (git-ignored). A new chat
     is named after its first message (up to 60 characters).

@@ -6,8 +6,8 @@ which is never committed and only holds what differs from these defaults, so a n
 """
 from pathlib import Path
 
-VERSION = '0.5.0'
-PHASE = 5
+VERSION = '0.6.0'
+PHASE = 6
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / 'data'                          # settings, chats, logs: created at runtime, git-ignored
@@ -42,5 +42,10 @@ DEFAULTS = {
 }
 RESTART_SETTINGS = ('web_port', 'allow_network')   # these only take effect after BEYOND restarts
 
-AI_TIMEOUT_SECONDS = 300    # a long answer on a processor-only PC can take minutes
-CHAT_HISTORY_MESSAGES = 40  # recent messages sent with each question (refined in Phase 6)
+PERSONALITY_FILE = Path(__file__).resolve().parent / 'personality.md'   # BEYOND's system prompt
+
+AI_TIMEOUT_SECONDS = 300      # a long answer on a processor-only PC can take minutes
+HISTORY_LIMIT = 12            # most recent messages sent with each question (the window moves 6 -> 12 -> 6 …)
+HISTORY_MESSAGE_CHARS = 1500  # an earlier message longer than this is shortened in the history sent to the AI
+ANSWER_MAX_TOKENS = 700       # cap on one answer's length (the personality asks for short answers anyway)
+TEMPERATURE = 0.7             # how adventurous the wording is (0 = always the same, higher = more varied)

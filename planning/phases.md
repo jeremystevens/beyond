@@ -115,7 +115,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 
 ## Stage B: The brain (what makes it more than "chat with a model")
 
-### Phase 6: Personality and conversation memory
+### Phase 6: Personality and conversation memory ✅ (done 2026-10-17; keep "What You Can Do Right Now" in `app/personality.md` up to date in every later phase)
 - Bring over Promptetheus's system prompt (personality) and the "recent messages" window, using the fast
   prompt layout from the bot (stable parts first, so the AI can reuse what it already read).
 - **Done when:** BEYOND answers in Promptetheus's style and remembers what was said earlier in the chat.

@@ -83,7 +83,7 @@ async def ai_status():
 # ---------- chat ----------
 
 def _recent(request):
-    return [message.model_dump() for message in request.messages][-config.CHAT_HISTORY_MESSAGES:]
+    return [message.model_dump() for message in request.messages][-config.HISTORY_LIMIT:]
 
 
 @app.post('/api/chat')
@@ -110,7 +110,7 @@ async def chat_stream(body: SendRequest):
         return JSONResponse({'error': 'That chat no longer exists. Start a new one.'}, status_code=404)
     chat_id = chats.create(content) if new_chat else body.chat_id
     question_id = chats.add_message(chat_id, 'user', content)
-    history = chats.recent_messages(chat_id, config.CHAT_HISTORY_MESSAGES)
+    history = chats.recent_messages(chat_id, engine.history_window(chats.message_count(chat_id)))
 
     async def events():
         answer, finished = [], False

@@ -4,10 +4,22 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 5 of the plan in `planning/phases.md`).** You can chat with an AI in your
-> browser, with answers appearing as they're written, a Stop button, and saved conversations in a side panel
-> (open, rename, delete), using an AI server you already run (such as Local AI Studio). Settings are on their own
-> page. BEYOND's own built-in AI engine arrives in Phase 33.
+> **Status: early development (Phase 6 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> browser: it has its own personality, remembers what was said earlier in the chat, writes its answers as you
+> watch (with a Stop button), and saves your conversations in a side panel (open, rename, delete). It uses an AI
+> server you already run (such as Local AI Studio); BEYOND's own built-in AI engine arrives in Phase 33.
+
+## Personality
+
+BEYOND's personality lives in `app/personality.md`: witty, curious, honest, plain-spoken, with short answers unless
+you ask for more. Its "What You Can Do Right Now" section tells the AI exactly which features exist, so it says
+"I can't do that yet" instead of pretending; it's updated as features are added. Edits to the file apply from the
+next message, without restarting.
+
+Each question is sent with up to the last 12 messages of the chat. To keep replies fast, the AI server reuses the
+part of the prompt it already read: the personality comes first and never changes, and the chat history grows from
+6 to 12 messages and is then cut back in one step, so the start of the prompt stays the same for several messages.
+Very long earlier messages are shortened in what's sent.
 
 ## Chats
 
@@ -78,7 +90,8 @@ repository, so deleting `data\settings.json` also brings back the defaults.
 beyond.py            Start BEYOND (checks the port, runs the web server, restarts it after port/network changes)
 app/config.py        Default settings, including every port number (the only place ports are defined)
 app/settings.py      Your settings: the defaults plus your changes in data/settings.json (check, save, reset)
-app/engine.py        The engine connector: the only place BEYOND talks to an AI server
+app/engine.py        The engine connector: the only place BEYOND talks to an AI server (and the history window)
+app/personality.md   BEYOND's personality (the system prompt)
 app/chats.py         Saved conversations (SQLite database in data/beyond.sqlite3)
 app/ports.py         Port checks (free? who's using it?) and this PC's network addresses
 app/server.py        The web server (FastAPI): pages, chat, settings and status endpoints
