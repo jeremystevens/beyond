@@ -6,6 +6,26 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 14: automatic lookups** (version 0.14.0), ported from PromptetheusBot's `auto_actions`.
+  - New `app/lookups.py`: quick Python checks (no extra AI call) pick at most one lookup per message: weather (weather
+    words and a place, also in lower case; not for climate questions or "my CPU is hot"), news ("latest news
+    about…"), or web search (a question about current things, with "this year" turned into the real year). A place
+    Open-Meteo can't find is searched on the web instead.
+  - The answer stream sends a `status` event ("🔎 Checking the weather for Paris…"), runs the lookup in a thread,
+    puts the results in the notes for that reply (with today's date, "trust the results", and "say only what they
+    actually state") and sends a `lookup` event. The result is saved with the answer (new `lookup` column), so the
+    page shows **🔎 Looked up: …** (tap it for the sources) after a reload too. A failed lookup shows a ⚠️ line and
+    tells the AI it has no current information. Try again looks it up afresh.
+  - Honesty: the "Looked up" line is written by BEYOND only. A line the AI writes itself is removed (`replace`
+    event), and when a question needs current information but lookups are off, the notes say no lookup was done.
+  - Recall no longer brings back older exchanges whose answer you rated 👎.
+  - Setting `auto_lookup` (on by default) with a switch on the Settings page; personality updated.
+  - Tested with Qwen3-4B on the processor: "what's the weather in Paris?", "Is it raining in Seattle/London right
+    now?", "latest news about the Artemis mission" and "Who won the World Series this year?" all looked up and
+    answered from the results ("the winners haven't been determined yet", after tightening the notes); "How do
+    rainbows form?" didn't trigger a lookup; with lookups off, the AI said it couldn't check instead of inventing
+    the weather (it did invent it before the honesty fixes); the Looked up line and sources in the browser and after
+    a reload.
 - **Phase 13: web lookups** (version 0.13.0), ported from PromptetheusBot's plugins (from `requests` to `httpx`).
   - **/web** (alias /search; DuckDuckGo via the new `ddgs` dependency), **/weather** (Open-Meteo; shares the place
     lookup with /time), **/news** (BBC, NPR, Ars Technica feeds by category, Google News for any topic; feeds are

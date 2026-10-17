@@ -6,8 +6,8 @@ which is never committed and only holds what differs from these defaults, so a n
 """
 from pathlib import Path
 
-VERSION = '0.13.0'
-PHASE = 13
+VERSION = '0.14.0'
+PHASE = 14
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / 'data'                          # settings, chats, logs: created at runtime, git-ignored
@@ -44,8 +44,9 @@ DEFAULTS = {
     'auto_facts': True,
     # Search older conversations for exchanges related to your question and give them to the AI as background.
     'recall': True,
+    'auto_lookup': True,
 }
-BOOLEAN_SETTINGS = ('allow_network', 'auto_facts', 'recall')
+BOOLEAN_SETTINGS = ('allow_network', 'auto_facts', 'recall', 'auto_lookup')
 RESTART_SETTINGS = ('web_port', 'allow_network')   # these only take effect after BEYOND restarts
 
 PERSONALITY_FILE = Path(__file__).resolve().parent / 'personality.md'   # BEYOND's system prompt

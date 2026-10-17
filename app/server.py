@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from app import chats, commands, config, engine, learning, memory, ports, rules, settings
+from app import chats, commands, config, engine, learning, lookups, memory, ports, rules, settings
 
 chats.initialize()
 rules.initialize()
@@ -143,7 +143,7 @@ async def chat_stream(body: SendRequest):
             chats.delete(chat_id)
 
     opening = {'type': 'chat', 'id': chat_id, 'new': new_chat, 'title': chats.title_from(content)}
-    return _answer(chat_id, history, _background(content, sent_ids, values), opening, undo,
+    return _answer(chat_id, history, _background(content, sent_ids, values), opening, undo, question=content,
                    pickup=content if values['auto_facts'] else None)
 
 
@@ -155,28 +155,46 @@ def _background(question, sent_ids, values, extra=''):
     return '\n\n'.join(part for part in parts if part)
 
 
-def _answer(chat_id, history, background, opening, undo, pickup=None, retry_of=None, temperature=None):
+def _answer(chat_id, history, background, opening, undo, question=None, pickup=None, retry_of=None,
+            temperature=None):
     """Stream an AI answer to the end of `history` and save it with 👍 👎 🔄 under it. If the page disconnects
-    (Stop), what was written so far is saved, marked as stopped; if nothing was written at all, undo() runs."""
+    (Stop), what was written so far is saved, marked as stopped; if nothing was written at all, undo() runs.
+    `question`: checked for an automatic lookup (weather, news, web) first, whose results go in the notes."""
     budget = learning.max_tokens()
+    wanted = lookups.detect(question) if question else None
+    found = wanted if wanted and settings.load()['auto_lookup'] else None
+    if wanted and not found:   # needs current information, but automatic lookups are off
+        background = '\n\n'.join(part for part in (background, lookups.NOT_CHECKED) if part)
 
     async def events():
         global ANSWERS_IN_PROGRESS
-        answer, finished, saved = [], False, False
+        answer, finished, saved, lookup = [], False, False, None
         ANSWERS_IN_PROGRESS += 1
         writing = True
         try:
             yield json.dumps(opening) + '\n'
+            notes = background
+            if found:
+                yield json.dumps({'type': 'status', 'text': lookups.status(*found)}) + '\n'
+                result = await asyncio.to_thread(lookups.run, question, *found)
+                lookup = lookups.saved(result)
+                notes = '\n\n'.join(part for part in (background, lookups.notes(result)) if part)
+                # Written by BEYOND, so "Looked up" only ever appears when a lookup really ran.
+                yield json.dumps({'type': 'lookup', **lookup}) + '\n'
             try:
-                async for piece in engine.chat_stream(history, background, max_tokens=budget, temperature=temperature):
+                async for piece in engine.chat_stream(history, notes, max_tokens=budget, temperature=temperature):
                     answer.append(piece)
                     yield json.dumps({'type': 'token', 'text': piece}) + '\n'
                 finished = True
             except engine.EngineError as exc:
                 yield json.dumps({'type': 'error', 'message': str(exc)}) + '\n'
             text = ''.join(answer).strip()
+            cleaned = lookups.without_fake_mark(text)
+            if cleaned != text and cleaned:
+                text = cleaned
+                yield json.dumps({'type': 'replace', 'text': text}) + '\n'
             if finished and text:
-                answer_id = chats.add_message(chat_id, 'assistant', text, retry_of=retry_of)
+                answer_id = chats.add_message(chat_id, 'assistant', text, retry_of=retry_of, lookup=lookup)
                 previous = chats.previous_answer(chat_id, answer_id)
                 buttons = learning.rating_buttons(answer_id)
                 chats.set_buttons(answer_id, buttons)
@@ -198,9 +216,9 @@ def _answer(chat_id, history, background, opening, undo, pickup=None, retry_of=N
             if writing:
                 ANSWERS_IN_PROGRESS -= 1
             if not saved:
-                text = ''.join(answer).strip()
+                text = lookups.without_fake_mark(''.join(answer))
                 if text:
-                    chats.add_message(chat_id, 'assistant', text, stopped=True, retry_of=retry_of)
+                    chats.add_message(chat_id, 'assistant', text, stopped=True, retry_of=retry_of, lookup=lookup)
                 else:
                     undo()
 
@@ -236,7 +254,8 @@ async def try_again(message_id: int):
         learning.set_rating(message_id, old['rating'], old['reason'])
 
     background = _background(history[-1]['content'], sent_ids, settings.load(), learning.retry_note(old['content']))
-    return _answer(chat_id, history, background, {'type': 'retry', 'id': message_id}, undo, retry_of=message_id,
+    return _answer(chat_id, history, background, {'type': 'retry', 'id': message_id}, undo,
+                   question=history[-1]['content'], retry_of=message_id,
                    temperature=min(1.1, config.TEMPERATURE + 0.3))
 
 ANSWERS_IN_PROGRESS = 0     # chat answers being written right now

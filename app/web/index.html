@@ -55,6 +55,10 @@
     .assistant.command { border-style: dashed; font-size: 0.92rem; }   /* BEYOND's own reply to a /command */
     .note-msg { align-self: flex-start; background: transparent; color: var(--muted); font-size: 0.85rem;
                 padding: 4px 6px; margin-top: -4px; }
+    .lookup { display: block; margin-top: 10px; font-size: 0.82rem; color: var(--muted); white-space: normal; }
+    .lookup summary { cursor: pointer; }
+    .lookup .sources { margin-top: 6px; padding: 8px 10px; border-left: 2px solid var(--border); white-space: pre-wrap;
+                       max-height: 260px; overflow: auto; }
     .msg a { color: inherit; text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
     .buttons { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; white-space: normal; }
     .buttons .row { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -219,6 +223,24 @@
       }
     }
 
+    // "🔎 Looked up: …" under an answer (written by BEYOND, not the AI); tap it to see exactly what was found.
+    function showLookup(el, lookup) {
+      if (!lookup || el.querySelector('.lookup')) return;
+      const box = document.createElement(lookup.ok ? 'details' : 'div');
+      box.className = 'lookup';
+      if (lookup.ok) {
+        const summary = document.createElement('summary');
+        summary.textContent = '🔎 Looked up: ' + lookup.source;
+        const raw = document.createElement('div');
+        raw.className = 'sources';
+        fill(raw, lookup.raw);
+        box.append(summary, raw);
+      } else {
+        box.textContent = `⚠️ I tried to look this up (${lookup.source}) but couldn't just now, so this isn't checked against current information.`;
+      }
+      el.insertBefore(box, el.querySelector('.buttons'));
+    }
+
     function noteBubble(text) {   // a small note from BEYOND itself, e.g. "🧠 Noted for next time"
       const el = document.createElement('div');
       el.className = 'msg note-msg';
@@ -321,6 +343,7 @@
         const el = bubble(m.role + (m.kind === 'command' && m.role === 'assistant' ? ' command' : ''), m.content);
         if (m.stopped) addNote(el, 'Stopped');
         if (m.kind === 'retried') addNote(el, RETRIED);
+        showLookup(el, m.lookup);
         showButtons(el, m.id, m.buttons);
       }
       scrollDown(true);
@@ -462,7 +485,7 @@
       current = { controller: new AbortController(), stopped: false, chatId };
       const mine = current;
       setBusy(true);
-      let answer = '', problem = null, startedNewChat = false, finished = false;
+      let answer = '', problem = null, startedNewChat = false, finished = false, lookup = null;
       // Called once the answer is complete ("done"), or when the stream ends: lets you type again. A "Noted for
       // next time" note may still arrive afterwards on the same connection.
       function finish() {
@@ -471,6 +494,7 @@
         reply.classList.remove('writing', 'thinking');
         if (answer) {
           if (mine.stopped) addNote(reply, 'Stopped');
+          showLookup(reply, lookup);
         } else {
           reply.remove();
           if (anchor.isConnected) nothing();
@@ -509,7 +533,15 @@
               answer += event.text;
               fill(reply, answer);
               if (follow) scrollDown(true);
+            } else if (event.type === 'status' && !answer) {
+              reply.textContent = event.text;   // "🔎 Checking the weather for Paris…" until the answer starts
+            } else if (event.type === 'replace') {
+              answer = event.text;   // BEYOND tidied the finished answer (removed a "Looked up" line the AI wrote)
+              fill(reply, answer);
+            } else if (event.type === 'lookup') {
+              lookup = event;
             } else if (event.type === 'message') {
+              showLookup(reply, lookup);
               // 🔄 is only offered on the newest answer
               if (event.buttons.some(row => row.some(b => b.action.startsWith('rate:retry:'))))
                 list.querySelectorAll('.chip[data-retry]').forEach(c => c.remove());

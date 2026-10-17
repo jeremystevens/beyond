@@ -120,6 +120,18 @@
     </section>
 
     <section>
+      <h2>Looking things up</h2>
+      <label class="switch">
+        <input type="checkbox" id="auto_lookup">
+        <span><b>Look things up automatically</b>
+          <span class="small">When a question needs current information ("what's the weather in Paris?", "latest news
+            about…", "who won…this year?"), BEYOND checks Open-Meteo, the news feeds or a web search first and the
+            answer says "🔎 Looked up". Only the place, topic or question is sent. The /weather, /news and /web
+            commands work either way. Press Save after changing it.</span></span>
+      </label>
+    </section>
+
+    <section>
       <h2>BEYOND's address</h2>
       <label for="web_port">Port <span class="small" id="portDefault"></span></label>
       <input type="number" id="web_port" min="1024" max="65535">
@@ -143,8 +155,8 @@
 
   <script>
     const $ = id => document.getElementById(id);
-    const fields = ['ai_server_url', 'ai_model', 'web_port', 'allow_network', 'auto_facts', 'recall'];
-    const checkboxes = ['allow_network', 'auto_facts', 'recall'];
+    const fields = ['ai_server_url', 'ai_model', 'web_port', 'allow_network', 'auto_facts', 'recall', 'auto_lookup'];
+    const checkboxes = ['allow_network', 'auto_facts', 'recall', 'auto_lookup'];
     let view = null;
 
     function show(kind, text) {
@@ -193,7 +205,7 @@
       return {
         ai_server_url: $('ai_server_url').value, ai_model: $('ai_model').value,
         web_port: Number($('web_port').value), allow_network: $('allow_network').checked,
-        auto_facts: $('auto_facts').checked, recall: $('recall').checked,
+        auto_facts: $('auto_facts').checked, recall: $('recall').checked, auto_lookup: $('auto_lookup').checked,
       };
     }
 

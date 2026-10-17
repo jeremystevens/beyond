@@ -4,9 +4,9 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 13 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> **Status: early development (Phase 14 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
 > browser: it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
-> tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, writes its
+> tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
 > slash commands (/calc, /convert, /time, /roll, /weather, /news, /web, /wiki, /define, /movie, /remember,
 > /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
@@ -68,8 +68,20 @@ instructions.
 | `/movie <title> [year]` | Year, director, runtime, cast, ratings, summary (alias `/film`) | Wikidata, Wikipedia |
 | `/tv <title>` | Years, network, cast, rating, summary | TVmaze |
 
-Without internet, each one says so plainly. The AI itself doesn't browse yet; when you ask it about current events
-it suggests the matching command.
+Without internet, each one says so plainly.
+
+**Automatic lookups.** You don't need the commands for everyday questions. When a message clearly needs current
+information, BEYOND looks it up first and the AI answers from the results:
+
+- weather words and a place ("what's the weather in Paris?", "do I need an umbrella in London tomorrow?") → Open-Meteo
+  (a place it can't find is searched on the web instead);
+- "latest news about…", "any breaking news?" → the news feeds;
+- other questions about current things ("who won … this year?", "price of…", "current population of…") → web search.
+
+The page shows "🔎 Checking the weather for Paris…" while it looks, and the answer ends with **🔎 Looked up: …**;
+tap it to see exactly what was found. That line is added by BEYOND, never by the AI, and BEYOND removes it if the AI
+writes one itself. The decision is made by quick checks in Python (no extra AI work), and only the place, topic or
+question is sent. Turn it off on the Settings page; then the AI says it can't check and suggests the command.
 
 ## Commands
 
@@ -202,6 +214,7 @@ app/chats.py         Saved conversations (SQLite database in data/beyond.sqlite3
 app/rules.py         House rules (same database)
 app/memory.py        Saved facts (same database)
 app/learning.py      Ratings and what BEYOND learns from them
+app/lookups.py       Automatic lookups: when a question needs the weather, news or web
 app/commands.py      Slash commands: one list (name, summary, example, function) drives /help, the / menu
                      and "did you mean…?"; replies can carry buttons, handled by ACTIONS
 app/tools/           The tools behind the commands (calculator, units, world_time, dice, places, and the

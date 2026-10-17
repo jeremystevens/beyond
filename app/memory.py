@@ -185,9 +185,11 @@ def search(text, skip_ids=(), limit=RECALL_MAX):
                                       (row['chat_id'], row['id'])).fetchone()
             if question is None or question['id'] in seen:
                 continue
-            answer = db.execute("SELECT id, content FROM messages WHERE chat_id = ? AND id > ? AND kind = 'chat' "
+            answer = db.execute("SELECT id, content, rating FROM messages WHERE chat_id = ? AND id > ? AND kind = 'chat' "
                                 "ORDER BY id LIMIT 1", (row['chat_id'], question['id'])).fetchone()
             if question['id'] in skip_ids or (answer and answer['id'] in skip_ids):
+                continue
+            if answer and answer['rating'] == -1:   # you said that answer was bad: don't bring it back
                 continue
             seen.add(question['id'])
             both = (question['content'] + ' ' + (answer['content'] if answer else '')).lower()

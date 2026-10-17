@@ -155,7 +155,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 - `/web`, `/weather`, `/news`, `/wiki`, `/define`, `/movie` and `/tv`.
 - **Done when:** each command returns current information.
 
-### Phase 14: Automatic lookups
+### Phase 14: Automatic lookups ✅ (done 2026-10-17)
 - The AI decides by itself when to check the web, weather or news, and ends with "🔎 Looked up: …".
 - **Done when:** asking "what's the weather in Paris?" in plain words triggers a lookup and says so.
 
