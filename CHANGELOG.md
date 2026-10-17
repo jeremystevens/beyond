@@ -6,6 +6,22 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 5: saved conversations.**
+  - `app/chats.py`: chats and their messages in a SQLite database, `data/beyond.sqlite3` (git-ignored). A new chat
+    is named after its first message (up to 60 characters).
+  - Saving happens on the server: the page now sends only the new message and which chat it belongs to
+    (`chat_id`, empty for a new chat); BEYOND saves the question, reads the recent messages from the database for
+    the AI, and saves the answer when it's finished. A stopped answer is saved and marked "Stopped"; if nothing was
+    answered (stopped early or the AI failed), the question is taken out again, and a brand-new chat with nothing in
+    it is removed. The stream's first event now says which chat it is (`{"type": "chat", "id", "new", "title"}`).
+  - New endpoints: `GET /api/chats` (list), `GET /api/chats/{id}` (open), `PATCH /api/chats/{id}` (rename),
+    `DELETE /api/chats/{id}`.
+  - The chat page has a **side panel**: ＋ New chat, the chat list (newest first, with time or day), ✎ rename and
+    🗑 delete (with a confirmation). The open chat is kept in the address (`#chat=3`), so refreshing reopens it. On
+    narrow screens the panel slides in from a ☰ button and closes when a chat is picked.
+  - Tested: two chats saved and listed while answering; a full BEYOND restart kept both and reopened the right
+    one; continuing the older chat used its saved messages; rename, delete, empty-name refusal, sending to a deleted
+    chat, a stopped answer saved as stopped, and a failed first message leaving no empty chat; phone-width panel.
 - **Phase 4: settings page** (`/settings`, linked from the chat page).
   - **AI server** address with **Test connection**, and an optional model name.
   - **Port**, refusing ports other local AI apps rely on (`RESERVED_PORTS` in `app/config.py`: Local AI Studio's

@@ -106,7 +106,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 - **Done when:** changing a setting on the page takes effect; your phone on the home network can open BEYOND with
   the switch on (and can't with it off); and deleting the settings file brings back the fresh-install defaults.
 
-### Phase 5: Saved conversations
+### Phase 5: Saved conversations ✅ (done 2026-10-17)
 - Chats are saved in a small database, so refreshing the page or restarting BEYOND keeps them.
 - A side panel listing past chats: open, rename, delete.
 - **Done when:** you restart BEYOND and your earlier chats are still there.

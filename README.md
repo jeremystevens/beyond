@@ -4,10 +4,20 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 4 of the plan in `planning/phases.md`).** You can chat with an AI in your
-> browser, with answers appearing as they're written, a Stop button and New chat, using an AI server you already
-> run (such as Local AI Studio), and change BEYOND's settings on a settings page. Chats aren't saved yet
-> (Phase 5), and BEYOND's own built-in AI engine arrives in Phase 33.
+> **Status: early development (Phase 5 of the plan in `planning/phases.md`).** You can chat with an AI in your
+> browser, with answers appearing as they're written, a Stop button, and saved conversations in a side panel
+> (open, rename, delete), using an AI server you already run (such as Local AI Studio). Settings are on their own
+> page. BEYOND's own built-in AI engine arrives in Phase 33.
+
+## Chats
+
+Every conversation is saved on your PC as you go, in `data\beyond.sqlite3`. The panel on the left lists them,
+newest first: click one to open and continue it, **✎** to rename it, **🗑** to delete it, **＋ New chat** to start
+another. A new chat is named after its first message. Refreshing the page or restarting BEYOND keeps your chats,
+and the page reopens the chat you were in. On a phone-sized screen the panel opens with **☰**.
+
+If you press Stop, what the AI wrote so far is saved and marked "Stopped". If you stop it (or it fails) before it
+writes anything, that question isn't saved.
 
 ## What this project is about
 
@@ -59,7 +69,7 @@ Click **Settings** at the top of the chat page (or open http://127.0.0.1:7770/se
 - **Reset to defaults** puts every setting back as on a fresh download.
 
 Your changes are saved in `data\settings.json`, which only holds what differs from the defaults in
-`app/config.py`. The `data` folder (settings, and later chats, memories and logs) is never uploaded to the
+`app/config.py`. The `data` folder (settings, chats, and later memories and logs) is never uploaded to the
 repository, so deleting `data\settings.json` also brings back the defaults.
 
 ## Project layout
@@ -69,6 +79,7 @@ beyond.py            Start BEYOND (checks the port, runs the web server, restart
 app/config.py        Default settings, including every port number (the only place ports are defined)
 app/settings.py      Your settings: the defaults plus your changes in data/settings.json (check, save, reset)
 app/engine.py        The engine connector: the only place BEYOND talks to an AI server
+app/chats.py         Saved conversations (SQLite database in data/beyond.sqlite3)
 app/ports.py         Port checks (free? who's using it?) and this PC's network addresses
 app/server.py        The web server (FastAPI): pages, chat, settings and status endpoints
 app/web/             The pages: index.html (chat), settings.html, style.css (shared look)

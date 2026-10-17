@@ -1,4 +1,4 @@
-"""BEYOND's web server: the pages, a health check, the AI status, chat, and settings."""
+"""BEYOND's web server: the pages, a health check, the AI status, chat (saved conversations), and settings."""
 import asyncio
 import json
 from typing import Any, Literal
@@ -8,8 +8,9 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from app import config, engine, ports, settings
+from app import chats, config, engine, ports, settings
 
+chats.initialize()
 app = FastAPI(title='BEYOND', version=config.VERSION, docs_url=None, redoc_url=None)
 app.mount('/static', StaticFiles(directory=config.WEB_DIR), name='static')
 # Filled in by beyond.py when the server starts (port and address in use, and the server, for restarts).
@@ -25,6 +26,15 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: list[ChatMessage] = Field(min_length=1, max_length=500)
+
+
+class SendRequest(BaseModel):
+    chat_id: int | None = None      # None = start a new chat
+    content: str = Field(min_length=1, max_length=20000)
+
+
+class Rename(BaseModel):
+    title: str = Field(max_length=200)
 
 
 class SettingsChanges(BaseModel):
@@ -87,21 +97,71 @@ async def chat(request: ChatRequest):
 
 
 @app.post('/api/chat/stream')
-async def chat_stream(request: ChatRequest):
-    """The reply as it's written: one JSON event per line ({"type": "token" | "done" | "error", ...}).
-    If the page disconnects (Stop), the stream is cancelled and the AI stops writing."""
-    recent = _recent(request)
+async def chat_stream(body: SendRequest):
+    """Send one message in a saved chat (or start a new one) and get the reply as it's written: one JSON event per
+    line ({"type": "chat" | "token" | "done" | "error", ...}). The question is saved straight away and the answer
+    when it's finished; if the page disconnects (Stop), what was written so far is saved, marked as stopped, and the
+    AI stops writing. If nothing was answered at all, the question is taken back out, as if it was never sent."""
+    content = body.content.strip()
+    if not content:
+        return JSONResponse({'error': 'The message is empty.'}, status_code=400)
+    new_chat = body.chat_id is None
+    if not new_chat and not chats.exists(body.chat_id):
+        return JSONResponse({'error': 'That chat no longer exists. Start a new one.'}, status_code=404)
+    chat_id = chats.create(content) if new_chat else body.chat_id
+    question_id = chats.add_message(chat_id, 'user', content)
+    history = chats.recent_messages(chat_id, config.CHAT_HISTORY_MESSAGES)
 
     async def events():
+        answer, finished = [], False
+        yield json.dumps({'type': 'chat', 'id': chat_id, 'new': new_chat, 'title': chats.title_from(content)}) + '\n'
         try:
-            async for piece in engine.chat_stream(recent):
+            async for piece in engine.chat_stream(history):
+                answer.append(piece)
                 yield json.dumps({'type': 'token', 'text': piece}) + '\n'
+            finished = True
             yield json.dumps({'type': 'done'}) + '\n'
         except engine.EngineError as exc:
             yield json.dumps({'type': 'error', 'message': str(exc)}) + '\n'
+        finally:   # also runs when Stop cancels the stream
+            text = ''.join(answer).strip()
+            if text:
+                chats.add_message(chat_id, 'assistant', text, stopped=not finished)
+            else:
+                chats.remove_message(question_id)
+                if new_chat and chats.message_count(chat_id) == 0:
+                    chats.delete(chat_id)
 
     return StreamingResponse(events(), media_type='application/x-ndjson',
                              headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+
+
+# ---------- saved conversations ----------
+
+@app.get('/api/chats')
+def list_chats():
+    return chats.list_chats()
+
+
+@app.get('/api/chats/{chat_id}')
+def get_chat(chat_id: int):
+    chat = chats.get(chat_id)
+    return chat if chat else JSONResponse({'error': 'That chat no longer exists.'}, status_code=404)
+
+
+@app.patch('/api/chats/{chat_id}')
+def rename_chat(chat_id: int, body: Rename):
+    try:
+        found = chats.rename(chat_id, body.title)
+    except ValueError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=400)
+    return {'ok': True} if found else JSONResponse({'error': 'That chat no longer exists.'}, status_code=404)
+
+
+@app.delete('/api/chats/{chat_id}')
+def delete_chat(chat_id: int):
+    return {'ok': True} if chats.delete(chat_id) else JSONResponse({'error': 'That chat no longer exists.'},
+                                                                   status_code=404)
 
 
 # ---------- settings ----------

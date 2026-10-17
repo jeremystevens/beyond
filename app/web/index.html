@@ -6,6 +6,28 @@
   <title>BEYOND</title>
   <link rel="stylesheet" href="/static/style.css">
   <style>
+    .layout { flex: 1; display: flex; min-height: 0; position: relative; }
+    aside {
+      width: 270px; flex: none; display: flex; flex-direction: column; gap: 10px; padding: 12px;
+      background: var(--panel); border-right: 1px solid var(--border); min-height: 0;
+    }
+    aside .newchat { width: 100%; }
+    #chats { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; display: flex;
+             flex-direction: column; gap: 2px; }
+    #chats li { display: flex; align-items: center; border-radius: 10px; }
+    #chats li:hover, #chats li.active { background: var(--bg); }
+    #chats li.active { outline: 1px solid var(--border); }
+    .item { flex: 1; min-width: 0; text-align: left; background: none; color: var(--text); padding: 8px 10px;
+            font-weight: 400; border-radius: 10px; }
+    .item .t { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.9rem; }
+    .item .d { display: block; font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+    .act { background: none; color: var(--muted); padding: 6px 7px; font-weight: 400; font-size: 0.85rem;
+           visibility: hidden; border-radius: 8px; }
+    #chats li:hover .act, #chats li.active .act, .act:focus { visibility: visible; }
+    .act:hover { color: var(--text); background: var(--panel); }
+    .empty { color: var(--muted); font-size: 0.85rem; padding: 8px 10px; }
+    .menu { display: none; }
+    .chatcol { flex: 1; display: flex; flex-direction: column; min-width: 0; }
     #log { flex: 1; overflow-y: auto; padding: 20px 16px; }
     .inner { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
     .welcome { text-align: center; color: var(--muted); margin: 12vh auto 0; max-width: 460px; line-height: 1.5; }
@@ -23,40 +45,56 @@
     .writing::after { content: '▍'; margin-left: 1px; color: var(--accent); animation: pulse 1s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
     .note { display: block; margin-top: 6px; font-size: 0.8rem; color: var(--muted); font-style: italic; }
+    .user .note { color: var(--accent-text); opacity: 0.85; }
     form { padding: 12px 16px 16px; background: var(--panel); border-top: 1px solid var(--border); }
     .composer { max-width: 760px; margin: 0 auto; display: flex; gap: 8px; align-items: flex-end; }
     textarea { flex: 1; resize: none; max-height: 200px; overflow-y: auto; scrollbar-width: thin; line-height: 1.4; }
+    @media (max-width: 760px) {
+      .menu { display: inline-block; }
+      aside { position: absolute; z-index: 5; top: 0; bottom: 0; left: 0; width: min(300px, 85vw);
+              transform: translateX(-105%); transition: transform 0.2s; box-shadow: 4px 0 16px rgba(0,0,0,0.15); }
+      body.panel-open aside { transform: none; }
+      .act { visibility: visible; }
+    }
   </style>
 </head>
 <body>
   <header>
-    <div class="brand">BEYOND</div>
+    <div class="right" style="gap: 10px">
+      <button class="ghost menu" id="menu" type="button" aria-label="Show chats">☰</button>
+      <div class="brand">BEYOND</div>
+    </div>
     <div class="right">
       <div class="status" title="AI server status"><span class="dot" id="dot"></span><span id="status">Checking the AI…</span></div>
-      <button class="ghost" id="newchat" type="button">New chat</button>
       <a class="ghost button" href="/settings">Settings</a>
     </div>
   </header>
-  <main id="log"><div class="inner" id="messages">
-    <div class="welcome" id="welcome">
-      <h1>Hi, I'm BEYOND.</h1>
-      Ask me anything. I run entirely on your own computer.
+  <div class="layout">
+    <aside aria-label="Saved chats">
+      <button class="newchat" id="newchat" type="button">＋ New chat</button>
+      <ul id="chats"></ul>
+    </aside>
+    <div class="chatcol">
+      <main id="log"><div class="inner" id="messages"></div></main>
+      <form id="form">
+        <div class="composer">
+          <textarea id="input" rows="1" placeholder="Message BEYOND…" aria-label="Message"
+                    title="Enter sends · Shift+Enter starts a new line"></textarea>
+          <button id="send" type="submit">Send</button>
+        </div>
+      </form>
     </div>
-  </div></main>
-  <form id="form">
-    <div class="composer">
-      <textarea id="input" rows="1" placeholder="Message BEYOND…" aria-label="Message"
-                title="Enter sends · Shift+Enter starts a new line"></textarea>
-      <button id="send" type="submit">Send</button>
-    </div>
-  </form>
+  </div>
   <script>
-    let history = [];     // this chat's messages; saving chats arrives in Phase 5
+    let chatId = null;    // the open saved chat (null = a new chat that isn't saved until its first message)
     let current = null;   // the reply being written: { controller, stopped }
+    let titles = {};      // chat id -> title, from the last list refresh
     const $ = id => document.getElementById(id);
     const log = $('log'), list = $('messages'), input = $('input'), send = $('send');
-    const welcomeHTML = $('welcome').outerHTML;
+    const WELCOME = '<div class="welcome" id="welcome"><h1>Hi, I\'m BEYOND.</h1>' +
+                    'Ask me anything. I run entirely on your own computer.</div>';
 
+    // ---------- small helpers ----------
     function nearBottom() { return log.scrollHeight - log.scrollTop - log.clientHeight < 80; }
     function scrollDown(force) { if (force || nearBottom()) log.scrollTop = log.scrollHeight; }
 
@@ -86,6 +124,104 @@
 
     function stop() { if (current) { current.stopped = true; current.controller.abort(); } }
 
+    function when(iso) {
+      const d = new Date(iso), now = new Date();
+      if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      const days = (now - d) / 86400000;
+      if (days < 7) return d.toLocaleDateString([], { weekday: 'long' });
+      return d.toLocaleDateString([], { day: 'numeric', month: 'short', year: d.getFullYear() === now.getFullYear() ? undefined : 'numeric' });
+    }
+
+    async function api(url, options = {}) {
+      const r = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...options });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Something went wrong.');
+      return data;
+    }
+
+    // ---------- the list of saved chats ----------
+    async function loadList() {
+      let items = [];
+      try { items = await api('/api/chats'); } catch { return; }
+      titles = {};
+      const ul = $('chats');
+      ul.innerHTML = '';
+      if (!items.length) {
+        const li = document.createElement('li');
+        li.className = 'empty';
+        li.textContent = 'No saved chats yet. Your conversations will appear here.';
+        ul.appendChild(li);
+      }
+      for (const c of items) {
+        titles[c.id] = c.title;
+        const li = document.createElement('li');
+        if (c.id === chatId) li.className = 'active';
+        const open = document.createElement('button');
+        open.type = 'button'; open.className = 'item';
+        const t = document.createElement('span'); t.className = 't'; t.textContent = c.title;
+        const d = document.createElement('span'); d.className = 'd'; d.textContent = when(c.updated_at);
+        open.append(t, d);
+        open.onclick = () => openChat(c.id);
+        const ren = document.createElement('button');
+        ren.type = 'button'; ren.className = 'act'; ren.textContent = '✎';
+        ren.title = ren.ariaLabel = 'Rename "' + c.title + '"';
+        ren.onclick = () => renameChat(c.id);
+        const del = document.createElement('button');
+        del.type = 'button'; del.className = 'act'; del.textContent = '🗑';
+        del.title = del.ariaLabel = 'Delete "' + c.title + '"';
+        del.onclick = () => deleteChat(c.id);
+        li.append(open, ren, del);
+        ul.appendChild(li);
+      }
+    }
+
+    function showChatInAddress() { history.replaceState(null, '', chatId ? '#chat=' + chatId : location.pathname); }
+
+    function newChat() {
+      stop();
+      chatId = null;
+      list.innerHTML = WELCOME;
+      showChatInAddress();
+      loadList();
+      document.body.classList.remove('panel-open');
+      input.focus();
+    }
+
+    async function openChat(id) {
+      stop();
+      document.body.classList.remove('panel-open');
+      let chat;
+      try { chat = await api('/api/chats/' + id); }
+      catch (e) { newChat(); bubble('error', e.message); return; }
+      chatId = chat.id;
+      list.innerHTML = '';
+      if (!chat.messages.length) list.innerHTML = WELCOME;
+      for (const m of chat.messages) {
+        const el = bubble(m.role, m.content);
+        if (m.stopped) addNote(el, 'Stopped');
+      }
+      scrollDown(true);
+      showChatInAddress();
+      loadList();
+      input.focus();
+    }
+
+    async function renameChat(id) {
+      const title = prompt('New name for this chat:', titles[id] || '');
+      if (title === null) return;
+      try { await api('/api/chats/' + id, { method: 'PATCH', body: JSON.stringify({ title }) }); }
+      catch (e) { alert(e.message); }
+      loadList();
+    }
+
+    async function deleteChat(id) {
+      if (!confirm('Delete "' + (titles[id] || 'this chat') + '"? This can\'t be undone.')) return;
+      try { await api('/api/chats/' + id, { method: 'DELETE' }); }
+      catch (e) { alert(e.message); }
+      if (id === chatId) newChat(); else loadList();
+    }
+
+    // ---------- AI status ----------
     function setStatus(state, text) {
       $('dot').className = 'dot ' + state;
       $('status').textContent = text;
@@ -100,6 +236,7 @@
       } catch { setStatus('bad', 'BEYOND is not responding'); }
     }
 
+    // ---------- sending ----------
     function autoGrow() {
       input.style.height = 'auto';
       const needed = input.scrollHeight + 2;   // + the 1px top and bottom border
@@ -112,32 +249,26 @@
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') stop(); });
     send.addEventListener('click', e => { if (current) { e.preventDefault(); stop(); } });
-
-    $('newchat').addEventListener('click', () => {
-      stop();
-      history = [];
-      list.innerHTML = welcomeHTML;
-      input.value = ''; autoGrow(); input.focus();
-    });
+    $('newchat').addEventListener('click', newChat);
+    $('menu').addEventListener('click', () => document.body.classList.toggle('panel-open'));
 
     $('form').addEventListener('submit', async e => {
       e.preventDefault();
       const text = input.value.trim();
       if (!text || current) return;
       input.value = ''; autoGrow();
-      bubble('user', text);
-      history.push({ role: 'user', content: text });
-      const chat = history;   // if New chat is pressed meanwhile, this answer belongs to the old chat
+      const question = bubble('user', text);
       const reply = bubble('assistant thinking', '');
       current = { controller: new AbortController(), stopped: false };
       const mine = current;
       setBusy(true);
-      let answer = '', problem = null;
+      let answer = '', problem = null, startedNewChat = false;
       try {
         const response = await fetch('/api/chat/stream', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: chat }), signal: mine.controller.signal,
+          body: JSON.stringify({ chat_id: chatId, content: text }), signal: mine.controller.signal,
         });
+        if (!response.ok) throw new Error((await response.json()).error || 'Something went wrong.');
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
@@ -151,7 +282,9 @@
             buffer = buffer.slice(newline + 1);
             if (!line) continue;
             const event = JSON.parse(line);
-            if (event.type === 'token') {
+            if (event.type === 'chat') {
+              if (event.new) { chatId = mine.chatId = event.id; startedNewChat = true; showChatInAddress(); loadList(); }
+            } else if (event.type === 'token') {
               const follow = nearBottom();
               if (!answer) reply.className = 'msg assistant writing';
               answer += event.text;
@@ -163,30 +296,31 @@
           }
         }
       } catch (err) {
-        if (!mine.stopped) problem = 'BEYOND is not responding. Is it still running?';
+        if (!mine.stopped) problem = err.message && err.name !== 'TypeError' ? err.message
+                                                                              : 'BEYOND is not responding. Is it still running?';
       } finally {
         reply.classList.remove('writing', 'thinking');
         if (answer) {
           if (mine.stopped) addNote(reply, 'Stopped');
-          chat.push({ role: 'assistant', content: answer });   // a stopped answer still counts as said
         } else {
-          reply.remove();
-          if (mine.stopped && chat === history && list.lastElementChild) {
-            addNote(list.lastElementChild, 'Stopped before the AI started answering');
-          }
-          chat.pop();   // nothing was answered, so don't send the question again as if it had been
+          reply.remove();   // nothing was answered, so BEYOND didn't save the question either
+          if (mine.stopped && question.isConnected) addNote(question, 'Stopped before the AI started answering (not saved)');
+          if (startedNewChat && chatId === mine.chatId) { chatId = null; showChatInAddress(); }   // BEYOND removed it again
         }
-        if (problem && chat === history) { bubble('error', problem); refreshStatus(); }
+        if (problem && question.isConnected) { bubble('error', problem); refreshStatus(); }
         if (current === mine) current = null;
         setBusy(false);
+        loadList();
         input.focus();
       }
     });
 
+    // ---------- start ----------
+    const fromAddress = /^#chat=(\d+)$/.exec(location.hash);
+    if (fromAddress) openChat(Number(fromAddress[1])); else newChat();
     refreshStatus();
     setInterval(refreshStatus, 30000);
     autoGrow();
-    input.focus();
   </script>
 </body>
 </html>
