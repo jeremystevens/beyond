@@ -6,6 +6,20 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 13: web lookups** (version 0.13.0), ported from PromptetheusBot's plugins (from `requests` to `httpx`).
+  - **/web** (alias /search; DuckDuckGo via the new `ddgs` dependency), **/weather** (Open-Meteo; shares the place
+    lookup with /time), **/news** (BBC, NPR, Ars Technica feeds by category, Google News for any topic; feeds are
+    read at most 2 MB), **/wiki** (Wikipedia), **/define** (Wiktionary with Datamuse as backup), **/movie** (alias
+    /film; Wikidata and Wikipedia) and **/tv** (TVmaze), in a new "Look things up" group in /help.
+  - `app/tools/web.py`: one User-Agent, redirects followed (httpx doesn't by default), and an `Unavailable` error.
+    Each command turns connection problems into a plain reply ("I couldn't reach Wikipedia. Is this computer
+    connected to the internet?").
+  - The page turns web addresses in any message into links (built as elements, http/https only, opened in a new
+    tab with `noopener noreferrer`); text is still never run as HTML.
+  - Personality: lists the lookup commands and suggests them for current information.
+  - Tested live: all seven commands returned current results (San Jose weather, today's headlines, Apollo 11,
+    serendipity, Back to the Future, Dune 1984, Breaking Bad); empty input, unknown place and a too-long phrase;
+    every command with the internet cut off; links and /help in the browser.
 - **Phase 12: ratings and learning** (version 0.12.0), ported from PromptetheusBot's `answer_feedback` (one user).
   - **👍 👎 🔄 Try again** under every finished AI answer (stored on the message: new `rating`, `reason` and
     `retry_of` columns). 👎 offers six reasons or Skip; the buttons then show "👍 Thanks!" or "👎 Noted: …". The

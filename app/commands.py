@@ -13,10 +13,14 @@ import difflib
 from dataclasses import dataclass, field
 from typing import Callable
 
+import httpx
+
 from app import chats, learning, memory, rules, settings
+from app.tools import dictionary, movies, news, weather, web_search, wikipedia
 from app.tools.calculator import calculate
 from app.tools.dice import roll_dice
 from app.tools.units import convert
+from app.tools.web import Unavailable
 from app.tools.world_time import world_time
 
 
@@ -212,6 +216,22 @@ def _learn_button(what, detail):
     return None
 
 
+# ---------- online lookups ----------
+
+def _online(lookup, service):
+    """Wrap a lookup so a connection problem becomes a reply in plain words instead of an error."""
+    def run(args):
+        try:
+            return lookup(args)
+        except Unavailable as exc:
+            return f"🌐 I couldn't get an answer from {exc} right now. Please try again in a minute."
+        except httpx.HTTPStatusError as exc:
+            return f'🌐 {service} answered with an error (HTTP {exc.response.status_code}). Please try again later.'
+        except httpx.HTTPError:
+            return f"🌐 I couldn't reach {service}. Is this computer connected to the internet?"
+    return run
+
+
 # ---------- dice ----------
 
 def _roll(args):
@@ -282,6 +302,21 @@ COMMANDS = [
     Command('time', 'The time in a city, several cities, or convert a time between places',
             '/time 3pm London to Tokyo', world_time),
     Command('roll', 'Roll dice or flip a coin', '/roll 2d20+3', _roll),
+    Command('web', 'Search the web (DuckDuckGo)', '/web best hiking trails near Denver',
+            _online(web_search.search_web, 'DuckDuckGo'), aliases=('search',), group='Look things up'),
+    Command('weather', 'Weather now, the next hours and 3 days', '/weather San Jose, CA',
+            _online(weather.get_weather, 'the weather service (Open-Meteo)'), group='Look things up'),
+    Command('news', 'Headlines: top, world, us, tech, science, sports… or any topic', '/news tech',
+            _online(news.get_news, 'the news feeds'), group='Look things up'),
+    Command('wiki', 'A Wikipedia summary', '/wiki Apollo 11', _online(wikipedia.search_wikipedia, 'Wikipedia'),
+            group='Look things up'),
+    Command('define', 'Dictionary: meaning, pronunciation and examples', '/define serendipity',
+            _online(dictionary.define_word, 'the dictionary'), group='Look things up'),
+    Command('movie', 'A film: year, director, cast, ratings and summary', '/movie Dune 1984',
+            _online(lambda title: movies.get_movie(title, 'movie'), 'the movie services'), aliases=('film',),
+            group='Look things up'),
+    Command('tv', 'A TV show: years, network, cast, rating and summary', '/tv Breaking Bad',
+            _online(lambda title: movies.get_movie(title, 'tv'), 'the TV service'), group='Look things up'),
     Command('remember', 'Tell BEYOND something to remember in every chat', '/remember my dog is named Max',
             _remember, group='Memory'),
     Command('memories', 'See what BEYOND remembers about you (and forget things); /memories auto on|off',

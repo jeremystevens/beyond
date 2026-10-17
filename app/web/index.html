@@ -55,6 +55,7 @@
     .assistant.command { border-style: dashed; font-size: 0.92rem; }   /* BEYOND's own reply to a /command */
     .note-msg { align-self: flex-start; background: transparent; color: var(--muted); font-size: 0.85rem;
                 padding: 4px 6px; margin-top: -4px; }
+    .msg a { color: inherit; text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
     .buttons { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; white-space: normal; }
     .buttons .row { display: flex; flex-wrap: wrap; gap: 6px; }
     .chip { padding: 5px 12px; font-size: 0.85rem; font-weight: 500; border-radius: 999px; background: var(--bg);
@@ -145,11 +146,27 @@
     function nearBottom() { return log.scrollHeight - log.scrollTop - log.clientHeight < 80; }
     function scrollDown(force) { if (force || nearBottom()) log.scrollTop = log.scrollHeight; }
 
+    // Plain text on purpose: nothing the AI or a web result writes is run as HTML. Web addresses become links
+    // (built as elements, only http/https, opened in a new tab without access back to BEYOND).
+    function fill(el, text) {
+      el.textContent = '';
+      let last = 0;
+      for (const m of text.matchAll(/https?:\/\/[^\s<>"'“”‘’«»]+/g)) {
+        const url = m[0].replace(/[.,;:!?)\]}]+$/, '');
+        el.append(text.slice(last, m.index));
+        const a = document.createElement('a');
+        a.href = url; a.textContent = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        el.append(a);
+        last = m.index + url.length;
+      }
+      el.append(text.slice(last));
+    }
+
     function bubble(kind, text) {
       $('welcome')?.remove();
       const el = document.createElement('div');
       el.className = 'msg ' + kind;
-      el.textContent = text;   // plain text on purpose: nothing the AI writes is run as HTML
+      fill(el, text);
       list.appendChild(el);
       scrollDown(true);
       return el;
@@ -187,7 +204,7 @@
         });
         const data = await r.json();
         if (!r.ok) throw new Error(data.error || 'Something went wrong.');
-        el.textContent = data.text;   // the message changes in place (plain text, as always)
+        fill(el, data.text);   // the message changes in place (plain text, as always)
         showButtons(el, messageId, data.buttons);
         if (data.toast) {
           const toast = document.createElement('span');
@@ -490,7 +507,7 @@
               const follow = nearBottom();
               if (!answer) reply.className = 'msg assistant writing' + (event.kind === 'command' ? ' command' : '');
               answer += event.text;
-              reply.textContent = answer;
+              fill(reply, answer);
               if (follow) scrollDown(true);
             } else if (event.type === 'message') {
               // 🔄 is only offered on the newest answer

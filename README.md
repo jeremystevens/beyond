@@ -4,12 +4,12 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 12 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> **Status: early development (Phase 13 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
 > browser: it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
-> slash commands (/calc, /convert, /time, /roll, /remember, /help), some
-> with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
+> slash commands (/calc, /convert, /time, /roll, /weather, /news, /web, /wiki, /define, /movie, /remember,
+> /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
 > arrives in Phase 33.
 
 ## Saved facts
@@ -51,6 +51,25 @@ Every answer has **👍**, **👎** and **🔄 Try again** under it.
 - **/learned** shows what BEYOND picked up from your ratings, with **🧽 Reset what you learned**.
 
 The AI itself isn't retrained; ratings change what it is told before it answers.
+
+## Looking things up
+
+These commands fetch current information from free public services (no accounts or API keys). Only what you type
+after the command is sent; results are shown as they come, with links you can open, and are never followed as
+instructions.
+
+| Command | What it does | Source |
+|---|---|---|
+| `/web <question>` | Top 5 web results with a snippet each (alias `/search`) | DuckDuckGo (`ddgs` package) |
+| `/weather <place>` | Now, the next 6 hours and 3 days; °F/mph in the US | Open-Meteo |
+| `/news [topic]` | Headlines: top, world, us, politics, tech, science, business, health, entertainment, sports, or any topic | BBC, NPR, Ars Technica, Google News |
+| `/wiki <topic>` | An article's summary | Wikipedia |
+| `/define <word>` | Meanings, pronunciation and examples | Wiktionary (Datamuse as backup) |
+| `/movie <title> [year]` | Year, director, runtime, cast, ratings, summary (alias `/film`) | Wikidata, Wikipedia |
+| `/tv <title>` | Years, network, cast, rating, summary | TVmaze |
+
+Without internet, each one says so plainly. The AI itself doesn't browse yet; when you ask it about current events
+it suggests the matching command.
 
 ## Commands
 
@@ -185,8 +204,9 @@ app/memory.py        Saved facts (same database)
 app/learning.py      Ratings and what BEYOND learns from them
 app/commands.py      Slash commands: one list (name, summary, example, function) drives /help, the / menu
                      and "did you mean…?"; replies can carry buttons, handled by ACTIONS
-app/tools/           The tools behind the commands (calculator, units, world_time, dice, places), from
-                     PromptetheusBot
+app/tools/           The tools behind the commands (calculator, units, world_time, dice, places, and the
+                     online lookups: web, web_search, weather, news, wikipedia, dictionary, movies),
+                     from PromptetheusBot
 app/ports.py         Port checks (free? who's using it?) and this PC's network addresses
 app/server.py        The web server (FastAPI): pages, chat, settings and status endpoints
 app/web/             The pages: index.html (chat), settings.html, style.css (shared look), app-height.js

@@ -151,7 +151,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 - 👍 👎 🔄 under every answer, 🔄 Try again, and `/learned` (what it learned from your ratings, with reset).
 - **Done when:** rating answers changes later ones, and `/learned` shows what it picked up.
 
-### Phase 13: Web lookups
+### Phase 13: Web lookups ✅ (done 2026-10-17)
 - `/web`, `/weather`, `/news`, `/wiki`, `/define`, `/movie` and `/tv`.
 - **Done when:** each command returns current information.
 
