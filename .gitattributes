@@ -1,0 +1,6 @@
+# Store text files with consistent line endings in the repository, whatever system checks them out.
+* text=auto
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.png binary
+*.ico binary
