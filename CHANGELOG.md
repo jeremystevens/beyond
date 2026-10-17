@@ -6,6 +6,23 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 11: automatic memory** (version 0.11.0).
+  - **Fact pickup**, ported from PromptetheusBot: after an answer is saved, a personal-sounding message (the bot's
+    `PERSONAL_RE` filter, which skips questions and one-off plans) goes to the AI once more with a short
+    fact-finding prompt (`engine.complete`, 120 tokens, temperature 0.1). Up to 3 facts are saved as `auto` and the
+    page shows "🧠 Noted for next time: …" as a note under the answer (kept in the chat, never sent to the AI). It
+    is skipped while another answer is being written, so it never slows a reply down.
+  - **Recall**: an FTS5 index of all chat messages (kept up to date by triggers; built once for existing chats).
+    Each question's keywords find up to 2 related earlier exchanges from any chat (not ones already in the
+    conversation sent to the AI) and they are attached to the newest message as background, with their dates, so
+    the cached start of the prompt stays the same.
+  - `/memories auto on|off` and an "Automatic pickup: on/off" line in /memories; Settings has a new **Memory**
+    section with both switches (`auto_facts`, `recall`, on by default).
+  - Personality: BEYOND now knows it can recall older conversations and that facts are noticed automatically.
+  - Tested with Qwen3-4B on the processor: "I'm a nurse and I have a cat named Luna" saved both facts (🤖) with
+    the note; after a chat about the film Arrival, a new chat's "What was that movie I told you about?" answered
+    *Arrival* with the saved fact removed (recall alone); notes still show after reloading a chat; switches saved and
+    rejected bad values.
 - **Phase 10: saved facts.**
   - `app/memory.py`: facts in the database, ported from PromptetheusBot's `memory_store` (single user): up to 40
     facts of 200 characters; never saves passwords, PINs, codes, card or account numbers; recognises the same fact

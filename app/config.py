@@ -6,8 +6,8 @@ which is never committed and only holds what differs from these defaults, so a n
 """
 from pathlib import Path
 
-VERSION = '0.10.0'
-PHASE = 10
+VERSION = '0.11.0'
+PHASE = 11
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / 'data'                          # settings, chats, logs: created at runtime, git-ignored
@@ -39,13 +39,19 @@ DEFAULTS = {
     'web_port': WEB_PORT,
     # Let phones and other computers on your network open BEYOND. Off by default: there's no login yet (Phase 38).
     'allow_network': False,
+    # Notice lasting facts you mention about yourself and save them ("ðŸ§  Noted for next time"). Uses the AI once more
+    # after a personal-sounding message.
+    'auto_facts': True,
+    # Search older conversations for exchanges related to your question and give them to the AI as background.
+    'recall': True,
 }
+BOOLEAN_SETTINGS = ('allow_network', 'auto_facts', 'recall')
 RESTART_SETTINGS = ('web_port', 'allow_network')   # these only take effect after BEYOND restarts
 
 PERSONALITY_FILE = Path(__file__).resolve().parent / 'personality.md'   # BEYOND's system prompt
 
 AI_TIMEOUT_SECONDS = 300      # a long answer on a processor-only PC can take minutes
-HISTORY_LIMIT = 12            # most recent messages sent with each question (the window moves 6 -> 12 -> 6 …)
+HISTORY_LIMIT = 12            # most recent messages sent with each question (the window moves 6 -> 12 -> 6 â€¦)
 HISTORY_MESSAGE_CHARS = 1500  # an earlier message longer than this is shortened in the history sent to the AI
 ANSWER_MAX_TOKENS = 700       # cap on one answer's length (the personality asks for short answers anyway)
 TEMPERATURE = 0.7             # how adventurous the wording is (0 = always the same, higher = more varied)

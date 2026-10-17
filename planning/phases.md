@@ -142,7 +142,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 - `/remember`, `/memories`, `/forget`, and saved facts added to every chat.
 - **Done when:** after `/remember my dog is named Max`, a new chat answers "What's my dog's name?" correctly.
 
-### Phase 11: Automatic memory
+### Phase 11: Automatic memory ✅ (done 2026-10-17)
 - Automatic fact pickup ("🧠 Noted for next time"), with the filter for non-facts, and searching old conversations
   so "what was that movie I told you about?" works weeks later.
 - **Done when:** a fact mentioned in passing is picked up, and a detail from an old chat is recalled.

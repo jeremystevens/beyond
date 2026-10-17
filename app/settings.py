@@ -62,9 +62,9 @@ def validate(changes):
                 raise SettingsError(f'The port must be between {config.MIN_PORT} and {config.MAX_PORT}.')
             if value in config.RESERVED_PORTS:
                 raise SettingsError(f'Port {value} is used by {config.RESERVED_PORTS[value]}. Please pick another.')
-        elif key == 'allow_network':
+        elif key in config.BOOLEAN_SETTINGS:
             if not isinstance(value, bool):
-                raise SettingsError('The network switch must be on or off.')
+                raise SettingsError(f'{key} must be on or off.')
         clean[key] = value
     return clean
 

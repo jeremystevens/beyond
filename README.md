@@ -4,9 +4,9 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 10 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
-> browser: it has its own personality, follows your house rules, remembers facts you tell it in every chat and
-> what was said earlier in each chat, writes its answers as you watch (with a Stop button), saves your
+> **Status: early development (Phase 11 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> browser: it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
+> tell it and ones it notices), recalls related older conversations, writes its answers as you watch (with a Stop button), saves your
 > conversations in a side panel, and has slash commands (/calc, /convert, /time, /roll, /remember, /help), some
 > with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
 > arrives in Phase 33.
@@ -23,6 +23,17 @@ Tell BEYOND things to remember in **every** chat, new or old:
 Up to 40 facts of up to 200 characters. The same fact twice (even worded differently) is recognised, and BEYOND never
 saves passwords, PINs, codes, or card or account numbers. Facts are added to the AI's instructions with the date they
 were saved, so a newer fact wins over an older one that conflicts.
+
+**Automatic memory:**
+
+- **Noticing facts.** When you mention something lasting about yourself in passing ("I'm a nurse and I have a cat
+  named Luna"), BEYOND saves it after the answer and shows **🧠 Noted for next time** under it. Picked-up facts are
+  marked 🤖 in /memories. It only runs after personal-sounding messages, never while another answer is being
+  written, and skips questions, opinions and one-off plans. Turn it off with **/memories auto off** or on the
+  Settings page.
+- **Recalling old conversations.** Every message is indexed for search (SQLite FTS5). When you ask something like
+  "what was that movie I told you about?", BEYOND finds the most related earlier exchanges in any chat and gives
+  them to the AI as background for that one reply. No extra AI work; turn it off on the Settings page.
 
 ## Commands
 

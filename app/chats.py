@@ -111,12 +111,14 @@ def remove_message(message_id):
         db.execute('DELETE FROM messages WHERE id = ?', (message_id,))
 
 
-def recent_messages(chat_id, limit):
-    """The last `limit` conversation messages (not commands), oldest first, in the form the AI expects."""
+def recent_messages(chat_id, limit, with_ids=False):
+    """The last `limit` conversation messages (not commands), oldest first, in the form the AI expects.
+    with_ids=True also returns the set of their ids (so the old-conversation search can skip them)."""
     with connect() as db:
-        rows = db.execute("SELECT role, content FROM messages WHERE chat_id = ? AND kind = 'chat' "
+        rows = db.execute("SELECT id, role, content FROM messages WHERE chat_id = ? AND kind = 'chat' "
                           'ORDER BY id DESC LIMIT ?', (chat_id, limit)).fetchall()
-    return [{'role': row['role'], 'content': row['content']} for row in reversed(rows)]
+    messages = [{'role': row['role'], 'content': row['content']} for row in reversed(rows)]
+    return (messages, {row['id'] for row in rows}) if with_ids else messages
 
 
 def message_count(chat_id, kind='chat'):

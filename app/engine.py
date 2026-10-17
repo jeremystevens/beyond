@@ -46,19 +46,24 @@ def trim(messages):
             else {**m, 'content': m['content'][:limit] + ' …(shortened)'} for i, m in enumerate(messages)]
 
 
-def with_reply_notes(messages):
+def with_reply_notes(messages, background=''):
     """Attach short notes for this reply to the newest message (not saved in the chat).
 
-    Small models pay most attention to the end of the prompt: a house rule only at the end of the long personality,
-    followed by a conversation in a different style, gets ignored (tested: "Always answer in French" was). So the
-    rules are repeated here, next to the question. Only the newest message changes, so the AI server can still reuse
-    everything before it. Same approach as PromptetheusBot's notes block."""
-    current = rules.all_rules()
-    if not messages or messages[-1]['role'] != 'user' or not current:
+    Things that change with every message (related old conversations found for this question) go here rather than in
+    the personality, so the start of the prompt stays the same and the AI server can reuse it. The house rules are
+    repeated here too: small models pay most attention to the end of the prompt, and a rule only at the end of the
+    long personality was ignored (tested: "Always answer in French"). Rules come last, closest to the question.
+    Same approach as PromptetheusBot's notes block."""
+    if not messages or messages[-1]['role'] != 'user':
         return messages
-    notes = ('[Notes for this reply from BEYOND (not written by the person; follow them, do not mention them):\n'
-             'Follow the house rules: ' + ' '.join(rule['text'].rstrip('.') + '.' for rule in current) +
-             "]\n\n## The person's message\n")
+    parts = [background.strip()] if background.strip() else []
+    current = rules.all_rules()
+    if current:
+        parts.append('Follow the house rules: ' + ' '.join(rule['text'].rstrip('.') + '.' for rule in current))
+    if not parts:
+        return messages
+    notes = ('[Notes for this reply from BEYOND (not written by the person; do not mention them):\n' +
+             '\n\n'.join(parts) + "]\n\n## The person's message\n")
     return [*messages[:-1], {**messages[-1], 'content': notes + messages[-1]['content']}]
 
 
@@ -88,21 +93,45 @@ async def status(url=None):
     return {'state': 'ok', 'url': url, 'model': model}
 
 
-def _prepare(messages, stream):
-    """The server address and the request body, or a plain-words error if no AI is set up."""
+def _server():
     values = settings.load()
     url = values['ai_server_url']
     if not url:
         raise EngineError('No AI is set up yet. Open Settings and enter the address of an AI server you run '
                           '(for example Local AI Studio\'s engine).')
+    return url, values['ai_model']
+
+
+def _prepare(messages, stream, background=''):
+    """The server address and the request body for a chat reply, or a plain-words error if no AI is set up."""
+    url, model = _server()
     # The personality comes first and never changes between messages, so the AI server can reuse it (see
     # history_window); the conversation follows, newest message last, with any notes for this reply attached to it.
-    messages = with_reply_notes(trim(messages))
+    messages = with_reply_notes(trim(messages), background)
     payload = {'messages': [{'role': 'system', 'content': system_prompt()}, *messages], 'stream': stream,
                'max_tokens': config.ANSWER_MAX_TOKENS, 'temperature': config.TEMPERATURE, 'cache_prompt': True}
-    if values['ai_model']:
-        payload['model'] = values['ai_model']
+    if model:
+        payload['model'] = model
     return _base_url(url) + '/v1/chat/completions', url, payload
+
+
+async def complete(messages, max_tokens, temperature):
+    """A one-off request with its own instructions (not BEYOND's personality), e.g. picking facts out of a message.
+    Returns the AI's text."""
+    url, model = _server()
+    payload = {'messages': messages, 'stream': False, 'max_tokens': max_tokens, 'temperature': temperature}
+    if model:
+        payload['model'] = model
+    try:
+        async with _client() as client:
+            response = await client.post(_base_url(url) + '/v1/chat/completions', json=payload)
+    except httpx.HTTPError as exc:
+        raise _explain(exc, url) from exc
+    _check(response.status_code)
+    try:
+        return response.json()['choices'][0]['message']['content'] or ''
+    except (ValueError, KeyError, IndexError, TypeError) as exc:
+        raise EngineError("The AI server's answer wasn't in the expected format.") from exc
 
 
 def _client():
@@ -142,12 +171,13 @@ async def chat(messages):
         raise EngineError("The AI server's answer wasn't in the expected format.") from exc
 
 
-async def chat_stream(messages):
-    """Like chat(), but yields the reply piece by piece as the AI writes it.
+async def chat_stream(messages, background=''):
+    """Like chat(), but yields the reply piece by piece as the AI writes it. `background`: notes for this reply
+    only (for example related old conversations).
 
     If the caller stops reading (the person pressed Stop), the connection to the AI server is closed, which tells
     llama.cpp to stop writing, so the AI is free again for the next question (or for the Telegram bot)."""
-    endpoint, url, payload = _prepare(messages, stream=True)
+    endpoint, url, payload = _prepare(messages, stream=True, background=background)
     try:
         async with _client() as client:
             async with client.stream('POST', endpoint, json=payload) as response:

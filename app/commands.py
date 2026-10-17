@@ -13,7 +13,7 @@ import difflib
 from dataclasses import dataclass, field
 from typing import Callable
 
-from app import memory, rules
+from app import memory, rules, settings
 from app.tools.calculator import calculate
 from app.tools.dice import roll_dice
 from app.tools.units import convert
@@ -95,15 +95,27 @@ def _remember(args):
     }[status]
 
 
+def _pickup_line():
+    on = settings.load()['auto_facts']
+    return (f"\nAutomatic pickup: {'on' if on else 'off'} "
+            f"(/memories auto {'off' if on else 'on'} to turn it {'off' if on else 'on'})")
+
+
 def _memories(args=''):
+    words = args.lower().split()
+    if words[:1] == ['auto'] and words[1:2] in (['on'], ['off']):
+        settings.save({'auto_facts': words[1] == 'on'})
+        return Reply('🤖 Automatic pickup is on: when you mention something lasting about yourself, I\'ll save it '
+                     'and tell you ("🧠 Noted for next time").' if words[1] == 'on' else
+                     '🤖 Automatic pickup is off. I\'ll only remember what you add with /remember.')
     facts = memory.all_facts()
     if not facts:
         return Reply("🧠 I don't have any saved facts about you yet.\nAdd one with /remember, for example:\n"
-                     '/remember my birthday is March 3')
+                     '/remember my birthday is March 3' + _pickup_line())
     lines = [f'{n}. {f["fact"]}' + (' 🤖' if f['source'] == 'auto' else '') for n, f in enumerate(facts, 1)]
     note = '\n🤖 = picked up from our chats' if any(f['source'] == 'auto' for f in facts) else ''
     return Reply('🧠 What I remember about you (in every chat):\n\n' + '\n'.join(lines) + note +
-                 '\n\nTap 🗑 to forget one, or type /forget <number>.',
+                 '\n\nTap 🗑 to forget one, or type /forget <number>.' + _pickup_line(),
                  rows([button(f'🗑 {n}', f'mem:del:{f["id"]}') for n, f in enumerate(facts, 1)]) +
                  [[button('🗑 Forget all', 'mem:all:')]])
 
@@ -219,8 +231,8 @@ COMMANDS = [
     Command('roll', 'Roll dice or flip a coin', '/roll 2d20+3', _roll),
     Command('remember', 'Tell BEYOND something to remember in every chat', '/remember my dog is named Max',
             _remember, group='Memory'),
-    Command('memories', 'See what BEYOND remembers about you (and forget things)', '/memories', _memories,
-            aliases=('facts',), group='Memory'),
+    Command('memories', 'See what BEYOND remembers about you (and forget things); /memories auto on|off',
+            '/memories', _memories, aliases=('facts',), group='Memory'),
     Command('forget', 'Forget one saved fact, or all of them', '/forget 2', _forget, group='Memory'),
     Command('rule', 'Add or delete a house rule BEYOND follows in every chat', '/rule Use metric units', _rule,
             group='House rules'),

@@ -132,30 +132,80 @@ async def chat_stream(body: SendRequest):
     if content.startswith('/'):
         return _command_reply(chat_id, new_chat, content)
     question_id = chats.add_message(chat_id, 'user', content)
-    history = chats.recent_messages(chat_id, engine.history_window(chats.message_count(chat_id)))
+    values = settings.load()
+    history, sent_ids = chats.recent_messages(chat_id, engine.history_window(chats.message_count(chat_id)),
+                                              with_ids=True)
+    # Related exchanges from older conversations (any chat), as background for this reply only.
+    background = memory.recall_block(content, sent_ids) if values['recall'] else ''
 
     async def events():
-        answer, finished = [], False
-        yield json.dumps({'type': 'chat', 'id': chat_id, 'new': new_chat, 'title': chats.title_from(content)}) + '\n'
+        global ANSWERS_IN_PROGRESS
+        answer, finished, saved = [], False, False
+        ANSWERS_IN_PROGRESS += 1
+        writing = True
         try:
-            async for piece in engine.chat_stream(history):
-                answer.append(piece)
-                yield json.dumps({'type': 'token', 'text': piece}) + '\n'
-            finished = True
-            yield json.dumps({'type': 'done'}) + '\n'
-        except engine.EngineError as exc:
-            yield json.dumps({'type': 'error', 'message': str(exc)}) + '\n'
-        finally:   # also runs when Stop cancels the stream
+            yield json.dumps({'type': 'chat', 'id': chat_id, 'new': new_chat, 'title': chats.title_from(content)}) + '\n'
+            try:
+                async for piece in engine.chat_stream(history, background):
+                    answer.append(piece)
+                    yield json.dumps({'type': 'token', 'text': piece}) + '\n'
+                finished = True
+            except engine.EngineError as exc:
+                yield json.dumps({'type': 'error', 'message': str(exc)}) + '\n'
             text = ''.join(answer).strip()
-            if text:
-                chats.add_message(chat_id, 'assistant', text, stopped=not finished)
-            else:
-                chats.remove_message(question_id)
-                if new_chat and chats.message_count(chat_id, kind=None) == 0:
-                    chats.delete(chat_id)
+            if finished and text:
+                chats.add_message(chat_id, 'assistant', text)
+                saved = True
+                # "done": the answer is complete and saved, so the page can let you type again. Anything after this
+                # (the automatic fact pickup) is extra and arrives a little later on the same connection.
+                yield json.dumps({'type': 'done'}) + '\n'
+                ANSWERS_IN_PROGRESS -= 1
+                writing = False
+                if values['auto_facts'] and memory.wants_pickup(content):
+                    note = await _pick_up_facts(content)
+                    if note:
+                        note_id = chats.add_message(chat_id, 'assistant', note, kind='note')
+                        yield json.dumps({'type': 'note', 'id': note_id, 'text': note}) + '\n'
+        finally:   # also runs when Stop cancels the stream
+            if writing:
+                ANSWERS_IN_PROGRESS -= 1
+            if not saved:
+                text = ''.join(answer).strip()
+                if text:
+                    chats.add_message(chat_id, 'assistant', text, stopped=True)
+                else:
+                    chats.remove_message(question_id)
+                    if new_chat and chats.message_count(chat_id, kind=None) == 0:
+                        chats.delete(chat_id)
 
     return StreamingResponse(events(), media_type='application/x-ndjson',
                              headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+
+
+ANSWERS_IN_PROGRESS = 0     # chat answers being written right now
+PICKUP_LOCK = asyncio.Lock()
+
+
+async def _pick_up_facts(message):
+    """After an answer: ask the AI for lasting facts the person said about themselves, and save them.
+    Skipped (not queued) while another answer is being written or another pickup is running, so it never makes
+    anyone wait. Returns the "Noted for next time" note, or '' if nothing was saved."""
+    if ANSWERS_IN_PROGRESS or PICKUP_LOCK.locked():
+        return ''
+    async with PICKUP_LOCK:
+        try:
+            raw = await engine.complete(memory.pickup_messages(message), max_tokens=120, temperature=0.1)
+        except engine.EngineError:
+            logging.warning('Automatic fact pickup skipped: the AI could not be reached')
+            return ''
+        saved = []
+        for fact in memory.parse_facts(raw)[:3]:
+            status, text = await asyncio.to_thread(memory.add, fact, 'auto')
+            if status == 'added':
+                saved.append(text)
+    if not saved:
+        return ''
+    return '🧠 Noted for next time: ' + '; '.join(saved) + '\n(/memories to review, /forget to remove)'
 
 
 def _command_reply(chat_id, new_chat, content):

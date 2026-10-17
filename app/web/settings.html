@@ -100,6 +100,26 @@
     </section>
 
     <section>
+      <h2>Memory</h2>
+      <p class="hint">Saved facts (/remember, /memories) are always used. These two are extras; press Save after
+        changing them.</p>
+      <label class="switch">
+        <input type="checkbox" id="auto_facts">
+        <span><b>Notice facts automatically</b>
+          <span class="small">When you mention something lasting about yourself ("my sister lives in Ohio"), BEYOND
+            saves it and tells you ("🧠 Noted for next time"). Uses the AI once more, briefly, after personal-sounding
+            messages, never while another answer is being written. Also: /memories auto on|off.</span></span>
+      </label>
+      <label class="switch">
+        <input type="checkbox" id="recall">
+        <span><b>Search older conversations</b>
+          <span class="small">Finds earlier exchanges related to your question (in any chat) and gives them to the AI
+            as background, so "what was that movie I told you about?" works weeks later. No extra AI work; adds a
+            little reading time when something is found.</span></span>
+      </label>
+    </section>
+
+    <section>
       <h2>BEYOND's address</h2>
       <label for="web_port">Port <span class="small" id="portDefault"></span></label>
       <input type="number" id="web_port" min="1024" max="65535">
@@ -123,7 +143,8 @@
 
   <script>
     const $ = id => document.getElementById(id);
-    const fields = ['ai_server_url', 'ai_model', 'web_port', 'allow_network'];
+    const fields = ['ai_server_url', 'ai_model', 'web_port', 'allow_network', 'auto_facts', 'recall'];
+    const checkboxes = ['allow_network', 'auto_facts', 'recall'];
     let view = null;
 
     function show(kind, text) {
@@ -136,7 +157,7 @@
     function fill(v) {
       view = v;
       for (const f of fields) {
-        if (f === 'allow_network') $(f).checked = v.values[f];
+        if (checkboxes.includes(f)) $(f).checked = v.values[f];
         else $(f).value = v.values[f];
       }
       $('portDefault').textContent = `(default ${v.defaults.web_port})`;
@@ -172,6 +193,7 @@
       return {
         ai_server_url: $('ai_server_url').value, ai_model: $('ai_model').value,
         web_port: Number($('web_port').value), allow_network: $('allow_network').checked,
+        auto_facts: $('auto_facts').checked, recall: $('recall').checked,
       };
     }
 
