@@ -6,6 +6,24 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 7: house rules.**
+  - `app/rules.py`: house rules in the database (up to 25, 5–300 characters, the same rule twice is ignored),
+    ported from PromptetheusBot (its link from rules to automatic lookups waits for Phase 14).
+  - Rules go at the end of the personality ("always follow; a rule wins over the style above") **and** in a short
+    notes block attached to the newest message (`engine.with_reply_notes`), like PromptetheusBot's notes. The note
+    is what made the difference: with the rule only in the personality, "Always answer in French" was ignored
+    by the 4B model in an English conversation; with the note it answered in French. Only the newest message
+    changes, so prompt reuse still works.
+  - `app/commands.py`, the start of the command system: **/rule &lt;text&gt;**, **/rules**, **/rule delete
+    &lt;number&gt;**; unknown /commands get "I don't know the command…" instead of going to the AI. Commands and
+    their replies are saved in the chat (new `kind` column in `messages`, added automatically to existing
+    databases) but never sent to the AI; on the page they show with a dashed border.
+  - Settings page: a **House rules** section (list with Remove, an Add box; saved straight away, from any device
+    that can chat). New endpoints `GET/POST /api/rules`, `DELETE /api/rules/{id}`.
+  - Personality: "What You Can Do Right Now" now includes following house rules.
+  - Tested: French and "end with OVER" rules visibly changed answers and stopped when removed; commands not in
+    what the AI is sent; too short, duplicate (any capitalisation), wrong number and unknown command replies;
+    Settings add / remove; an existing database got the new column with its chats intact.
 - **Phase 6: personality and conversation memory.**
   - `app/personality.md`: BEYOND's personality, adapted from PromptetheusBot's system prompt (same character and
     wording, named BEYOND, Telegram replaced by "a chat page in a browser on your own computer"). A **What You Can

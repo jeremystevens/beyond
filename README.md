@@ -4,10 +4,11 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 6 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
-> browser: it has its own personality, remembers what was said earlier in the chat, writes its answers as you
-> watch (with a Stop button), and saves your conversations in a side panel (open, rename, delete). It uses an AI
-> server you already run (such as Local AI Studio); BEYOND's own built-in AI engine arrives in Phase 33.
+> **Status: early development (Phase 7 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> browser: it has its own personality, follows your house rules, remembers what was said earlier in the chat,
+> writes its answers as you watch (with a Stop button), and saves your conversations in a side panel (open,
+> rename, delete). It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI
+> engine arrives in Phase 33.
 
 ## Personality
 
@@ -20,6 +21,19 @@ Each question is sent with up to the last 12 messages of the chat. To keep repli
 part of the prompt it already read: the personality comes first and never changes, and the chat history grows from
 6 to 12 messages and is then cut back in one step, so the start of the prompt stays the same for several messages.
 Very long earlier messages are shortened in what's sent.
+
+## House rules
+
+House rules are instructions BEYOND follows in every chat, such as "Always answer in under 3 sentences",
+"Use metric units" or "Always answer in French". Up to 25 rules of 5–300 characters.
+
+- In a chat: **/rule &lt;text&gt;** adds one, **/rules** lists them, **/rule delete &lt;number&gt;** removes one.
+- On the Settings page: the **House rules** section lists them with **Remove** buttons and an **Add** box (saved
+  straight away; usable from any device that can chat).
+
+Rules are added to the end of the personality and repeated in a short note next to your newest message, because
+small models follow instructions best when they're close to the question. Commands like /rules and BEYOND's
+replies to them are saved in the chat but never sent to the AI.
 
 ## Chats
 
@@ -93,6 +107,8 @@ app/settings.py      Your settings: the defaults plus your changes in data/setti
 app/engine.py        The engine connector: the only place BEYOND talks to an AI server (and the history window)
 app/personality.md   BEYOND's personality (the system prompt)
 app/chats.py         Saved conversations (SQLite database in data/beyond.sqlite3)
+app/rules.py         House rules (same database)
+app/commands.py      Slash commands typed in a chat (/rule, /rules so far)
 app/ports.py         Port checks (free? who's using it?) and this PC's network addresses
 app/server.py        The web server (FastAPI): pages, chat, settings and status endpoints
 app/web/             The pages: index.html (chat), settings.html, style.css (shared look)

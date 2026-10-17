@@ -29,6 +29,11 @@
     .banner.ok { background: var(--ok-bg); border: 1px solid var(--ok); }
     .banner.bad { background: var(--error-bg); border: 1px solid var(--bad); }
     .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .rules { margin: 0 0 12px; padding-left: 22px; display: flex; flex-direction: column; gap: 4px; }
+    .rules:empty { display: none; }
+    .rules li { line-height: 1.4; }
+    .rules li span { display: inline-flex; align-items: flex-start; gap: 8px; width: 100%; justify-content: space-between; }
+    .rules .remove { padding: 2px 8px; font-size: 0.8rem; flex: none; }
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -64,6 +69,19 @@
       <input type="text" id="ai_model" placeholder="Leave empty to use whatever model is loaded" spellcheck="false"
              style="width: 100%">
       <p class="small">Only needed for servers that host several models at once, such as Ollama.</p>
+    </section>
+
+    <section>
+      <h2>House rules</h2>
+      <p class="hint">Instructions BEYOND follows in every chat, for example "Always answer in under 3 sentences" or
+        "Use metric units". You can also type <b>/rule &lt;text&gt;</b> and <b>/rules</b> in a chat. They're saved straight
+        away (no need to press Save).</p>
+      <ol class="rules" id="rules"></ol>
+      <div class="row">
+        <input type="text" id="newRule" maxlength="300" placeholder="Add a rule…" aria-label="New house rule">
+        <button type="button" class="ghost" id="addRule">Add</button>
+      </div>
+      <div class="result" id="ruleResult"></div>
     </section>
 
     <section>
@@ -108,7 +126,8 @@
       }
       $('portDefault').textContent = `(default ${v.defaults.web_port})`;
       $('portShown').textContent = v.running.port;
-      document.querySelectorAll('input, #save, #reset, #test').forEach(el => el.disabled = !v.can_change);
+      // House rules stay editable from any device, like /rule in a chat; the rest is this-PC-only.
+      document.querySelectorAll('input:not(#newRule), #save, #reset, #test').forEach(el => el.disabled = !v.can_change);
       $('viewOnly').hidden = v.can_change;
       $('restartBanner').hidden = !(v.can_change && v.restart_needed.length);
       const list = $('addresses');
@@ -193,7 +212,49 @@
       } catch (e) { show('bad', e.message); }
     };
 
+    // ---------- house rules (saved straight away) ----------
+    function showRules(list) {
+      const ol = $('rules');
+      ol.innerHTML = '';
+      for (const rule of list) {
+        const li = document.createElement('li');
+        const row = document.createElement('span');
+        const text = document.createElement('span');
+        text.textContent = rule.text;
+        const remove = document.createElement('button');
+        remove.type = 'button'; remove.className = 'ghost remove'; remove.textContent = 'Remove';
+        remove.ariaLabel = 'Remove rule: ' + rule.text;
+        remove.onclick = async () => {
+          try { showRules((await api('/api/rules/' + rule.id, { method: 'DELETE' })).rules); $('ruleResult').textContent = 'Removed.'; }
+          catch (e) { $('ruleResult').textContent = e.message; }
+        };
+        row.append(text, remove);
+        li.appendChild(row);
+        ol.appendChild(li);
+      }
+    }
+
+    async function api(url, options = {}) {
+      const r = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...options });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Something went wrong.');
+      return data;
+    }
+
+    async function addRule() {
+      const text = $('newRule').value.trim();
+      if (!text) return;
+      try {
+        showRules((await api('/api/rules', { method: 'POST', body: JSON.stringify({ text }) })).rules);
+        $('newRule').value = '';
+        $('ruleResult').textContent = 'Added. It applies to every chat from the next message.';
+      } catch (e) { $('ruleResult').textContent = e.message; }
+    }
+    $('addRule').onclick = addRule;
+    $('newRule').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addRule(); } });
+
     fetch('/api/settings').then(r => r.json()).then(fill).catch(() => show('bad', 'BEYOND is not responding.'));
+    api('/api/rules').then(showRules).catch(() => {});
   </script>
 </body>
 </html>

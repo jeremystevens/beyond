@@ -120,7 +120,7 @@ Studio's engine on 10086 for most of development; that must never become the def
   prompt layout from the bot (stable parts first, so the AI can reuse what it already read).
 - **Done when:** BEYOND answers in Promptetheus's style and remembers what was said earlier in the chat.
 
-### Phase 7: House rules
+### Phase 7: House rules ✅ (done 2026-10-17; /rule and /rules started the command system early)
 - A list of house rules added to every chat (add, list, delete), from the settings page and with `/rule` / `/rules`.
 - **Done when:** a rule like "always answer in under 3 sentences" visibly changes the answers.
 

@@ -7,7 +7,7 @@ import json
 
 import httpx
 
-from app import config, settings
+from app import config, rules, settings
 
 FALLBACK_PROMPT = ("You are BEYOND, a friendly and helpful assistant that runs entirely on the user's own computer. "
                    "Answer clearly and get to the point.")
@@ -18,11 +18,13 @@ class EngineError(Exception):
 
 
 def system_prompt():
-    """BEYOND's personality (app/personality.md). Read on every message, so edits to it apply straight away."""
+    """BEYOND's personality (app/personality.md) followed by the house rules. Read on every message, so edits to
+    either apply straight away."""
     try:
-        return config.PERSONALITY_FILE.read_text(encoding='utf-8').strip() or FALLBACK_PROMPT
+        personality = config.PERSONALITY_FILE.read_text(encoding='utf-8').strip() or FALLBACK_PROMPT
     except OSError:
-        return FALLBACK_PROMPT
+        personality = FALLBACK_PROMPT
+    return personality + rules.prompt_block()
 
 
 def history_window(total):
@@ -42,6 +44,22 @@ def trim(messages):
     limit = config.HISTORY_MESSAGE_CHARS
     return [m if len(m['content']) <= limit or i == len(messages) - 1
             else {**m, 'content': m['content'][:limit] + ' …(shortened)'} for i, m in enumerate(messages)]
+
+
+def with_reply_notes(messages):
+    """Attach short notes for this reply to the newest message (not saved in the chat).
+
+    Small models pay most attention to the end of the prompt: a house rule only at the end of the long personality,
+    followed by a conversation in a different style, gets ignored (tested: "Always answer in French" was). So the
+    rules are repeated here, next to the question. Only the newest message changes, so the AI server can still reuse
+    everything before it. Same approach as PromptetheusBot's notes block."""
+    current = rules.all_rules()
+    if not messages or messages[-1]['role'] != 'user' or not current:
+        return messages
+    notes = ('[Notes for this reply from BEYOND (not written by the person; follow them, do not mention them):\n'
+             'Follow the house rules: ' + ' '.join(rule['text'].rstrip('.') + '.' for rule in current) +
+             "]\n\n## The person's message\n")
+    return [*messages[:-1], {**messages[-1], 'content': notes + messages[-1]['content']}]
 
 
 def _base_url(url):
@@ -78,8 +96,9 @@ def _prepare(messages, stream):
         raise EngineError('No AI is set up yet. Open Settings and enter the address of an AI server you run '
                           '(for example Local AI Studio\'s engine).')
     # The personality comes first and never changes between messages, so the AI server can reuse it (see
-    # history_window); the conversation follows, newest message last.
-    payload = {'messages': [{'role': 'system', 'content': system_prompt()}, *trim(messages)], 'stream': stream,
+    # history_window); the conversation follows, newest message last, with any notes for this reply attached to it.
+    messages = with_reply_notes(trim(messages))
+    payload = {'messages': [{'role': 'system', 'content': system_prompt()}, *messages], 'stream': stream,
                'max_tokens': config.ANSWER_MAX_TOKENS, 'temperature': config.TEMPERATURE, 'cache_prompt': True}
     if values['ai_model']:
         payload['model'] = values['ai_model']

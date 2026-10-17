@@ -8,9 +8,10 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from app import chats, config, engine, ports, settings
+from app import chats, commands, config, engine, ports, rules, settings
 
 chats.initialize()
+rules.initialize()
 app = FastAPI(title='BEYOND', version=config.VERSION, docs_url=None, redoc_url=None)
 app.mount('/static', StaticFiles(directory=config.WEB_DIR), name='static')
 # Filled in by beyond.py when the server starts (port and address in use, and the server, for restarts).
@@ -35,6 +36,10 @@ class SendRequest(BaseModel):
 
 class Rename(BaseModel):
     title: str = Field(max_length=200)
+
+
+class NewRule(BaseModel):
+    text: str = Field(max_length=1000)
 
 
 class SettingsChanges(BaseModel):
@@ -109,6 +114,8 @@ async def chat_stream(body: SendRequest):
     if not new_chat and not chats.exists(body.chat_id):
         return JSONResponse({'error': 'That chat no longer exists. Start a new one.'}, status_code=404)
     chat_id = chats.create(content) if new_chat else body.chat_id
+    if content.startswith('/'):
+        return _command_reply(chat_id, new_chat, content)
     question_id = chats.add_message(chat_id, 'user', content)
     history = chats.recent_messages(chat_id, engine.history_window(chats.message_count(chat_id)))
 
@@ -129,11 +136,52 @@ async def chat_stream(body: SendRequest):
                 chats.add_message(chat_id, 'assistant', text, stopped=not finished)
             else:
                 chats.remove_message(question_id)
-                if new_chat and chats.message_count(chat_id) == 0:
+                if new_chat and chats.message_count(chat_id, kind=None) == 0:
                     chats.delete(chat_id)
 
     return StreamingResponse(events(), media_type='application/x-ndjson',
                              headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+
+
+def _command_reply(chat_id, new_chat, content):
+    """A /command: BEYOND answers it itself. Both are saved in the chat (so they're there when you come back) but
+    marked as commands, so they're never sent to the AI. Same event stream as an AI answer, so the page needs no
+    special handling."""
+    reply = commands.run(content) or commands.unknown_reply(content)
+    chats.add_message(chat_id, 'user', content, kind='command')
+    chats.add_message(chat_id, 'assistant', reply, kind='command')
+
+    def events():
+        yield json.dumps({'type': 'chat', 'id': chat_id, 'new': new_chat, 'title': chats.title_from(content)}) + '\n'
+        yield json.dumps({'type': 'token', 'text': reply, 'kind': 'command'}) + '\n'
+        yield json.dumps({'type': 'done'}) + '\n'
+
+    return StreamingResponse(events(), media_type='application/x-ndjson')
+
+
+# ---------- house rules ----------
+
+@app.get('/api/rules')
+def list_rules():
+    return rules.all_rules()
+
+
+@app.post('/api/rules')
+def add_rule(body: NewRule):
+    try:
+        rule_id = rules.add(body.text)
+    except ValueError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=400)
+    if rule_id is None:
+        return JSONResponse({'error': 'That rule is already there.'}, status_code=400)
+    return {'id': rule_id, 'rules': rules.all_rules()}
+
+
+@app.delete('/api/rules/{rule_id}')
+def delete_rule(rule_id: int):
+    if not rules.remove(rule_id):
+        return JSONResponse({'error': 'That rule no longer exists.'}, status_code=404)
+    return {'rules': rules.all_rules()}
 
 
 # ---------- saved conversations ----------

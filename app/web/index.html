@@ -45,6 +45,7 @@
     .writing::after { content: '▍'; margin-left: 1px; color: var(--accent); animation: pulse 1s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
     .note { display: block; margin-top: 6px; font-size: 0.8rem; color: var(--muted); font-style: italic; }
+    .assistant.command { border-style: dashed; font-size: 0.92rem; }   /* BEYOND's own reply to a /command */
     .user .note { color: var(--accent-text); opacity: 0.85; }
     form { padding: 12px 16px 16px; background: var(--panel); border-top: 1px solid var(--border); }
     .composer { max-width: 760px; margin: 0 auto; display: flex; gap: 8px; align-items: flex-end; }
@@ -197,7 +198,7 @@
       list.innerHTML = '';
       if (!chat.messages.length) list.innerHTML = WELCOME;
       for (const m of chat.messages) {
-        const el = bubble(m.role, m.content);
+        const el = bubble(m.role + (m.kind === 'command' && m.role === 'assistant' ? ' command' : ''), m.content);
         if (m.stopped) addNote(el, 'Stopped');
       }
       scrollDown(true);
@@ -286,7 +287,7 @@
               if (event.new) { chatId = mine.chatId = event.id; startedNewChat = true; showChatInAddress(); loadList(); }
             } else if (event.type === 'token') {
               const follow = nearBottom();
-              if (!answer) reply.className = 'msg assistant writing';
+              if (!answer) reply.className = 'msg assistant writing' + (event.kind === 'command' ? ' command' : '');
               answer += event.text;
               reply.textContent = answer;
               if (follow) scrollDown(true);
