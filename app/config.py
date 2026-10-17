@@ -1,12 +1,13 @@
 """BEYOND's defaults: exactly what a fresh download uses.
 
-Every port number BEYOND uses is defined here and nowhere else. Your own changes will be saved in
-data/settings.json (Phase 4), which is never committed, so a new user always starts from these values.
+Every port number BEYOND uses is defined here and nowhere else. Your own changes are saved in data/settings.json,
+which is never committed and only holds what differs from these defaults, so a new user always starts from here
+(and deleting that file brings these values back).
 """
 from pathlib import Path
 
-VERSION = '0.3.0'
-PHASE = 3
+VERSION = '0.4.0'
+PHASE = 4
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / 'data'                          # settings, chats, logs: created at runtime, git-ignored
@@ -16,8 +17,16 @@ WEB_DIR = Path(__file__).resolve().parent / 'web'
 # commonly use (7860 Gradio, 8000, 8188 ComfyUI, 1234 LM Studio, 11434 Ollama, 3000).
 WEB_PORT = 7770
 
-LOCAL_ONLY_HOST = '127.0.0.1'   # default: only this PC can open BEYOND
-NETWORK_HOST = '0.0.0.0'        # "Allow other devices on my network" (an opt-in setting, Phase 4)
+# Ports BEYOND's web page must never take, because other local AI apps rely on them (checked when you change the port).
+RESERVED_PORTS = {
+    1420: 'Local AI Studio (web page)', 8080: 'Local AI Studio (image engine)',
+    10086: 'Local AI Studio (AI engine)', 1234: 'LM Studio', 11434: 'Ollama',
+    7860: 'Gradio apps', 8188: 'ComfyUI',
+}
+MIN_PORT, MAX_PORT = 1024, 65535    # below 1024 needs administrator rights
+
+LOCAL_ONLY_HOST = '127.0.0.1'   # only this PC can open BEYOND (the default)
+NETWORK_HOST = '0.0.0.0'        # other devices on the network can too ("Allow other devices on my network")
 
 # Settings a person can change. These are the fresh-install values; changes go in data/settings.json.
 DEFAULTS = {
@@ -26,7 +35,12 @@ DEFAULTS = {
     'ai_server_url': '',
     # Model name to ask for. Empty = whatever model the server has loaded (llama.cpp / Studio ignore it anyway).
     'ai_model': '',
+    # The port BEYOND's page is on.
+    'web_port': WEB_PORT,
+    # Let phones and other computers on your network open BEYOND. Off by default: there's no login yet (Phase 38).
+    'allow_network': False,
 }
+RESTART_SETTINGS = ('web_port', 'allow_network')   # these only take effect after BEYOND restarts
 
 AI_TIMEOUT_SECONDS = 300    # a long answer on a processor-only PC can take minutes
 CHAT_HISTORY_MESSAGES = 40  # recent messages sent with each question (refined in Phase 6)

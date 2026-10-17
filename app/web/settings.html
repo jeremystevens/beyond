@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BEYOND Settings</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    main { flex: 1; overflow-y: auto; padding: 20px 16px 40px; }
+    .inner { max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+    h1 { font-size: 1.35rem; margin: 4px 0 0; }
+    section { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; }
+    h2 { font-size: 1rem; margin: 0 0 4px; }
+    .hint { color: var(--muted); font-size: 0.88rem; line-height: 1.45; margin: 0 0 12px; }
+    label { display: block; font-weight: 600; font-size: 0.9rem; margin: 14px 0 6px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .row input[type=text] { flex: 1; min-width: 200px; }
+    input[type=number] { width: 130px; }
+    .small { font-size: 0.82rem; color: var(--muted); }
+    .result { font-size: 0.88rem; margin-top: 8px; display: flex; gap: 8px; align-items: center; min-height: 1.2em; }
+    .switch { display: flex; gap: 12px; align-items: flex-start; margin-top: 14px; cursor: pointer; }
+    .switch input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--accent); flex: none; }
+    .switch b { display: block; }
+    .addresses { margin: 10px 0 0 32px; font-size: 0.9rem; line-height: 1.7; }
+    .addresses code { background: var(--bg); padding: 2px 6px; border-radius: 6px; }
+    .banner { border-radius: 12px; padding: 12px 16px; font-size: 0.92rem; line-height: 1.45;
+              display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+    .banner.warn { background: var(--warn-bg); border: 1px solid var(--warn); }
+    .banner.ok { background: var(--ok-bg); border: 1px solid var(--ok); }
+    .banner.bad { background: var(--error-bg); border: 1px solid var(--bad); }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="brand" href="/">BEYOND</a>
+    <div class="right"><a class="ghost button" href="/">Back to chat</a></div>
+  </header>
+  <main><div class="inner">
+    <h1>Settings</h1>
+
+    <div class="banner warn" id="viewOnly" hidden>
+      You're on another device, so you can look but not change anything. Settings can only be changed on the PC
+      BEYOND runs on.
+    </div>
+    <div class="banner warn" id="restartBanner" hidden>
+      <span id="restartText">Restart BEYOND for the new port or network setting to take effect.</span>
+      <button type="button" id="restart">Restart BEYOND now</button>
+    </div>
+    <div class="banner" id="message" hidden></div>
+
+    <section>
+      <h2>AI server</h2>
+      <p class="hint">The AI BEYOND talks to, for example Local AI Studio's engine, LM Studio or Ollama. BEYOND's own
+        built-in engine arrives later; until then, enter the address of one you already run.</p>
+      <label for="ai_server_url">Address</label>
+      <div class="row">
+        <input type="text" id="ai_server_url" placeholder="http://127.0.0.1:10086" spellcheck="false">
+        <button type="button" class="ghost" id="test">Test connection</button>
+      </div>
+      <div class="result" id="testResult"></div>
+      <label for="ai_model">Model name <span class="small">(optional)</span></label>
+      <input type="text" id="ai_model" placeholder="Leave empty to use whatever model is loaded" spellcheck="false"
+             style="width: 100%">
+      <p class="small">Only needed for servers that host several models at once, such as Ollama.</p>
+    </section>
+
+    <section>
+      <h2>BEYOND's address</h2>
+      <label for="web_port">Port <span class="small" id="portDefault"></span></label>
+      <input type="number" id="web_port" min="1024" max="65535">
+      <p class="small">The number at the end of BEYOND's address (http://127.0.0.1:<b id="portShown"></b>). Change it
+        only if another program needs this one.</p>
+      <label class="switch">
+        <input type="checkbox" id="allow_network">
+        <span><b>Allow other devices on my network</b>
+          <span class="small">Lets your phone or another computer at home open BEYOND. Leave it off on shared
+            networks (work, school, shared Wi-Fi): there's no login yet. Other devices can chat, but only this PC can
+            change settings.</span></span>
+      </label>
+      <div class="addresses" id="addresses" hidden></div>
+    </section>
+
+    <div class="actions">
+      <button type="button" id="save">Save</button>
+      <button type="button" class="ghost" id="reset">Reset to defaults</button>
+    </div>
+  </div></main>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const fields = ['ai_server_url', 'ai_model', 'web_port', 'allow_network'];
+    let view = null;
+
+    function show(kind, text) {
+      const m = $('message');
+      m.className = 'banner ' + kind;
+      m.textContent = text;
+      m.hidden = !text;
+    }
+
+    function fill(v) {
+      view = v;
+      for (const f of fields) {
+        if (f === 'allow_network') $(f).checked = v.values[f];
+        else $(f).value = v.values[f];
+      }
+      $('portDefault').textContent = `(default ${v.defaults.web_port})`;
+      $('portShown').textContent = v.running.port;
+      document.querySelectorAll('input, #save, #reset, #test').forEach(el => el.disabled = !v.can_change);
+      $('viewOnly').hidden = v.can_change;
+      $('restartBanner').hidden = !(v.can_change && v.restart_needed.length);
+      const list = $('addresses');
+      if (v.running.allow_network && v.network_addresses.length) {
+        list.hidden = false;
+        list.innerHTML = '';
+        const intro = document.createElement('div');
+        intro.textContent = 'On another device, open:';
+        list.appendChild(intro);
+        for (const a of v.network_addresses) {
+          const line = document.createElement('div');
+          const code = document.createElement('code');
+          code.textContent = `http://${a.address}:${v.running.port}`;
+          line.append(code, `  (${a.adapter})`);
+          list.appendChild(line);
+        }
+        const tip = document.createElement('div');
+        tip.className = 'small';
+        tip.textContent = 'If it doesn\'t open, Windows Firewall may be blocking it: allow "Python" on private networks when Windows asks.';
+        list.appendChild(tip);
+      } else {
+        list.hidden = true;
+      }
+    }
+
+    function current() {
+      return {
+        ai_server_url: $('ai_server_url').value, ai_model: $('ai_model').value,
+        web_port: Number($('web_port').value), allow_network: $('allow_network').checked,
+      };
+    }
+
+    async function call(url, body) {
+      const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                   body: body ? JSON.stringify(body) : undefined });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Something went wrong.');
+      return data;
+    }
+
+    $('save').onclick = async () => {
+      try {
+        fill(await call('/api/settings', { changes: current() }));
+        show('ok', view.restart_needed.length ? 'Saved. Restart BEYOND for the port or network change to take effect.'
+                                              : 'Saved.');
+      } catch (e) { show('bad', e.message); }
+    };
+
+    $('reset').onclick = async () => {
+      if (!confirm('Reset every setting to its default? (This forgets the AI server address too.)')) return;
+      try { fill(await call('/api/settings/reset')); show('ok', 'Back to the default settings.'); }
+      catch (e) { show('bad', e.message); }
+    };
+
+    $('test').onclick = async () => {
+      const out = $('testResult');
+      out.textContent = 'Testing…';
+      try {
+        const s = await call('/api/settings/test', { ai_server_url: $('ai_server_url').value });
+        out.innerHTML = '';
+        const dot = document.createElement('span');
+        const text = document.createElement('span');
+        if (s.state === 'ok') { dot.className = 'dot ok'; text.textContent = 'Connected' + (s.model ? ': ' + s.model : ''); }
+        else if (s.state === 'not_set') { dot.className = 'dot warn'; text.textContent = 'No address entered.'; }
+        else { dot.className = 'dot bad'; text.textContent = "Can't reach an AI server at that address."; }
+        out.append(dot, text);
+      } catch (e) { out.textContent = e.message; }
+    };
+
+    $('restart').onclick = async () => {
+      try {
+        const { url } = await call('/api/restart');
+        show('warn', 'Restarting BEYOND…');
+        $('restartBanner').hidden = true;
+        const health = url.replace(/\/settings$/, '/api/health');
+        for (let i = 0; i < 30; i++) {
+          await new Promise(r => setTimeout(r, 1000));
+          // no-cors: a new port is a different "site" to the browser, so we can only ask "is it answering?"
+          try { await fetch(health, { mode: 'no-cors', cache: 'no-store' }); location.href = url; return; } catch {}
+        }
+        show('bad', `BEYOND didn't come back at ${url}. Check the BEYOND window for a message.`);
+      } catch (e) { show('bad', e.message); }
+    };
+
+    fetch('/api/settings').then(r => r.json()).then(fill).catch(() => show('bad', 'BEYOND is not responding.'));
+  </script>
+</body>
+</html>

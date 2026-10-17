@@ -4,10 +4,10 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 3 of the plan in `planning/phases.md`).** You can chat with an AI in your
+> **Status: early development (Phase 4 of the plan in `planning/phases.md`).** You can chat with an AI in your
 > browser, with answers appearing as they're written, a Stop button and New chat, using an AI server you already
-> run (such as Local AI Studio). Chats aren't saved yet (Phase 5), and BEYOND's own built-in AI engine arrives in
-> Phase 33.
+> run (such as Local AI Studio), and change BEYOND's settings on a settings page. Chats aren't saved yet
+> (Phase 5), and BEYOND's own built-in AI engine arrives in Phase 33.
 
 ## What this project is about
 
@@ -39,33 +39,39 @@ py -3.14 -m venv .venv
 
 Then open **http://127.0.0.1:7770** in your browser.
 
-**Connecting an AI (for now):** BEYOND doesn't have its own AI engine yet, so point it at one you already run.
-Create `data\settings.json` with that server's address, for example Local AI Studio's engine:
+## Settings
 
-```json
-{ "ai_server_url": "http://127.0.0.1:10086" }
-```
+Click **Settings** at the top of the chat page (or open http://127.0.0.1:7770/settings).
 
-Any server with the standard OpenAI-compatible chat API works (llama.cpp's `llama-server`, Local AI Studio,
-LM Studio, Ollama). Changes take effect at once, without restarting. Without this file, the page says
-"No AI set up yet". The status light at the top shows whether the AI is connected.
+- **AI server:** BEYOND doesn't have its own AI engine yet, so enter the address of one you already run, for
+  example Local AI Studio's engine `http://127.0.0.1:10086`, and press **Test connection**. Any server with the
+  standard OpenAI-compatible chat API works (llama.cpp's `llama-server`, Local AI Studio, LM Studio, Ollama).
+  Takes effect at once. Until one is set, the chat page says "No AI set up yet".
+- **Port:** BEYOND uses **7770** by default. You can change it; BEYOND refuses ports other AI apps rely on
+  (Local AI Studio's 1420, 8080, 10086; LM Studio, Ollama, ComfyUI, Gradio) and ports already in use, naming the
+  program. If 7770 is taken when BEYOND starts, it says which program has it instead of crashing.
+- **Allow other devices on my network:** off by default, so only this PC can open BEYOND. Turn it on to use
+  BEYOND from your phone or another computer at home; the settings page then lists the addresses to open. Leave it
+  off on shared networks: there's no login yet (Phase 38). Other devices can chat but **can't change settings**.
+  If a phone can't connect, Windows Firewall may be blocking Python: allow it on private networks when asked.
+- The **port** and **network** settings need a restart: the page shows **Restart BEYOND now**, and BEYOND restarts
+  itself in the same window (if a new port has meanwhile been taken, it stays on the old one).
+- **Reset to defaults** puts every setting back as on a fresh download.
 
-- **Port:** BEYOND uses port **7770** by default. If another program already uses it, BEYOND says which one and
-  stops instead of crashing. (Changing the port from a settings page comes in Phase 4.)
-- **Network:** by default BEYOND is reachable **only from this PC**.
-- **Your data** (settings, chats, memories, logs) goes in the `data` folder, which is never uploaded to the
-  repository.
+Your changes are saved in `data\settings.json`, which only holds what differs from the defaults in
+`app/config.py`. The `data` folder (settings, and later chats, memories and logs) is never uploaded to the
+repository, so deleting `data\settings.json` also brings back the defaults.
 
 ## Project layout
 
 ```
-beyond.py            Start BEYOND (checks the port, then runs the web server)
+beyond.py            Start BEYOND (checks the port, runs the web server, restarts it after port/network changes)
 app/config.py        Default settings, including every port number (the only place ports are defined)
-app/settings.py      Your settings: the defaults plus your changes in data/settings.json
+app/settings.py      Your settings: the defaults plus your changes in data/settings.json (check, save, reset)
 app/engine.py        The engine connector: the only place BEYOND talks to an AI server
-app/ports.py         Port checks: is a port free, and which program is using it
-app/server.py        The web server (FastAPI): the page, /api/health, /api/ai-status, /api/chat, /api/chat/stream
-app/web/             The chat page
+app/ports.py         Port checks (free? who's using it?) and this PC's network addresses
+app/server.py        The web server (FastAPI): pages, chat, settings and status endpoints
+app/web/             The pages: index.html (chat), settings.html, style.css (shared look)
 planning/            Brainstorm, project pitch and the phased plan
 data/                Your settings, chats and logs (created at runtime, git-ignored)
 ```

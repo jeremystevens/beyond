@@ -6,6 +6,24 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 4: settings page** (`/settings`, linked from the chat page).
+  - **AI server** address with **Test connection**, and an optional model name.
+  - **Port**, refusing ports other local AI apps rely on (`RESERVED_PORTS` in `app/config.py`: Local AI Studio's
+    1420 / 8080 / 10086, LM Studio 1234, Ollama 11434, Gradio 7860, ComfyUI 8188), ports below 1024, and ports
+    already in use (naming the program).
+  - **Allow other devices on my network** (off by default): BEYOND then listens on all networks and the page and
+    console list the addresses to open on a phone; plus a Windows Firewall tip. **Settings can only be changed from
+    this PC** (`127.0.0.1`); other devices see them read-only and can still chat.
+  - Port and network changes need a restart: **Restart BEYOND now** makes `beyond.py` start the server again in the
+    same window with the new settings (falling back to the old port if the new one was taken meanwhile); the page
+    follows to the new address.
+  - **Reset to defaults** deletes `data/settings.json`.
+- `app/settings.py` now checks every setting (`validate`), saves **only what differs from the defaults** (`save`),
+  and resets (`reset`); a bad value in the file is ignored with a warning instead of breaking BEYOND.
+- `app/web/style.css`: colours (light and dark) and shared styles for every page, served at `/static/`.
+- Tested: Test connection; network switch on → restart → reachable at the Wi-Fi address, settings read-only and
+  saving refused from there; ports 10086, 5939 (in use) and 80 refused; 7771 → restart → back to 7770; Reset →
+  no settings file, every default back, "No AI set up yet". Not tested: an actual phone (Windows Firewall may ask).
 - **Phase 3: live typing and chat controls.**
   - Answers appear word by word as the AI writes them (new `/api/chat/stream`: one JSON event per line, `token` /
     `done` / `error`; `engine.chat_stream` reads the AI server's streamed reply).

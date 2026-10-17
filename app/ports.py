@@ -21,6 +21,17 @@ def users_of(port):
     return list(found.values())
 
 
+def network_addresses():
+    """This PC's addresses on its networks (for "open BEYOND on your phone at …"), as [(adapter, address)]."""
+    found = []
+    for adapter, addresses in psutil.net_if_addrs().items():
+        for address in addresses:
+            ip = address.address
+            if address.family == socket.AF_INET and not ip.startswith(('127.', '169.254.')):
+                found.append((adapter, ip))
+    return found
+
+
 def can_bind(host, port):
     """Try to open the port ourselves. No SO_REUSEADDR: on Windows that would let us share a port that is taken."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:

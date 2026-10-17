@@ -26,9 +26,10 @@ def _base_url(url):
     return url
 
 
-async def status():
-    """Is an AI server set up and answering? Used by the page's status line."""
-    url = settings.load()['ai_server_url']
+async def status(url=None):
+    """Is an AI server set up and answering? Used by the page's status line, and by "Test connection" on the
+    settings page (which passes an address that may not be saved yet)."""
+    url = settings.load()['ai_server_url'] if url is None else url
     if not url:
         return {'state': 'not_set'}
     try:

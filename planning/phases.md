@@ -98,7 +98,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 - **Stop** button, **New chat** button, a "thinking…" indicator, and a clear message when the AI isn't reachable.
 - **Done when:** a long answer streams in, can be stopped halfway, and a new chat starts clean.
 
-### Phase 4: Settings
+### Phase 4: Settings ✅ (done 2026-10-17; settings can only be changed from this PC; phone not tested yet)
 - A settings file plus a settings page: AI server address, BEYOND's port, and the **"Allow other devices on my
   network"** switch (on for you, off by default when shared).
 - Defaults stay in the code (fresh-install values); the settings file only stores your changes and is git-ignored
