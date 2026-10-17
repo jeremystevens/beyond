@@ -129,9 +129,9 @@ async def chat_stream(body: SendRequest):
     new_chat = body.chat_id is None
     if not new_chat and not chats.exists(body.chat_id):
         return JSONResponse({'error': 'That chat no longer exists. Start a new one.'}, status_code=404)
-    chat_id = chats.create(content) if new_chat else body.chat_id
     if content.startswith('/'):
-        return _command_reply(chat_id, new_chat, content)
+        return _command_reply(body.chat_id, content)
+    chat_id = chats.create(content) if new_chat else body.chat_id
     question_id = chats.add_message(chat_id, 'user', content)
     values = settings.load()
     history, sent_ids = chats.recent_messages(chat_id, engine.history_window(chats.message_count(chat_id)),
@@ -284,22 +284,30 @@ async def _pick_up_facts(message):
     return '🧠 Noted for next time: ' + '; '.join(saved) + '\n(/memories to review, /forget to remove)'
 
 
-def _command_reply(chat_id, new_chat, content):
+def _command_reply(chat_id, content):
     """A /command: BEYOND answers it itself. Both are saved in the chat (so they're there when you come back) but
     marked as commands, so they're never sent to the AI. Same event stream as an AI answer, so the page needs no
-    special handling."""
+    special handling. A new chat is created after the command runs, so it's named from the safe version of the
+    command (a /qr wifi password never ends up in the chat list)."""
     async def events():
-        yield json.dumps({'type': 'chat', 'id': chat_id, 'new': new_chat, 'title': chats.title_from(content)}) + '\n'
         try:
             reply = await asyncio.to_thread(commands.run, content)   # some commands look things up online
         except Exception:   # a bug in one command shouldn't break the chat
             logging.exception('Command failed: %s', content.split()[0])
             reply = commands.Reply(f'Sorry, {content.split()[0]} ran into a problem. Please try again.')
-        chats.add_message(chat_id, 'user', content, kind='command')
-        message_id = chats.add_message(chat_id, 'assistant', reply.text, kind='command', buttons=reply.buttons)
+        shown = reply.saved_command or content
+        new_chat = chat_id is None
+        current = chats.create(shown) if new_chat else chat_id
+        yield json.dumps({'type': 'chat', 'id': current, 'new': new_chat, 'title': chats.title_from(shown)}) + '\n'
+        chats.add_message(current, 'user', shown, kind='command')
+        if reply.saved_command:   # e.g. a Wi-Fi password: hidden on the page too, not only in the saved chat
+            yield json.dumps({'type': 'question', 'text': reply.saved_command}) + '\n'
+        message_id = chats.add_message(current, 'assistant', reply.text, kind='command', buttons=reply.buttons,
+                                       image=reply.image)
         yield json.dumps({'type': 'token', 'text': reply.text, 'kind': 'command'}) + '\n'
-        # The saved message's id and buttons, so the page can show the buttons and send presses back.
-        yield json.dumps({'type': 'message', 'id': message_id, 'buttons': reply.buttons}) + '\n'
+        # The saved message's id, buttons and picture, so the page can show them and send presses back.
+        yield json.dumps({'type': 'message', 'id': message_id, 'buttons': reply.buttons,
+                          'image': reply.image}) + '\n'
         yield json.dumps({'type': 'done'}) + '\n'
 
     return StreamingResponse(events(), media_type='application/x-ndjson')

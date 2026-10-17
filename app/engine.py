@@ -4,6 +4,7 @@ It uses the standard "OpenAI-compatible" chat API that llama.cpp's llama-server,
 and Ollama all offer, so any of them can be plugged in. If an engine ever changes, this is the file to fix.
 """
 import json
+import re
 
 import httpx
 
@@ -128,11 +129,31 @@ async def complete(messages, max_tokens, temperature):
             response = await client.post(_base_url(url) + '/v1/chat/completions', json=payload)
     except httpx.HTTPError as exc:
         raise _explain(exc, url) from exc
+    return _text(response)
+
+
+def complete_blocking(messages, max_tokens, temperature):
+    """complete() for code that runs in a worker thread (commands such as /rewrite and /joke)."""
+    url, model = _server()
+    payload = {'messages': messages, 'stream': False, 'max_tokens': max_tokens, 'temperature': temperature}
+    if model:
+        payload['model'] = model
+    try:
+        with httpx.Client(timeout=httpx.Timeout(config.AI_TIMEOUT_SECONDS, connect=5)) as client:
+            response = client.post(_base_url(url) + '/v1/chat/completions', json=payload)
+    except httpx.HTTPError as exc:
+        raise _explain(exc, url) from exc
+    return _text(response)
+
+
+def _text(response):
+    """The AI's text from a one-off reply, with any <think>…</think> reasoning removed."""
     _check(response.status_code)
     try:
-        return response.json()['choices'][0]['message']['content'] or ''
+        text = response.json()['choices'][0]['message']['content'] or ''
     except (ValueError, KeyError, IndexError, TypeError) as exc:
         raise EngineError("The AI server's answer wasn't in the expected format.") from exc
+    return re.sub(r'<think>.*?</think>', '', text, flags=re.S | re.I).strip()
 
 
 def _client():

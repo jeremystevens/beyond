@@ -163,7 +163,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 
 ## Stage C: Personal tools
 
-### Phase 15: Small extras
+### Phase 15: Small extras ✅ (done 2026-10-17)
 - `/joke`, `/rewrite`, `/quote`, `/cat`, `/so`, and `/qr` (the QR code shown as a picture in the chat).
 - **Done when:** each command works, and the QR code scans with a phone.
 

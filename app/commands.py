@@ -16,7 +16,7 @@ from typing import Callable
 import httpx
 
 from app import chats, learning, memory, rules, settings
-from app.tools import dictionary, movies, news, weather, web_search, wikipedia
+from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewrite, weather, web_search, wikipedia
 from app.tools.calculator import calculate
 from app.tools.dice import roll_dice
 from app.tools.units import convert
@@ -30,6 +30,8 @@ class Reply:
     text: str
     buttons: list = field(default_factory=list)   # rows of {'label', 'action'}
     toast: str = ''
+    image: str = ''            # a picture under the text, as a data: URL (e.g. /qr's code)
+    saved_command: str = ''    # how to save the typed command instead (e.g. /qr wifi with the password hidden)
 
 
 def button(label, action):
@@ -232,6 +234,16 @@ def _online(lookup, service):
     return run
 
 
+# ---------- /qr ----------
+
+def _qr(args):
+    try:
+        image, caption = qr.make_qr(args)
+    except qr.QRError as exc:
+        return Reply(str(exc), saved_command=qr.safe_command(args) or '')
+    return Reply(caption, image=image, saved_command=qr.safe_command(args) or '')
+
+
 # ---------- dice ----------
 
 def _roll(args):
@@ -317,6 +329,19 @@ COMMANDS = [
             group='Look things up'),
     Command('tv', 'A TV show: years, network, cast, rating and summary', '/tv Breaking Bad',
             _online(lambda title: movies.get_movie(title, 'tv'), 'the TV service'), group='Look things up'),
+    Command('joke', 'A joke: dad, pun, nerd, absurd, or about any topic', '/joke cats',
+            _online(jokes.get_joke, 'the joke services'), group='Extras'),
+    Command('quote', 'A random quote', '/quote', _online(little_lookups.random_quote, 'the quote service'),
+            group='Extras'),
+    Command('cat', 'A random cat fact', '/cat', _online(little_lookups.cat_fact, 'the cat fact service'),
+            aliases=('catfact',), group='Extras'),
+    Command('rewrite', 'Say a message in another tone: professional, friendly, funny, polite, dramatic, concise',
+            "/rewrite polite I can't come tomorrow", rewrite.rewrite, group='Extras'),
+    Command('qr', 'Make a QR code for a link, text, or Wi-Fi (/qr wifi Name | password)', '/qr example.com', _qr,
+            group='Extras'),
+    Command('so', 'Search Stack Overflow for programming questions', '/so python read a file line by line',
+            _online(little_lookups.stack_overflow, 'Stack Overflow'), aliases=('stackoverflow',),
+            group='Look things up'),
     Command('remember', 'Tell BEYOND something to remember in every chat', '/remember my dog is named Max',
             _remember, group='Memory'),
     Command('memories', 'See what BEYOND remembers about you (and forget things); /memories auto on|off',

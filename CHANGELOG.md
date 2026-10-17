@@ -6,6 +6,20 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 15: small extras** (version 0.15.0), ported from PromptetheusBot's plugins.
+  - **/joke** (dad, pun, nerd, absurd or any topic: icanhazdadjoke, JokeAPI in safe mode, Official Joke API, with
+    the AI as a backup), **/quote** (ZenQuotes), **/cat** (catfact.ninja), **/so** (Stack Overflow), **/rewrite**
+    (six tones, written by your AI; the text is wrapped so instructions inside it are rewritten, not obeyed) and
+    **/qr** (links, text and Wi-Fi with the new `segno` dependency, offline).
+  - Pictures in the chat: a command reply can carry an image (a PNG data URL, saved with the message in a new
+    `image` column, so deleting the chat deletes it too); the page shows only BEYOND's own PNG images.
+  - /qr wifi: the password is replaced by dots in the saved chat, on the page and in the chat's name (command chats
+    are now created after the command runs, from its safe text); the code itself still holds it.
+  - `engine.complete_blocking()` for commands that use the AI from a worker thread; one-off replies drop
+    `<think>` reasoning.
+  - Tested: every command live (jokes from three sources and from the AI, quote, cat fact, Stack Overflow, two
+    rewrites including one hiding an instruction, usage replies); the link, text and Wi-Fi QR codes decoded
+    correctly with OpenCV; the masked password in the chat, its title and the page; the picture after a reload.
 - **Phase 14: automatic lookups** (version 0.14.0), ported from PromptetheusBot's `auto_actions`.
   - New `app/lookups.py`: quick Python checks (no extra AI call) pick at most one lookup per message: weather (weather
     words and a place, also in lower case; not for climate questions or "my CPU is hot"), news ("latest news

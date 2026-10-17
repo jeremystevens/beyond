@@ -52,7 +52,8 @@ def initialize():
         # Ratings (Phase 12): 1 = 👍, -1 = 👎, NULL = not rated; reason = why (app/learning.py); retry_of = the
         # answer that 🔄 Try again replaced. A replaced answer gets kind 'retried': shown, but not sent to the AI.
         # lookup (Phase 14): what an automatic lookup found for this answer, as JSON {ok, source, raw}.
-        for column in ('rating INTEGER', 'reason TEXT', 'retry_of INTEGER', 'lookup TEXT'):
+        # image (Phase 15): a picture under a message, as a data: URL (e.g. a /qr code).
+        for column in ('rating INTEGER', 'reason TEXT', 'retry_of INTEGER', 'lookup TEXT', 'image TEXT'):
             if column.split()[0] not in columns:
                 db.execute('ALTER TABLE messages ADD COLUMN ' + column)
 
@@ -86,14 +87,16 @@ def _buttons(raw):
         return []
 
 
-def add_message(chat_id, role, content, stopped=False, kind='chat', buttons=None, retry_of=None, lookup=None):
+def add_message(chat_id, role, content, stopped=False, kind='chat', buttons=None, retry_of=None, lookup=None,
+                image=None):
     """Save a message. `buttons`: rows of {'label', 'action'} to show under it (see app/commands.py)."""
     now = _now()
     with connect() as db:
         message_id = db.execute('INSERT INTO messages (chat_id, role, content, stopped, created_at, kind, buttons, '
-                                'retry_of, lookup) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                                'retry_of, lookup, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                                 (chat_id, role, content, int(stopped), now, kind, _buttons_json(buttons),
-                                 retry_of, json.dumps(lookup, ensure_ascii=False) if lookup else None)).lastrowid
+                                 retry_of, json.dumps(lookup, ensure_ascii=False) if lookup else None,
+                                 image or None)).lastrowid
         db.execute('UPDATE chats SET updated_at = ? WHERE id = ?', (now, chat_id))
     return message_id
 
@@ -176,7 +179,7 @@ def get(chat_id):
         chat = db.execute('SELECT id, title, created_at, updated_at FROM chats WHERE id = ?', (chat_id,)).fetchone()
         if chat is None:
             return None
-        messages = db.execute('SELECT id, role, content, stopped, created_at, kind, buttons, lookup FROM messages '
+        messages = db.execute('SELECT id, role, content, stopped, created_at, kind, buttons, lookup, image FROM messages '
                               'WHERE chat_id = ? ORDER BY id', (chat_id,)).fetchall()
     return {**dict(chat), 'messages': [{**dict(m), 'stopped': bool(m['stopped']), 'buttons': _buttons(m['buttons']),
                                         'lookup': _lookup(m['lookup'])} for m in messages]}

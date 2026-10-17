@@ -12,9 +12,11 @@ class Unavailable(Exception):
     """A lookup service couldn't be reached or answered with an error. The message names the service."""
 
 
-def get(url, timeout=12, **kwargs):
-    """GET with BEYOND's User-Agent, following redirects (httpx doesn't by default). Raises httpx.HTTPError."""
-    response = httpx.get(url, headers=HEADERS, timeout=timeout, follow_redirects=True, **kwargs)
+def get(url, timeout=12, headers=None, **kwargs):
+    """GET with BEYOND's User-Agent (plus any `headers`), following redirects (httpx doesn't by default).
+    Raises httpx.HTTPError."""
+    response = httpx.get(url, headers={**HEADERS, **(headers or {})}, timeout=timeout, follow_redirects=True,
+                         **kwargs)
     response.raise_for_status()
     return response
 
