@@ -4,12 +4,12 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 16 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> **Status: early development (Phase 17 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
 > browser: it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
 > slash commands (/calc, /convert, /time, /roll, /weather, /news, /web, /wiki, /define, /movie, /joke, /qr,
-> /note, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
+> /note, /list, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
 > arrives in Phase 33.
 
 ## Saved facts
@@ -101,6 +101,7 @@ Tab or Enter to pick one. BEYOND answers commands itself, instantly, without the
 | `/qr` | A QR code picture for a link, text or Wi-Fi network; the Wi-Fi password is hidden in the chat | `/qr wifi Home | password` |
 | `/so` | Search Stack Overflow | `/so python read a file line by line` |
 | `/note` · `/notes` | A notepad: save notes, find them (typos and date words like "yesterday" are fine), delete one or all (asks first); ↩️ Undo after saving; passwords and codes are refused | `/note garage key is in the blue folder` · `/note find garage` |
+| `/list` | Checklists (groceries, packing, to-dos): tap an item to check it off, 🧹 clear checked items, 🗑 delete a list (asks first); "groceries" and "my grocery list" are the same list | `/list groceries add milk, eggs` · `/list` |
 | `/remember` · `/memories` · `/forget` | Save, list and remove facts BEYOND knows in every chat | `/remember my dog is named Max` |
 | `/learned` | What BEYOND learned from your ratings, with a reset | `/learned` |
 | `/rule` · `/rules` | Add, list and delete house rules | `/rule Use metric units` |
@@ -221,6 +222,7 @@ app/rules.py         House rules (same database)
 app/memory.py        Saved facts (same database)
 app/learning.py      Ratings and what BEYOND learns from them
 app/notes.py         The notepad (/note, /notes), in the same database
+app/checklists.py    Checklists (/list), in the same database
 app/lookups.py       Automatic lookups: when a question needs the weather, news or web
 app/commands.py      Slash commands: one list (name, summary, example, function) drives /help, the / menu
                      and "did you mean…?"; replies can carry buttons, handled by ACTIONS

@@ -9,13 +9,15 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from app import chats, commands, config, engine, learning, lookups, memory, notes, ports, rules, settings
+from app import (chats, checklists, commands, config, engine, learning, lookups, memory, notes, ports, rules,
+                 settings)
 
 chats.initialize()
 rules.initialize()
 memory.initialize()
 learning.initialize()
 notes.initialize()
+checklists.initialize()
 app = FastAPI(title='BEYOND', version=config.VERSION, docs_url=None, redoc_url=None)
 app.mount('/static', StaticFiles(directory=config.WEB_DIR), name='static')
 

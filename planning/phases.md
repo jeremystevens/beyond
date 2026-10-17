@@ -171,7 +171,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 - `/note`, `/notes`, `/note find`, delete, clear (with a confirmation button).
 - **Done when:** notes can be saved, found, and deleted.
 
-### Phase 17: Checklists
+### Phase 17: Checklists ✅ (done 2026-10-17)
 - `/list` with tap-to-check items, clear checked items, and delete a list.
 - **Done when:** a grocery list can be built, ticked off, and cleared.
 

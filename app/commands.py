@@ -15,7 +15,7 @@ from typing import Callable
 
 import httpx
 
-from app import chats, learning, memory, notes, rules, settings
+from app import chats, checklists, learning, memory, notes, rules, settings
 from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewrite, weather, web_search, wikipedia
 from app.tools.calculator import calculate
 from app.tools.dice import roll_dice
@@ -307,6 +307,103 @@ def _note_button(what, detail):
     return None
 
 
+# ---------- checklists ----------
+
+def _list_view(list_id, intro=''):
+    """One list: a button per item (tap to check or uncheck), then 🧹 Clear checked and 🗑 Delete list."""
+    found = checklists.get_list(list_id)
+    if not found:
+        return Reply('That list no longer exists. /list shows your lists.')
+    name = found[1]
+    title = f'{checklists.emoji(name)} {name.title()}'
+    items = checklists.items_of(list_id)
+    if not items:
+        return Reply(f'{intro}{title} is empty.\nAdd items: /list {name} add milk, eggs',
+                     [[button('🗑 Delete list', f'list:ask:{list_id}')]])
+    done = sum(1 for _, _, checked in items if checked)
+    shown = items[:checklists.MAX_BUTTONS]
+    more = ''.join(f'\n{n}. {"✅" if checked else "⬜"} {text}' for n, (_, text, checked) in enumerate(items, 1)
+                   if n > checklists.MAX_BUTTONS)
+    actions = ([button(f'🧹 Clear {done} checked', f'list:clear:{list_id}')] if done else []) + \
+        [button('🗑 Delete list', f'list:ask:{list_id}')]
+    return Reply(f'{intro}{title} · {done} of {len(items)} done\nTap an item to check it off. Add more: '
+                 f'/list {name} add …{more}',
+                 [[button(('✅ ' if checked else '⬜ ') + text[:60], f'list:tick:{item_id}')]
+                  for item_id, text, checked in shown] + [actions])
+
+
+def _lists_overview():
+    found = checklists.all_lists()
+    if not found:
+        return Reply("✅ You don't have any lists yet.\n\n" + checklists.HELP)
+    lines = [f'{checklists.emoji(name)} {name.title()} — {open_} to do' +
+             (f' ({total - open_} checked)' if total - open_ else '') for _, name, open_, total in found]
+    return Reply('✅ Your lists:\n\n' + '\n'.join(lines) + '\n\nTap one to open it.',
+                 [[button(f'{checklists.emoji(name)} {name.title()}', f'list:open:{list_id}')]
+                  for list_id, name, _, _ in found])
+
+
+def _list(args):
+    if args.strip().lower() == 'help':
+        return checklists.HELP
+    name, action, rest = checklists.parse_command(args)
+    try:
+        if not name and action == 'show':
+            return _lists_overview()
+        if action == 'add':
+            list_id, _, added, skipped = checklists.add_items(name or checklists.DEFAULT_LIST, rest)
+            return _list_view(list_id, f'Added {added} item{"s" if added != 1 else ""}' +
+                              (f' ({skipped} already on the list)' if skipped else '') + '.\n')
+        found = checklists.find_list(name or checklists.DEFAULT_LIST)
+        if not found:
+            return (f'You have no list called “{name or checklists.DEFAULT_LIST}”. /list shows your lists; '
+                    f'/list {name or "groceries"} add … starts one.')
+        list_id, list_name = found
+        if action == 'show':
+            return _list_view(list_id)
+        if action == 'remove':
+            number = rest.lstrip('#')
+            if not number.isdigit():
+                return f'Use /list {list_name} remove <number> (count from the top of the list).'
+            removed = checklists.remove_item(list_id, int(number))
+            if removed is None:
+                return f'“{list_name}” has no item number {number}.'
+            return _list_view(list_id, f'Removed “{removed}”.\n')
+        if action == 'clear':
+            count = checklists.clear_checked(list_id)
+            return _list_view(list_id, f'🧹 Cleared {count} checked item{"s" if count != 1 else ""}.\n')
+        return _confirm_list_delete(list_id, list_name)
+    except checklists.ListError as exc:
+        return str(exc)
+
+
+def _confirm_list_delete(list_id, name):
+    return Reply(f'Delete the whole “{name}” list? This can\'t be undone.',
+                 [[button('🗑 Yes, delete it', f'list:delete:{list_id}'), button('Keep it', f'list:open:{list_id}')]])
+
+
+def _list_button(what, detail):
+    if not detail.isdigit():
+        return None
+    number = int(detail)
+    if what == 'tick':     # tap an item: check or uncheck it
+        list_id = checklists.toggle_item(number)
+        return _list_view(list_id) if list_id else Reply('That item is gone. /list shows your lists.')
+    if what == 'open':
+        return _list_view(number)
+    if what == 'clear':
+        count = checklists.clear_checked(number)
+        updated = _list_view(number)
+        updated.toast = f'Cleared {count} checked item{"s" if count != 1 else ""}.'
+        return updated
+    if what == 'ask':      # 🗑 Delete list: ask first
+        found = checklists.get_list(number)
+        return _confirm_list_delete(*found) if found else Reply('That list was already deleted.')
+    if what == 'delete':
+        return Reply('🗑 List deleted.' if checklists.delete_list(number) else 'That list was already deleted.')
+    return None
+
+
 # ---------- /qr ----------
 
 def _qr(args):
@@ -416,8 +513,10 @@ COMMANDS = [
             _online(little_lookups.stack_overflow, 'Stack Overflow'), aliases=('stackoverflow',),
             group='Look things up'),
     Command('note', 'Save a note, or find, delete and clear them', '/note garage key is in the blue folder', _note,
-            group='Notes'),
-    Command('notes', 'Your recent notes (or /notes <words> to search)', '/notes', _notes, group='Notes'),
+            group='Notes and lists'),
+    Command('notes', 'Your recent notes (or /notes <words> to search)', '/notes', _notes, group='Notes and lists'),
+    Command('list', 'Checklists: groceries, packing, to-dos; tap items to check them off',
+            '/list groceries add milk, eggs, bread', _list, aliases=('lists',), group='Notes and lists'),
     Command('remember', 'Tell BEYOND something to remember in every chat', '/remember my dog is named Max',
             _remember, group='Memory'),
     Command('memories', 'See what BEYOND remembers about you (and forget things); /memories auto on|off',
@@ -466,6 +565,7 @@ ACTIONS = {
     'rate': _rate_button,
     'learn': _learn_button,
     'note': _note_button,
+    'list': _list_button,
 }
 
 

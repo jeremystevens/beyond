@@ -6,6 +6,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 17: checklists** (version 0.17.0), ported from PromptetheusBot (one user).
+  - New `app/checklists.py`: up to 20 lists of 100 items in BEYOND's database; names matched loosely ("groceries",
+    "my grocery list"), an icon per kind of list, duplicates skipped (adding a checked item again unchecks it).
+  - **/list** (alias /lists): all lists with a button to open each; `/list <name> add a, b, c`; `/list add …` for
+    the to-do list; `remove <number>`, `clear` (checked items) and `delete` (asks first). Each item is a button
+    (⬜ / ✅) that checks or unchecks it in place; 🧹 Clear checked and 🗑 Delete list under it.
+  - Tested: building a grocery list, a duplicate, ticking and unticking, the overview, remove, clear checked, a
+    missing list, delete with Keep and with Yes (by command and by button), and ticking in the browser.
 - **Phase 16: notes** (version 0.16.0), ported from PromptetheusBot's notepad (one user).
   - New `app/notes.py`: notes in BEYOND's database (up to 500 of 1,000 characters), numbered #1, #2… (numbers are
     never reused), with full-text search (word forms and prefixes), a typo-tolerant fallback, and date words
