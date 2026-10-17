@@ -1,0 +1,14 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Everything BEYOND saves at runtime: your settings, chats, memories, logs.
+# Never committed, so a fresh download always starts from the defaults in app/config.py.
+data/
+
+# Editors and OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

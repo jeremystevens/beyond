@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BEYOND</title>
+  <style>
+    :root {
+      --bg: #f6f4f1; --card: #ffffff; --text: #1d1b19; --muted: #6b6560; --accent: #d9622b; --ok: #2f8f4e;
+      --border: #e6e1db;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #141210; --card: #1e1b18; --text: #f1ece6; --muted: #a39b93; --accent: #f08a4b; --ok: #5cc27e;
+              --border: #2e2a26; }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px 16px;
+      background: var(--bg); color: var(--text);
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    main {
+      width: 100%; max-width: 560px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 40px 32px; text-align: center;
+    }
+    h1 { margin: 0; font-size: 3rem; letter-spacing: 0.2em; color: var(--accent); }
+    .acronym { margin: 8px 0 0; color: var(--muted); font-size: 0.95rem; }
+    .acronym b { color: var(--text); }
+    .tagline { margin: 20px 0 28px; font-size: 1.15rem; font-style: italic; }
+    .status { display: inline-flex; align-items: center; gap: 8px; font-size: 0.95rem; color: var(--muted); }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+    .dot.ok { background: var(--ok); }
+    .next { margin-top: 28px; font-size: 0.9rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>BEYOND</h1>
+    <p class="acronym"><b>B</b>uilt <b>E</b>ntirely on <b>Y</b>our <b>O</b>wn <b>N</b>etwork &amp; <b>D</b>evice</p>
+    <p class="tagline">What Local AI Studio users wanted next.</p>
+    <div class="status"><span class="dot" id="dot"></span><span id="status">Checking…</span></div>
+    <p class="next">Chat arrives in Phase 2.</p>
+  </main>
+  <script>
+    fetch('/api/health')
+      .then(r => r.json())
+      .then(h => {
+        document.getElementById('dot').classList.add('ok');
+        document.getElementById('status').textContent = `Running · version ${h.version} · phase ${h.phase} of 43`;
+      })
+      .catch(() => { document.getElementById('status').textContent = 'Not responding'; });
+  </script>
+</body>
+</html>
