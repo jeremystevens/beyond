@@ -5,7 +5,25 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-### Added
+### Changed
+- **Mobile-friendly pages (owner's request, between Phases 9 and 10).** Checked at phone (375×812), sideways phone
+  (812×375), tablet (768×1024) and desktop sizes:
+  - Header: the BEYOND logo and the AI status overlapped on a phone; under 520 px the status is just its coloured
+    dot (text kept for screen readers and as a tooltip) and the logo's letter spacing is tighter.
+  - Text boxes are 16 px on phones (under 16 px, iPhones zoom in when you tap one).
+  - Touch screens (`pointer: coarse`): buttons at least 44 px tall (header buttons 40 px), reply buttons 40+ px,
+    larger ✎ / 🗑, chat items and command-list rows, 24–26 px checkboxes.
+  - The phone chat list gets a dimmed backdrop; tapping it closes the list.
+  - Full height uses `100dvh` (what's visible next to the phone browser's bars), and the header, message box, chat
+    list and Settings page leave room for the notch and home bar (`viewport-fit=cover`, `env(safe-area-inset-*)`).
+  - Phones: wider bubbles (92%), less padding, command list up to 45% of the height; Settings sections and the AI
+    address box adapt to narrow screens.
+  - Respects "reduce motion" (no animations), and the browser's bar matches BEYOND's colours (`theme-color`).
+  - Browsers now **check for an updated page or style before using a saved copy** (`Cache-Control: no-cache`;
+    unchanged files get a quick "not modified"). The stylesheet's address changed once (`style.css?v=2`) so
+    browsers that saved the old one, phones included, pick up the new version.
+  - Tested: no horizontal scrolling at any size, no header overlap, tap-target sizes as above, the backdrop closes
+    the list, tablet keeps the list open, and a sideways phone keeps 246 of 375 px for messages.
 - **Phase 9: buttons in chat.**
   - Messages can carry **buttons** (rows of `{label, action}`), saved with the message (new `buttons` column,
     added automatically to existing databases). Commands reply with a `Reply(text, buttons, toast)`; an action like

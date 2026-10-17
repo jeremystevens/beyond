@@ -15,6 +15,15 @@ chats.initialize()
 rules.initialize()
 app = FastAPI(title='BEYOND', version=config.VERSION, docs_url=None, redoc_url=None)
 app.mount('/static', StaticFiles(directory=config.WEB_DIR), name='static')
+
+
+@app.middleware('http')
+async def always_check_for_updates(request: Request, call_next):
+    """Tell browsers (and phones) to check for a newer page or style before using a saved copy, so an updated BEYOND
+    shows up straight away. Unchanged files are answered with "not modified", so this stays fast."""
+    response = await call_next(request)
+    response.headers.setdefault('Cache-Control', 'no-cache')
+    return response
 # Filled in by beyond.py when the server starts (port and address in use, and the server, for restarts).
 app.state.running = {'host': config.LOCAL_ONLY_HOST, 'port': config.WEB_PORT, 'allow_network': False}
 app.state.server = None

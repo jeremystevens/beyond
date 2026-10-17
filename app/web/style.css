@@ -14,11 +14,18 @@ html, body { height: 100%; }
 body {
   margin: 0; display: flex; flex-direction: column; background: var(--bg); color: var(--text);
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif; font-size: 15px;
+  height: 100dvh;   /* the visible height on phones, without the part hidden behind the browser's address bar */
+  -webkit-text-size-adjust: 100%;
 }
 header {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border);
+  padding: 12px max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left));
+  padding-top: max(12px, env(safe-area-inset-top));
+  background: var(--panel); border-bottom: 1px solid var(--border);
 }
+/* Text only screen readers see (e.g. the AI status when only its dot fits on a phone). */
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);
+                   white-space: nowrap; }
 .brand { font-weight: 700; letter-spacing: 0.18em; color: var(--accent); font-size: 1.15rem; text-decoration: none; }
 .right { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 0.85rem; min-width: 0; }
@@ -39,3 +46,24 @@ input[type=text], input[type=number], textarea {
   border: 1px solid var(--border);
 }
 input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+/* ---------- phones and tablets ---------- */
+@media (max-width: 760px) {
+  /* 16px or more stops iPhones from zooming in when you tap a text box */
+  input[type=text], input[type=number], textarea { font-size: 16px; }
+}
+@media (max-width: 520px) {
+  .brand { letter-spacing: 0.1em; }
+  /* only the coloured dot shows; its text stays for screen readers and as a tooltip */
+  header .status span:last-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+}
+/* Touch screens: buttons big enough for a thumb (about 44px is comfortable) */
+@media (pointer: coarse) {
+  button, .button { min-height: 44px; }
+  .ghost { min-height: 40px; padding: 8px 14px; }
+  input[type=checkbox] { width: 24px; height: 24px; }
+}
+/* People who asked their device for less motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

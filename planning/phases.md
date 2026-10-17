@@ -134,6 +134,10 @@ Studio's engine on 10086 for most of development; that must never become the def
   place. This is needed by ratings, lists, reminders and the games.
 - **Done when:** a test command shows buttons, and pressing them changes the message.
 
+### Between 9 and 10: Mobile-friendly pages ✅ (done 2026-10-17, owner's request)
+- Responsive layout for phones, sideways phones and tablets; touch-sized buttons; no zoom-on-tap; notch and home bar
+  room; browsers always check for an updated page. **Every later page should keep working at phone size.**
+
 ### Phase 10: Saved facts
 - `/remember`, `/memories`, `/forget`, and saved facts added to every chat.
 - **Done when:** after `/remember my dog is named Max`, a new chat answers "What's my dog's name?" correctly.

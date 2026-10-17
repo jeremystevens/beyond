@@ -64,6 +64,12 @@ newest first: click one to open and continue it, **✎** to rename it, **🗑** 
 another. A new chat is named after its first message. Refreshing the page or restarting BEYOND keeps your chats,
 and the page reopens the chat you were in. On a phone-sized screen the panel opens with **☰**.
 
+**On phones and tablets:** the pages adapt to the screen. On a phone the chat list slides in from **☰** (tap the
+dimmed area to close it), the AI status shows as a coloured dot (its text is a tooltip and is read by screen
+readers), buttons are big enough for a thumb, text boxes don't make the phone zoom in, and the layout leaves room for
+the notch and home bar. On a tablet or wider, the chat list stays open beside the chat. After BEYOND is updated,
+browsers check for the new version of each page automatically.
+
 If you press Stop, what the AI wrote so far is saved and marked "Stopped". If you stop it (or it fails) before it
 writes anything, that question isn't saved.
 
