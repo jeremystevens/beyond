@@ -5,6 +5,22 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- **Phones: the header scrolled out of sight** (owner's report: you had to scroll all the way up the conversation to
+  reach it). Reproduced by shrinking the view to 375×450 (a phone with its keyboard open) and scrolling the page the
+  way iPhones do: the header went 300 px off the top and the message box below the screen.
+  - The page itself (`body`) is now pinned to the visible part of the screen (`position: fixed`), so the browser
+    can't scroll the whole page; only the conversation (and the Settings content) scrolls inside it.
+  - New `app/web/app-height.js` keeps the page's height and top matched to the visible area (the browser's
+    `visualViewport`) whenever it changes, and again just after you tap into or out of a text box (when keyboards
+    open and close), as a backup for browsers that miss a resize.
+  - Android Chrome is asked to shrink the page when its keyboard opens (`interactive-widget=resizes-content`), and
+    reaching the end of the conversation no longer scrolls the page behind it (`overscroll-behavior`).
+  - The header is also `sticky` as an extra safety net. Stylesheet address bumped (`style.css?v=4`).
+  - Tested: with the keyboard-sized view the header stays at the top, the message box sits on the bottom edge, and
+    the conversation gets the space between (289 px); a whole-page scroll does nothing; the Settings page scrolls to
+    its last button with the header in place. Not tested on a real phone yet.
+
 ### Changed
 - **Mobile-friendly pages (owner's request, between Phases 9 and 10).** Checked at phone (375×812), sideways phone
   (812×375), tablet (768×1024) and desktop sizes:

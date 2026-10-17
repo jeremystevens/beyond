@@ -67,7 +67,8 @@ and the page reopens the chat you were in. On a phone-sized screen the panel ope
 **On phones and tablets:** the pages adapt to the screen. On a phone the chat list slides in from **☰** (tap the
 dimmed area to close it), the AI status shows as a coloured dot (its text is a tooltip and is read by screen
 readers), buttons are big enough for a thumb, text boxes don't make the phone zoom in, and the layout leaves room for
-the notch and home bar. On a tablet or wider, the chat list stays open beside the chat. After BEYOND is updated,
+the notch and home bar. The header and message box stay on screen (also with the keyboard open); only the
+conversation scrolls. On a tablet or wider, the chat list stays open beside the chat. After BEYOND is updated,
 browsers check for the new version of each page automatically.
 
 If you press Stop, what the AI wrote so far is saved and marked "Stopped". If you stop it (or it fails) before it
@@ -142,7 +143,8 @@ app/tools/           The tools behind the commands (calculator, units, world_tim
                      PromptetheusBot
 app/ports.py         Port checks (free? who's using it?) and this PC's network addresses
 app/server.py        The web server (FastAPI): pages, chat, settings and status endpoints
-app/web/             The pages: index.html (chat), settings.html, style.css (shared look)
+app/web/             The pages: index.html (chat), settings.html, style.css (shared look), app-height.js
+                     (keeps the page fitted to the visible screen on phones)
 planning/            Brainstorm, project pitch and the phased plan
 data/                Your settings, chats and logs (created at runtime, git-ignored)
 ```

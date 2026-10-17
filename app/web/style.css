@@ -14,10 +14,17 @@ html, body { height: 100%; }
 body {
   margin: 0; display: flex; flex-direction: column; background: var(--bg); color: var(--text);
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif; font-size: 15px;
-  height: 100dvh;   /* the visible height on phones, without the part hidden behind the browser's address bar */
+  /* The page is pinned to the part of the screen you can see, so a phone can't scroll the whole page (for example
+     when its keyboard opens) and push the header out of sight; only the content inside scrolls. app-height.js keeps
+     --app-height (the visible height) and --view-top (where the visible part starts) up to date. */
+  position: fixed; left: 0; right: 0; top: var(--view-top, 0px);
+  height: 100dvh;   /* browsers without app-height.js: the visible height, minus the browser's own bars */
+  height: var(--app-height, 100dvh);
   -webkit-text-size-adjust: 100%;
 }
 header {
+  /* sticky: stays at the top even if a phone scrolls the whole page (e.g. when its keyboard opens) */
+  position: sticky; top: 0; z-index: 10; flex: none;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 12px max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left));
   padding-top: max(12px, env(safe-area-inset-top));
