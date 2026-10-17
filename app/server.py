@@ -9,11 +9,12 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from app import chats, commands, config, engine, memory, ports, rules, settings
+from app import chats, commands, config, engine, learning, memory, ports, rules, settings
 
 chats.initialize()
 rules.initialize()
 memory.initialize()
+learning.initialize()
 app = FastAPI(title='BEYOND', version=config.VERSION, docs_url=None, redoc_url=None)
 app.mount('/static', StaticFiles(directory=config.WEB_DIR), name='static')
 
@@ -135,8 +136,29 @@ async def chat_stream(body: SendRequest):
     values = settings.load()
     history, sent_ids = chats.recent_messages(chat_id, engine.history_window(chats.message_count(chat_id)),
                                               with_ids=True)
-    # Related exchanges from older conversations (any chat), as background for this reply only.
-    background = memory.recall_block(content, sent_ids) if values['recall'] else ''
+
+    def undo():   # nothing was answered: take the question back out, as if it was never sent
+        chats.remove_message(question_id)
+        if new_chat and chats.message_count(chat_id, kind=None) == 0:
+            chats.delete(chat_id)
+
+    opening = {'type': 'chat', 'id': chat_id, 'new': new_chat, 'title': chats.title_from(content)}
+    return _answer(chat_id, history, _background(content, sent_ids, values), opening, undo,
+                   pickup=content if values['auto_facts'] else None)
+
+
+def _background(question, sent_ids, values, extra=''):
+    """Notes for this reply only: related exchanges from older conversations (any chat), what the ratings taught,
+    and anything else for this reply (Try again's note)."""
+    parts = [memory.recall_block(question, sent_ids) if values['recall'] else '',
+             learning.prompt_block(question, sent_ids), extra]
+    return '\n\n'.join(part for part in parts if part)
+
+
+def _answer(chat_id, history, background, opening, undo, pickup=None, retry_of=None, temperature=None):
+    """Stream an AI answer to the end of `history` and save it with 👍 👎 🔄 under it. If the page disconnects
+    (Stop), what was written so far is saved, marked as stopped; if nothing was written at all, undo() runs."""
+    budget = learning.max_tokens()
 
     async def events():
         global ANSWERS_IN_PROGRESS
@@ -144,9 +166,9 @@ async def chat_stream(body: SendRequest):
         ANSWERS_IN_PROGRESS += 1
         writing = True
         try:
-            yield json.dumps({'type': 'chat', 'id': chat_id, 'new': new_chat, 'title': chats.title_from(content)}) + '\n'
+            yield json.dumps(opening) + '\n'
             try:
-                async for piece in engine.chat_stream(history, background):
+                async for piece in engine.chat_stream(history, background, max_tokens=budget, temperature=temperature):
                     answer.append(piece)
                     yield json.dumps({'type': 'token', 'text': piece}) + '\n'
                 finished = True
@@ -154,15 +176,21 @@ async def chat_stream(body: SendRequest):
                 yield json.dumps({'type': 'error', 'message': str(exc)}) + '\n'
             text = ''.join(answer).strip()
             if finished and text:
-                chats.add_message(chat_id, 'assistant', text)
+                answer_id = chats.add_message(chat_id, 'assistant', text, retry_of=retry_of)
+                previous = chats.previous_answer(chat_id, answer_id)
+                buttons = learning.rating_buttons(answer_id)
+                chats.set_buttons(answer_id, buttons)
                 saved = True
+                if previous and learning.has_retry(previous['buttons']):   # 🔄 is only for the newest answer
+                    chats.set_buttons(previous['id'], learning.without_retry(previous['buttons']))
+                yield json.dumps({'type': 'message', 'id': answer_id, 'buttons': buttons}) + '\n'
                 # "done": the answer is complete and saved, so the page can let you type again. Anything after this
                 # (the automatic fact pickup) is extra and arrives a little later on the same connection.
                 yield json.dumps({'type': 'done'}) + '\n'
                 ANSWERS_IN_PROGRESS -= 1
                 writing = False
-                if values['auto_facts'] and memory.wants_pickup(content):
-                    note = await _pick_up_facts(content)
+                if pickup and memory.wants_pickup(pickup):
+                    note = await _pick_up_facts(pickup)
                     if note:
                         note_id = chats.add_message(chat_id, 'assistant', note, kind='note')
                         yield json.dumps({'type': 'note', 'id': note_id, 'text': note}) + '\n'
@@ -172,15 +200,44 @@ async def chat_stream(body: SendRequest):
             if not saved:
                 text = ''.join(answer).strip()
                 if text:
-                    chats.add_message(chat_id, 'assistant', text, stopped=True)
+                    chats.add_message(chat_id, 'assistant', text, stopped=True, retry_of=retry_of)
                 else:
-                    chats.remove_message(question_id)
-                    if new_chat and chats.message_count(chat_id, kind=None) == 0:
-                        chats.delete(chat_id)
+                    undo()
 
     return StreamingResponse(events(), media_type='application/x-ndjson',
                              headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
 
+
+@app.post('/api/messages/{message_id}/retry')
+async def try_again(message_id: int):
+    """🔄 Try again: a different answer to the same question. The old answer stays in the chat (marked as
+    replaced, and no longer sent to the AI); the new one streams like any answer. Only for the newest answer."""
+    old = chats.get_message(message_id)
+    if old is None:
+        return JSONResponse({'error': 'That answer no longer exists.'}, status_code=404)
+    if old['kind'] != 'chat' or not learning.has_retry(old['buttons']):
+        return JSONResponse({'error': 'That answer can\'t be tried again any more.'}, status_code=409)
+    chat_id = old['chat_id']
+    latest = chats.latest_answer(chat_id)
+    if latest is None or latest['id'] != message_id:
+        return JSONResponse({'error': 'Only the newest answer can be tried again. Ask again below instead.'},
+                            status_code=409)
+    # The same window the first answer used (the old answer isn't counted), so the AI can reuse what it read.
+    window = engine.history_window(chats.message_count(chat_id) - 1)
+    chats.set_buttons(message_id, [], kind='retried')
+    history, sent_ids = chats.recent_messages(chat_id, window, with_ids=True)
+    if not history or history[-1]['role'] != 'user':
+        chats.set_buttons(message_id, old['buttons'], kind='chat')
+        return JSONResponse({'error': 'There\'s no question to answer again.'}, status_code=409)
+    learning.rate(message_id, -1, 'retry')
+
+    def undo():   # no new answer: put the old one back as it was
+        chats.set_buttons(message_id, old['buttons'], kind='chat')
+        learning.set_rating(message_id, old['rating'], old['reason'])
+
+    background = _background(history[-1]['content'], sent_ids, settings.load(), learning.retry_note(old['content']))
+    return _answer(chat_id, history, background, {'type': 'retry', 'id': message_id}, undo, retry_of=message_id,
+                   temperature=min(1.1, config.TEMPERATURE + 0.3))
 
 ANSWERS_IN_PROGRESS = 0     # chat answers being written right now
 PICKUP_LOCK = asyncio.Lock()

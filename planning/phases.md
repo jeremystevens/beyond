@@ -147,7 +147,7 @@ Studio's engine on 10086 for most of development; that must never become the def
   so "what was that movie I told you about?" works weeks later.
 - **Done when:** a fact mentioned in passing is picked up, and a detail from an old chat is recalled.
 
-### Phase 12: Ratings and learning
+### Phase 12: Ratings and learning ✅ (done 2026-10-17)
 - 👍 👎 🔄 under every answer, 🔄 Try again, and `/learned` (what it learned from your ratings, with reset).
 - **Done when:** rating answers changes later ones, and `/learned` shows what it picked up.
 

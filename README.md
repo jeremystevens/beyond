@@ -4,10 +4,11 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 11 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> **Status: early development (Phase 12 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
 > browser: it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
-> tell it and ones it notices), recalls related older conversations, writes its answers as you watch (with a Stop button), saves your
-> conversations in a side panel, and has slash commands (/calc, /convert, /time, /roll, /remember, /help), some
+> tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, writes its
+> answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
+> slash commands (/calc, /convert, /time, /roll, /remember, /help), some
 > with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
 > arrives in Phase 33.
 
@@ -35,6 +36,22 @@ were saved, so a newer fact wins over an older one that conflicts.
   "what was that movie I told you about?", BEYOND finds the most related earlier exchanges in any chat and gives
   them to the AI as background for that one reply. No extra AI work; turn it off on the Settings page.
 
+## Ratings and learning
+
+Every answer has **👍**, **👎** and **🔄 Try again** under it.
+
+- **👎** asks what was wrong (too long, too short, wrong or made up, not helpful, wrong tone, didn't understand
+  me); you can also skip. After the same kind of complaint twice, BEYOND changes how it answers: for example
+  shorter answers (with a firm word limit), more detail, extra care with facts, or a plainer tone. **👍** slowly
+  undoes old complaints.
+- When you ask something similar to an answer you rated, the AI is shown the one you liked as a guide and the one
+  you didn't as a mistake to avoid.
+- **🔄 Try again** writes a different answer to your last question. The old one stays in the chat, marked
+  "Tried again below", but the AI no longer sees it. It is offered on the newest answer only.
+- **/learned** shows what BEYOND picked up from your ratings, with **🧽 Reset what you learned**.
+
+The AI itself isn't retrained; ratings change what it is told before it answers.
+
 ## Commands
 
 Type **/** in the message box to see the commands; keep typing to narrow the list, use the arrow keys, and press
@@ -48,6 +65,7 @@ Tab or Enter to pick one. BEYOND answers commands itself, instantly, without the
 | `/time` | Time in a city, several cities, or convert a time | `/time 3pm London to Tokyo` |
 | `/roll` | Dice and coin flips | `/roll 2d20+3` · `/roll coin` |
 | `/remember` · `/memories` · `/forget` | Save, list and remove facts BEYOND knows in every chat | `/remember my dog is named Max` |
+| `/learned` | What BEYOND learned from your ratings, with a reset | `/learned` |
 | `/rule` · `/rules` | Add, list and delete house rules | `/rule Use metric units` |
 
 A mistyped command gets "Did you mean…?". Commands and their replies are saved in the chat but never sent to the
@@ -164,6 +182,7 @@ app/personality.md   BEYOND's personality (the system prompt)
 app/chats.py         Saved conversations (SQLite database in data/beyond.sqlite3)
 app/rules.py         House rules (same database)
 app/memory.py        Saved facts (same database)
+app/learning.py      Ratings and what BEYOND learns from them
 app/commands.py      Slash commands: one list (name, summary, example, function) drives /help, the / menu
                      and "did you mean…?"; replies can carry buttons, handled by ACTIONS
 app/tools/           The tools behind the commands (calculator, units, world_time, dice, places), from

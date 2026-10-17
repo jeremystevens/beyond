@@ -6,6 +6,28 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 12: ratings and learning** (version 0.12.0), ported from PromptetheusBot's `answer_feedback` (one user).
+  - **👍 👎 🔄 Try again** under every finished AI answer (stored on the message: new `rating`, `reason` and
+    `retry_of` columns). 👎 offers six reasons or Skip; the buttons then show "👍 Thanks!" or "👎 Noted: …". The
+    answer's text never changes, and the server only accepts buttons that are on that answer.
+  - New `app/learning.py`: each reason adds a point to a preference (shorter, longer, accuracy, helpful, tone,
+    understand); at 2 points its hint goes into the notes for every reply, saying it overrides the usual length and
+    style. "Too long" also sets a firm 180-token budget; "too short" and "too long" cancel each other. 👍 fades all
+    of them by half a point. Rating the same answer twice counts once.
+  - Similar questions: the FTS index finds an earlier question like this one with a 👍 answer (shown as a guide)
+    and one with a 👎 answer (shown as a mistake to avoid, with the reason).
+  - **🔄 Try again** (`POST /api/messages/{id}/retry`) streams a different answer (temperature +0.3, with the old
+    answer quoted in the notes). The old answer becomes kind `retried`: still shown, marked "🔄 Tried again below",
+    but no longer sent to the AI. Only the newest answer offers 🔄; it is removed from older ones. If no new
+    answer is written, the old one is put back as it was.
+  - **/learned** lists what is applied and what is only being noticed, with 🧽 Reset what you learned.
+  - The answer stream is now shared by new questions and Try again; it also sends the saved answer's id and
+    buttons (`message` event) before `done`.
+  - Personality: knows about ratings; "2–4 sentences" now gives way to a learned preference for longer answers.
+  - Tested with Qwen3-4B on the processor: rating reasons and Skip; a repeated press refused (409); "too long"
+    twice applied "shorter answers" and 👍 faded it; "too short" twice made the same question 87 words instead of
+    51 (control with nothing learned); Try again on the newest answer (and refused on an older one); the replaced
+    answer kept after reload; the similar-question notes; all in the browser too.
 - **Phase 11: automatic memory** (version 0.11.0).
   - **Fact pickup**, ported from PromptetheusBot: after an answer is saved, a personal-sounding message (the bot's
     `PERSONAL_RE` filter, which skips questions and one-off plans) goes to the AI once more with a short

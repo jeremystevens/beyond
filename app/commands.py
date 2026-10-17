@@ -13,7 +13,7 @@ import difflib
 from dataclasses import dataclass, field
 from typing import Callable
 
-from app import memory, rules, settings
+from app import chats, learning, memory, rules, settings
 from app.tools.calculator import calculate
 from app.tools.dice import roll_dice
 from app.tools.units import convert
@@ -159,6 +159,59 @@ def _memory_button(what, detail):
     return None
 
 
+# ---------- ratings (👍 👎 under every answer) and /learned ----------
+
+def _rate_button(what, detail):
+    """👍 / 👎 / a 👎 reason under an AI answer. The answer's text stays the same; only its buttons change.
+    (🔄 Try again is handled by the page and the server, because it writes a new answer.)"""
+    message_id, _, reason = detail.partition(':')
+    message = chats.get_message(int(message_id)) if message_id.isdigit() else None
+    if message is None or message['role'] != 'assistant':
+        return None
+    answer_id, text = message['id'], message['content']
+    retry = learning.has_retry(message['buttons'])
+    if what == 'up':
+        learning.rate(answer_id, 1)
+        return Reply(text, learning.done_buttons('👍 Thanks!', answer_id, retry),
+                     "Thanks! I'll keep answering like this.")
+    if what == 'down':
+        learning.rate(answer_id, -1)
+        return Reply(text, learning.reason_buttons(answer_id, retry), 'What was wrong with it? (optional)')
+    if what == 'why' and (reason in learning.REASONS or reason == 'none'):
+        learning.rate(answer_id, -1, None if reason == 'none' else reason)
+        label = learning.REASONS[reason][2] if reason in learning.REASONS else 'thanks'
+        return Reply(text, learning.done_buttons(f'👎 Noted: {label}', answer_id, retry),
+                     "Thanks, I'll adjust. /learned shows what I've picked up.")
+    if what == 'done':
+        return Reply(text, message['buttons'], 'Already rated. Thanks!')
+    return None
+
+
+def _learned(args=''):
+    scores = learning.preferences()
+    if not scores:
+        return Reply("🧠 Nothing learned from your ratings yet. Tap 👍 or 👎 under my answers (👎 asks why) and "
+                     "I'll adjust to what you like.")
+    applied = [key for key, score in scores.items() if score >= learning.THRESHOLD]
+    noticing = [key for key, score in scores.items() if score < learning.THRESHOLD]
+    text = '🧠 From your ratings:'
+    if applied:
+        text += "\n\nI'm now doing:\n" + '\n'.join(f'• {learning.NAMES.get(k, k)}' for k in applied)
+    if noticing:
+        text += '\n\nNoticing (not applied yet):\n' + '\n'.join(f'• {learning.NAMES.get(k, k)}' for k in noticing)
+    text += '\n\n👍 on answers you like slowly undoes these. I also look at answers you rated to similar questions.'
+    return Reply(text, [[button('🧽 Reset what you learned', 'learn:reset:')]])
+
+
+def _learn_button(what, detail):
+    if what == 'reset':
+        count = learning.reset()
+        return Reply("🧽 Done: I've forgotten what I learned from your ratings and will start fresh. (Your ratings "
+                     'of answers to similar questions are still used.)' if count else
+                     'There was nothing learned to reset.')
+    return None
+
+
 # ---------- dice ----------
 
 def _roll(args):
@@ -234,6 +287,8 @@ COMMANDS = [
     Command('memories', 'See what BEYOND remembers about you (and forget things); /memories auto on|off',
             '/memories', _memories, aliases=('facts',), group='Memory'),
     Command('forget', 'Forget one saved fact, or all of them', '/forget 2', _forget, group='Memory'),
+    Command('learned', 'What BEYOND learned from your 👍 👎 ratings (with a reset)', '/learned', _learned,
+            group='Memory'),
     Command('rule', 'Add or delete a house rule BEYOND follows in every chat', '/rule Use metric units', _rule,
             group='House rules'),
     Command('rules', 'List the house rules', '/rules', _list_rules, group='House rules'),
@@ -272,6 +327,8 @@ ACTIONS = {
     'rules': _rules_button,
     'roll': _roll_button,
     'mem': _memory_button,
+    'rate': _rate_button,
+    'learn': _learn_button,
 }
 
 

@@ -49,6 +49,11 @@ def initialize():
         # Buttons under a message, as JSON: rows of {"label", "action"} (added in Phase 9).
         if 'buttons' not in columns:
             db.execute('ALTER TABLE messages ADD COLUMN buttons TEXT')
+        # Ratings (Phase 12): 1 = 👍, -1 = 👎, NULL = not rated; reason = why (app/learning.py); retry_of = the
+        # answer that 🔄 Try again replaced. A replaced answer gets kind 'retried': shown, but not sent to the AI.
+        for column in ('rating INTEGER', 'reason TEXT', 'retry_of INTEGER'):
+            if column.split()[0] not in columns:
+                db.execute('ALTER TABLE messages ADD COLUMN ' + column)
 
 
 def title_from(text):
@@ -80,13 +85,14 @@ def _buttons(raw):
         return []
 
 
-def add_message(chat_id, role, content, stopped=False, kind='chat', buttons=None):
+def add_message(chat_id, role, content, stopped=False, kind='chat', buttons=None, retry_of=None):
     """Save a message. `buttons`: rows of {'label', 'action'} to show under it (see app/commands.py)."""
     now = _now()
     with connect() as db:
-        message_id = db.execute('INSERT INTO messages (chat_id, role, content, stopped, created_at, kind, buttons) '
-                                'VALUES (?, ?, ?, ?, ?, ?, ?)',
-                                (chat_id, role, content, int(stopped), now, kind, _buttons_json(buttons))).lastrowid
+        message_id = db.execute('INSERT INTO messages (chat_id, role, content, stopped, created_at, kind, buttons, '
+                                'retry_of) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                                (chat_id, role, content, int(stopped), now, kind, _buttons_json(buttons),
+                                 retry_of)).lastrowid
         db.execute('UPDATE chats SET updated_at = ? WHERE id = ?', (now, chat_id))
     return message_id
 
@@ -94,7 +100,7 @@ def add_message(chat_id, role, content, stopped=False, kind='chat', buttons=None
 def get_message(message_id):
     """One message with its buttons, or None."""
     with connect() as db:
-        row = db.execute('SELECT id, chat_id, role, content, kind, buttons FROM messages WHERE id = ?',
+        row = db.execute('SELECT id, chat_id, role, content, kind, buttons, rating, reason FROM messages WHERE id = ?',
                          (message_id,)).fetchone()
     return {**dict(row), 'buttons': _buttons(row['buttons'])} if row else None
 
@@ -104,6 +110,33 @@ def update_message(message_id, content, buttons):
     with connect() as db:
         db.execute('UPDATE messages SET content = ?, buttons = ? WHERE id = ?',
                    (content, _buttons_json(buttons), message_id))
+
+
+def set_buttons(message_id, buttons, kind=None):
+    """Change only a message's buttons (and, optionally, its kind)."""
+    with connect() as db:
+        if kind is None:
+            db.execute('UPDATE messages SET buttons = ? WHERE id = ?', (_buttons_json(buttons), message_id))
+        else:
+            db.execute('UPDATE messages SET buttons = ?, kind = ? WHERE id = ?',
+                       (_buttons_json(buttons), kind, message_id))
+
+
+def latest_answer(chat_id):
+    """The chat's last conversation message, if it is an answer (not a question still waiting), else None."""
+    with connect() as db:
+        row = db.execute("SELECT id FROM messages WHERE chat_id = ? AND kind = 'chat' ORDER BY id DESC LIMIT 1",
+                         (chat_id,)).fetchone()
+    message = get_message(row['id']) if row else None
+    return message if message and message['role'] == 'assistant' else None
+
+
+def previous_answer(chat_id, before):
+    """The newest conversation answer older than message `before`, or None."""
+    with connect() as db:
+        row = db.execute("SELECT id FROM messages WHERE chat_id = ? AND kind = 'chat' AND role = 'assistant' "
+                         'AND id < ? ORDER BY id DESC LIMIT 1', (chat_id, before)).fetchone()
+    return get_message(row['id']) if row else None
 
 
 def remove_message(message_id):

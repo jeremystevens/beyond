@@ -102,14 +102,15 @@ def _server():
     return url, values['ai_model']
 
 
-def _prepare(messages, stream, background=''):
+def _prepare(messages, stream, background='', max_tokens=None, temperature=None):
     """The server address and the request body for a chat reply, or a plain-words error if no AI is set up."""
     url, model = _server()
     # The personality comes first and never changes between messages, so the AI server can reuse it (see
     # history_window); the conversation follows, newest message last, with any notes for this reply attached to it.
     messages = with_reply_notes(trim(messages), background)
     payload = {'messages': [{'role': 'system', 'content': system_prompt()}, *messages], 'stream': stream,
-               'max_tokens': config.ANSWER_MAX_TOKENS, 'temperature': config.TEMPERATURE, 'cache_prompt': True}
+               'max_tokens': max_tokens or config.ANSWER_MAX_TOKENS,
+               'temperature': config.TEMPERATURE if temperature is None else temperature, 'cache_prompt': True}
     if model:
         payload['model'] = model
     return _base_url(url) + '/v1/chat/completions', url, payload
@@ -171,13 +172,14 @@ async def chat(messages):
         raise EngineError("The AI server's answer wasn't in the expected format.") from exc
 
 
-async def chat_stream(messages, background=''):
+async def chat_stream(messages, background='', max_tokens=None, temperature=None):
     """Like chat(), but yields the reply piece by piece as the AI writes it. `background`: notes for this reply
-    only (for example related old conversations).
+    only (for example related old conversations). `max_tokens` / `temperature`: None = the defaults.
 
     If the caller stops reading (the person pressed Stop), the connection to the AI server is closed, which tells
     llama.cpp to stop writing, so the AI is free again for the next question (or for the Telegram bot)."""
-    endpoint, url, payload = _prepare(messages, stream=True, background=background)
+    endpoint, url, payload = _prepare(messages, stream=True, background=background, max_tokens=max_tokens,
+                                     temperature=temperature)
     try:
         async with _client() as client:
             async with client.stream('POST', endpoint, json=payload) as response:

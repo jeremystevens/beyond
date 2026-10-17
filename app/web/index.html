@@ -168,7 +168,10 @@
           const chip = document.createElement('button');
           chip.type = 'button'; chip.className = 'chip';
           chip.textContent = b.label;
-          chip.onclick = () => press(el, messageId, b.action);
+          // 🔄 Try again writes a whole new answer, so it streams like a question instead of changing this message.
+          const retry = b.action.startsWith('rate:retry:');
+          if (retry) chip.dataset.retry = '1';
+          chip.onclick = () => retry ? tryAgain(el, messageId, buttons) : press(el, messageId, b.action);
           line.appendChild(chip);
         }
         box.appendChild(line);
@@ -212,6 +215,7 @@
       note.className = 'note';
       note.textContent = text;
       el.appendChild(note);
+      return note;
     }
 
     function setBusy(busy) {
@@ -299,6 +303,7 @@
         if (m.kind === 'note') { noteBubble(m.content); continue; }
         const el = bubble(m.role + (m.kind === 'command' && m.role === 'assistant' ? ' command' : ''), m.content);
         if (m.stopped) addNote(el, 'Stopped');
+        if (m.kind === 'retried') addNote(el, RETRIED);
         showButtons(el, m.id, m.buttons);
       }
       scrollDown(true);
@@ -408,12 +413,34 @@
     $('menu').addEventListener('click', () => document.body.classList.toggle('panel-open'));
     $('backdrop').addEventListener('click', () => document.body.classList.remove('panel-open'));
 
-    $('form').addEventListener('submit', async e => {
+    const RETRIED = '🔄 Tried again below';
+
+    $('form').addEventListener('submit', e => {
       e.preventDefault();
       const text = input.value.trim();
       if (!text || current) return;
       input.value = ''; autoGrow();
       const question = bubble('user', text);
+      streamAnswer('/api/chat/stream', { chat_id: chatId, content: text }, question, () => {
+        // nothing was answered, so BEYOND didn't save the question either
+        if (current?.stopped && question.isConnected) addNote(question, 'Stopped before the AI started answering (not saved)');
+      });
+    });
+
+    // 🔄 Try again: the old answer stays (marked), and a different one streams in below it.
+    function tryAgain(el, messageId, buttons) {
+      if (current) return;
+      el.querySelector('.buttons')?.remove();
+      const note = addNote(el, RETRIED);
+      streamAnswer(`/api/messages/${messageId}/retry`, null, el, () => {
+        note.remove();   // no new answer: BEYOND put the old one back
+        showButtons(el, messageId, buttons);
+      });
+    }
+
+    // Send a request that answers with a stream of events, and show the answer as it's written.
+    // `anchor`: the message this answer belongs to; `nothing()`: runs if no answer was written at all.
+    async function streamAnswer(url, payload, anchor, nothing) {
       const reply = bubble('assistant thinking', '');
       current = { controller: new AbortController(), stopped: false, chatId };
       const mine = current;
@@ -428,20 +455,20 @@
         if (answer) {
           if (mine.stopped) addNote(reply, 'Stopped');
         } else {
-          reply.remove();   // nothing was answered, so BEYOND didn't save the question either
-          if (mine.stopped && question.isConnected) addNote(question, 'Stopped before the AI started answering (not saved)');
+          reply.remove();
+          if (anchor.isConnected) nothing();
           if (startedNewChat && chatId === mine.chatId) { chatId = null; showChatInAddress(); }   // BEYOND removed it again
         }
-        if (problem && question.isConnected) { bubble('error', problem); refreshStatus(); }
+        if (problem && anchor.isConnected) { bubble('error', problem); refreshStatus(); }
         if (current === mine) current = null;
         setBusy(false);
         loadList();
         input.focus();
       }
       try {
-        const response = await fetch('/api/chat/stream', {
+        const response = await fetch(url, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: chatId, content: text }), signal: mine.controller.signal,
+          body: payload ? JSON.stringify(payload) : undefined, signal: mine.controller.signal,
         });
         if (!response.ok) throw new Error((await response.json()).error || 'Something went wrong.');
         const reader = response.body.getReader();
@@ -466,6 +493,9 @@
               reply.textContent = answer;
               if (follow) scrollDown(true);
             } else if (event.type === 'message') {
+              // 🔄 is only offered on the newest answer
+              if (event.buttons.some(row => row.some(b => b.action.startsWith('rate:retry:'))))
+                list.querySelectorAll('.chip[data-retry]').forEach(c => c.remove());
               showButtons(reply, event.id, event.buttons);
             } else if (event.type === 'error') {
               problem = event.message;
@@ -484,7 +514,7 @@
       } finally {
         finish();
       }
-    });
+    }
 
     // ---------- start ----------
     const fromAddress = /^#chat=(\d+)$/.exec(location.hash);
