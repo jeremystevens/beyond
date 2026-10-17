@@ -93,7 +93,7 @@ Studio's engine on 10086 for most of development; that must never become the def
   it points at Studio's engine on port 10086, which is already running.
 - **Done when:** you type a question in the browser and get the AI's answer back.
 
-### Phase 3: Live typing and chat controls
+### Phase 3: Live typing and chat controls ✅ (done 2026-10-17)
 - Answers appear word by word as they're written (streaming).
 - **Stop** button, **New chat** button, a "thinking…" indicator, and a clear message when the AI isn't reachable.
 - **Done when:** a long answer streams in, can be stopped halfway, and a new chat starts clean.

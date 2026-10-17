@@ -5,8 +5,8 @@ data/settings.json (Phase 4), which is never committed, so a new user always sta
 """
 from pathlib import Path
 
-VERSION = '0.2.0'
-PHASE = 2
+VERSION = '0.3.0'
+PHASE = 3
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / 'data'                          # settings, chats, logs: created at runtime, git-ignored

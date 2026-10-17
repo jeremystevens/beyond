@@ -44,7 +44,14 @@
              font-size: 0.9rem; max-width: 95%; }
     .thinking { color: var(--muted); }
     .thinking::after { content: '…'; display: inline-block; animation: pulse 1.2s infinite; }
+    .writing::after { content: '▍'; margin-left: 1px; color: var(--accent); animation: pulse 1s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+    .note { display: block; margin-top: 6px; font-size: 0.8rem; color: var(--muted); font-style: italic; }
+    .right { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .ghost { padding: 6px 12px; background: transparent; color: var(--text); border: 1px solid var(--border);
+             font-weight: 500; font-size: 0.85rem; border-radius: 10px; }
+    .ghost:hover { border-color: var(--accent); }
+    button.stop { background: var(--bad); }
     form { padding: 12px 16px 16px; background: var(--panel); border-top: 1px solid var(--border); }
     .composer { max-width: 760px; margin: 0 auto; display: flex; gap: 8px; align-items: flex-end; }
     textarea {
@@ -63,7 +70,10 @@
 <body>
   <header>
     <div class="brand">BEYOND</div>
-    <div class="status" title="AI server status"><span class="dot" id="dot"></span><span id="status">Checking the AI…</span></div>
+    <div class="right">
+      <div class="status" title="AI server status"><span class="dot" id="dot"></span><span id="status">Checking the AI…</span></div>
+      <button class="ghost" id="newchat" type="button">New chat</button>
+    </div>
   </header>
   <main id="log"><div class="inner" id="messages">
     <div class="welcome" id="welcome">
@@ -79,9 +89,14 @@
     </div>
   </form>
   <script>
-    const history = [];   // this chat's messages; saving chats arrives in Phase 5
+    let history = [];     // this chat's messages; saving chats arrives in Phase 5
+    let current = null;   // the reply being written: { controller, stopped }
     const $ = id => document.getElementById(id);
     const log = $('log'), list = $('messages'), input = $('input'), send = $('send');
+    const welcomeHTML = $('welcome').outerHTML;
+
+    function nearBottom() { return log.scrollHeight - log.scrollTop - log.clientHeight < 80; }
+    function scrollDown(force) { if (force || nearBottom()) log.scrollTop = log.scrollHeight; }
 
     function bubble(kind, text) {
       $('welcome')?.remove();
@@ -89,9 +104,25 @@
       el.className = 'msg ' + kind;
       el.textContent = text;   // plain text on purpose: nothing the AI writes is run as HTML
       list.appendChild(el);
-      log.scrollTop = log.scrollHeight;
+      scrollDown(true);
       return el;
     }
+
+    function addNote(el, text) {
+      const note = document.createElement('span');
+      note.className = 'note';
+      note.textContent = text;
+      el.appendChild(note);
+    }
+
+    function setBusy(busy) {
+      send.textContent = busy ? 'Stop' : 'Send';
+      send.classList.toggle('stop', busy);
+      send.type = busy ? 'button' : 'submit';
+      send.title = busy ? 'Stop the answer (Esc)' : '';
+    }
+
+    function stop() { if (current) { current.stopped = true; current.controller.abort(); } }
 
     function setStatus(state, text) {
       $('dot').className = 'dot ' + state;
@@ -107,47 +138,92 @@
       } catch { setStatus('bad', 'BEYOND is not responding'); }
     }
 
-    function autoGrow() { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 200) + 'px'; }
+    function autoGrow() {
+      input.style.height = 'auto';
+      const needed = input.scrollHeight + 2;   // + the 1px top and bottom border
+      input.style.height = Math.min(needed, 200) + 'px';
+      input.style.overflowY = needed > 200 ? 'auto' : 'hidden';   // a scrollbar only once the box is full
+    }
     input.addEventListener('input', autoGrow);
     input.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('form').requestSubmit(); }
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!current) $('form').requestSubmit(); }
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') stop(); });
+    send.addEventListener('click', e => { if (current) { e.preventDefault(); stop(); } });
+
+    $('newchat').addEventListener('click', () => {
+      stop();
+      history = [];
+      list.innerHTML = welcomeHTML;
+      input.value = ''; autoGrow(); input.focus();
     });
 
     $('form').addEventListener('submit', async e => {
       e.preventDefault();
       const text = input.value.trim();
-      if (!text || send.disabled) return;
+      if (!text || current) return;
       input.value = ''; autoGrow();
       bubble('user', text);
       history.push({ role: 'user', content: text });
-      send.disabled = true;
-      const waiting = bubble('assistant thinking', '');
+      const chat = history;   // if New chat is pressed meanwhile, this answer belongs to the old chat
+      const reply = bubble('assistant thinking', '');
+      current = { controller: new AbortController(), stopped: false };
+      const mine = current;
+      setBusy(true);
+      let answer = '', problem = null;
       try {
-        const response = await fetch('/api/chat', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: history }),
+        const response = await fetch('/api/chat/stream', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: chat }), signal: mine.controller.signal,
         });
-        const data = await response.json();
-        waiting.remove();
-        if (response.ok) {
-          bubble('assistant', data.reply);
-          history.push({ role: 'assistant', content: data.reply });
-        } else {
-          bubble('error', data.error || 'Something went wrong.');
-          history.pop();   // the question wasn't answered, so don't send it again as if it had been
-          refreshStatus();
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let newline;
+          while ((newline = buffer.indexOf('\n')) >= 0) {
+            const line = buffer.slice(0, newline).trim();
+            buffer = buffer.slice(newline + 1);
+            if (!line) continue;
+            const event = JSON.parse(line);
+            if (event.type === 'token') {
+              const follow = nearBottom();
+              if (!answer) reply.className = 'msg assistant writing';
+              answer += event.text;
+              reply.textContent = answer;
+              if (follow) scrollDown(true);
+            } else if (event.type === 'error') {
+              problem = event.message;
+            }
+          }
         }
-      } catch {
-        waiting.remove();
-        bubble('error', 'BEYOND is not responding. Is it still running?');
-        history.pop();
+      } catch (err) {
+        if (!mine.stopped) problem = 'BEYOND is not responding. Is it still running?';
       } finally {
-        send.disabled = false;
+        reply.classList.remove('writing', 'thinking');
+        if (answer) {
+          if (mine.stopped) addNote(reply, 'Stopped');
+          chat.push({ role: 'assistant', content: answer });   // a stopped answer still counts as said
+        } else {
+          reply.remove();
+          if (mine.stopped && chat === history && list.lastElementChild) {
+            addNote(list.lastElementChild, 'Stopped before the AI started answering');
+          }
+          chat.pop();   // nothing was answered, so don't send the question again as if it had been
+        }
+        if (problem && chat === history) { bubble('error', problem); refreshStatus(); }
+        if (current === mine) current = null;
+        setBusy(false);
         input.focus();
       }
     });
 
     refreshStatus();
     setInterval(refreshStatus, 30000);
+    autoGrow();
     input.focus();
   </script>
 </body>

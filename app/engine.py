@@ -3,6 +3,8 @@
 It uses the standard "OpenAI-compatible" chat API that llama.cpp's llama-server, Local AI Studio, LM Studio
 and Ollama all offer, so any of them can be plugged in. If an engine ever changes, this is the file to fix.
 """
+import json
+
 import httpx
 
 from app import config, settings
@@ -40,31 +42,77 @@ async def status():
     return {'state': 'ok', 'url': url, 'model': model}
 
 
-async def chat(messages):
-    """Send the conversation (list of {'role', 'content'}) and return the AI's reply as text."""
+def _prepare(messages, stream):
+    """The server address and the request body, or a plain-words error if no AI is set up."""
     values = settings.load()
     url = values['ai_server_url']
     if not url:
         raise EngineError("No AI is set up yet. On this version, set 'ai_server_url' in data/settings.json to an AI "
                           "server's address (for example Local AI Studio's engine).")
-    payload = {'messages': [{'role': 'system', 'content': SYSTEM_PROMPT}, *messages], 'stream': False}
+    payload = {'messages': [{'role': 'system', 'content': SYSTEM_PROMPT}, *messages], 'stream': stream}
     if values['ai_model']:
         payload['model'] = values['ai_model']
-    try:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(config.AI_TIMEOUT_SECONDS, connect=5)) as client:
-            response = await client.post(_base_url(url) + '/v1/chat/completions', json=payload)
-    except httpx.ConnectError as exc:
-        raise EngineError(f"BEYOND can't reach the AI server at {url}. Is it running, with a model loaded?") from exc
-    except httpx.TimeoutException as exc:
-        raise EngineError(f'The AI took longer than {config.AI_TIMEOUT_SECONDS // 60} minutes to answer, '
-                          'so BEYOND stopped waiting. Please try again.') from exc
-    except httpx.HTTPError as exc:
-        raise EngineError(f'Something went wrong talking to the AI server ({type(exc).__name__}).') from exc
-    if response.status_code == 503:
+    return _base_url(url) + '/v1/chat/completions', url, payload
+
+
+def _client():
+    # Reading a long question on a processor-only PC can take minutes before the first word arrives.
+    return httpx.AsyncClient(timeout=httpx.Timeout(config.AI_TIMEOUT_SECONDS, connect=5))
+
+
+def _explain(exc, url):
+    """Turn a connection problem into words for the page."""
+    if isinstance(exc, httpx.ConnectError):
+        return EngineError(f"BEYOND can't reach the AI server at {url}. Is it running, with a model loaded?")
+    if isinstance(exc, httpx.TimeoutException):
+        return EngineError(f'The AI took longer than {config.AI_TIMEOUT_SECONDS // 60} minutes to answer, '
+                           'so BEYOND stopped waiting. Please try again.')
+    return EngineError(f'Something went wrong talking to the AI server ({type(exc).__name__}).')
+
+
+def _check(status_code):
+    if status_code == 503:
         raise EngineError('The AI server is still loading its model. Please try again in a moment.')
-    if response.status_code != 200:
-        raise EngineError(f'The AI server answered with an error (HTTP {response.status_code}).')
+    if status_code != 200:
+        raise EngineError(f'The AI server answered with an error (HTTP {status_code}).')
+
+
+async def chat(messages):
+    """Send the conversation (list of {'role', 'content'}) and return the AI's whole reply as text."""
+    endpoint, url, payload = _prepare(messages, stream=False)
+    try:
+        async with _client() as client:
+            response = await client.post(endpoint, json=payload)
+    except httpx.HTTPError as exc:
+        raise _explain(exc, url) from exc
+    _check(response.status_code)
     try:
         return response.json()['choices'][0]['message']['content'].strip()
     except (ValueError, KeyError, IndexError, TypeError) as exc:
         raise EngineError("The AI server's answer wasn't in the expected format.") from exc
+
+
+async def chat_stream(messages):
+    """Like chat(), but yields the reply piece by piece as the AI writes it.
+
+    If the caller stops reading (the person pressed Stop), the connection to the AI server is closed, which tells
+    llama.cpp to stop writing, so the AI is free again for the next question (or for the Telegram bot)."""
+    endpoint, url, payload = _prepare(messages, stream=True)
+    try:
+        async with _client() as client:
+            async with client.stream('POST', endpoint, json=payload) as response:
+                _check(response.status_code)
+                async for line in response.aiter_lines():
+                    if not line.startswith('data:'):
+                        continue
+                    data = line[5:].strip()
+                    if data == '[DONE]':
+                        return
+                    try:
+                        piece = json.loads(data)['choices'][0]['delta'].get('content') or ''
+                    except (ValueError, KeyError, IndexError, TypeError, AttributeError):
+                        continue
+                    if piece:
+                        yield piece
+    except httpx.HTTPError as exc:
+        raise _explain(exc, url) from exc

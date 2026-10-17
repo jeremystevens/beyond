@@ -4,9 +4,10 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 2 of the plan in `planning/phases.md`).** You can chat with an AI in your
-> browser, using an AI server you already run (such as Local AI Studio). Chats aren't saved yet (Phase 5), and
-> BEYOND's own built-in AI engine arrives in Phase 33.
+> **Status: early development (Phase 3 of the plan in `planning/phases.md`).** You can chat with an AI in your
+> browser, with answers appearing as they're written, a Stop button and New chat, using an AI server you already
+> run (such as Local AI Studio). Chats aren't saved yet (Phase 5), and BEYOND's own built-in AI engine arrives in
+> Phase 33.
 
 ## What this project is about
 
@@ -63,7 +64,7 @@ app/config.py        Default settings, including every port number (the only pla
 app/settings.py      Your settings: the defaults plus your changes in data/settings.json
 app/engine.py        The engine connector: the only place BEYOND talks to an AI server
 app/ports.py         Port checks: is a port free, and which program is using it
-app/server.py        The web server (FastAPI): the page, /api/health, /api/ai-status, /api/chat
+app/server.py        The web server (FastAPI): the page, /api/health, /api/ai-status, /api/chat, /api/chat/stream
 app/web/             The chat page
 planning/            Brainstorm, project pitch and the phased plan
 data/                Your settings, chats and logs (created at runtime, git-ignored)

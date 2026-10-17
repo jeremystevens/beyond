@@ -1,8 +1,9 @@
 """BEYOND's web server: the page, a health check, the AI status, and chat."""
+import json
 from typing import Literal
 
 from fastapi import FastAPI
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from app import config, engine
@@ -35,11 +36,33 @@ async def ai_status():
     return await engine.status()
 
 
+def _recent(request):
+    return [message.model_dump() for message in request.messages][-config.CHAT_HISTORY_MESSAGES:]
+
+
 @app.post('/api/chat')
 async def chat(request: ChatRequest):
-    recent = [message.model_dump() for message in request.messages][-config.CHAT_HISTORY_MESSAGES:]
+    """The whole reply at once (handy for tests and scripts; the page uses /api/chat/stream)."""
     try:
-        reply = await engine.chat(recent)
+        reply = await engine.chat(_recent(request))
     except engine.EngineError as exc:
         return JSONResponse({'error': str(exc)}, status_code=503)
     return {'reply': reply}
+
+
+@app.post('/api/chat/stream')
+async def chat_stream(request: ChatRequest):
+    """The reply as it's written: one JSON event per line ({"type": "token" | "done" | "error", ...}).
+    If the page disconnects (Stop), the stream is cancelled and the AI stops writing."""
+    recent = _recent(request)
+
+    async def events():
+        try:
+            async for piece in engine.chat_stream(recent):
+                yield json.dumps({'type': 'token', 'text': piece}) + '\n'
+            yield json.dumps({'type': 'done'}) + '\n'
+        except engine.EngineError as exc:
+            yield json.dumps({'type': 'error', 'message': str(exc)}) + '\n'
+
+    return StreamingResponse(events(), media_type='application/x-ndjson',
+                             headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})

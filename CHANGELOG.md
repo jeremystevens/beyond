@@ -6,6 +6,19 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 3: live typing and chat controls.**
+  - Answers appear word by word as the AI writes them (new `/api/chat/stream`: one JSON event per line, `token` /
+    `done` / `error`; `engine.chat_stream` reads the AI server's streamed reply).
+  - **Stop** (the Send button turns into Stop while the AI writes; Esc works too). What was written so far stays,
+    marked "Stopped", and still counts as part of the conversation. Stopping closes the connection to the AI server,
+    so llama.cpp stops writing and is free straight away (checked: `requests_processing 0`, slot idle).
+  - **New chat** button in the header: clears the conversation (stopping any answer in progress).
+  - A "…" bubble until the first word arrives, then a blinking cursor while it writes. The page only scrolls
+    along if you're already at the bottom, so you can scroll up and read during a long answer.
+  - Error messages work the same as before, also in the middle of a streamed answer.
+  - Message box: no scrollbar until it's full; the New chat button's name is "New chat" for screen readers too.
+  - Tested in the browser: a long story streamed in and was stopped halfway; a follow-up still knew the story;
+    New chat started with no memory of it; a wrong AI address gave "can't reach the AI server".
 - **MIT License** (`LICENSE`, copyright 2026 Jeremy Stevens), with a License section in the README. The project is
   public on GitHub: https://github.com/jeremystevens/beyond (commits use the GitHub noreply email).
 - **Phase 2: first chat.** The page is now a chat: message box (Enter sends, Shift+Enter for a new line), chat
