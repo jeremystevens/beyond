@@ -67,6 +67,7 @@
     .chip { padding: 5px 12px; font-size: 0.85rem; font-weight: 500; border-radius: 999px; background: var(--bg);
             color: var(--text); border: 1px solid var(--border); }
     .chip:hover:not(:disabled) { border-color: var(--accent); }
+    .msg a.chip { text-decoration: none; display: inline-flex; align-items: center; }
     .toast { display: block; margin-top: 8px; font-size: 0.82rem; color: var(--muted); transition: opacity 0.4s; }
     .user .note { color: var(--accent-text); opacity: 0.85; }
     form { background: var(--panel); border-top: 1px solid var(--border);
@@ -188,6 +189,12 @@
         const line = document.createElement('div');
         line.className = 'row';
         for (const b of row) {
+          if (b.url && b.url.startsWith('/api/')) {   // a download link (e.g. 📄 Download CSV), only to BEYOND itself
+            const link = document.createElement('a');
+            link.className = 'chip'; link.href = b.url; link.textContent = b.label; link.download = '';
+            line.appendChild(link);
+            continue;
+          }
           const chip = document.createElement('button');
           chip.type = 'button'; chip.className = 'chip';
           chip.textContent = b.label;
@@ -557,7 +564,7 @@
               showLookup(reply, lookup);
               showImage(reply, event.image);
               // 🔄 is only offered on the newest answer
-              if (event.buttons.some(row => row.some(b => b.action.startsWith('rate:retry:'))))
+              if (event.buttons.some(row => row.some(b => (b.action || '').startsWith('rate:retry:'))))
                 list.querySelectorAll('.chip[data-retry]').forEach(c => c.remove());
               showButtons(reply, event.id, event.buttons);
             } else if (event.type === 'error') {

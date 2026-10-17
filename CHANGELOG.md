@@ -6,6 +6,20 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 18: expenses** (version 0.18.0), ported from PromptetheusBot (one user).
+  - New `app/expenses.py`: amounts stored as whole cents, this PC's local dates, ten built-in categories matched
+    from words ("lunch", "gas", "rent", "costco"…), and words you teach it. Dates like "yesterday", "oct 3",
+    "last friday", "3 days ago" or "last month" (new `dateparser` dependency); future dates are refused.
+  - **/spent** (alias /expenses): logging with ↩️ Undo and 🏷 Change category; for an unknown word, category buttons
+    or ➕ New category from the word (remembered next time). Reports for this month (daily average, change vs the
+    same days last month), any month, a year (monthly average, pace, by month) and all time, each with spending by
+    category and the biggest expense. `/spent recent` with 🗑 per expense; `/spent categories`.
+  - 📄 **Download CSV** under every report: a new kind of button that is a link (only to BEYOND's own `/api/`
+    addresses), served by `GET /api/expenses.csv?period=…` as UTF-8 with a BOM so Excel opens it.
+  - Fixed while porting: "last month" was read as "month" (logged today), and "tomorrow" was accepted as today.
+  - Tested: twelve expenses (categories, a taught word, a new category, Undo, past and future dates, a missing
+    amount), month, last month, year and all-time reports, 🗑 in recent, categories, the CSV (download in the
+    browser, columns, BOM, total) and a bad period refused.
 - **Phase 17: checklists** (version 0.17.0), ported from PromptetheusBot (one user).
   - New `app/checklists.py`: up to 20 lists of 100 items in BEYOND's database; names matched loosely ("groceries",
     "my grocery list"), an icon per kind of list, duplicates skipped (adding a checked item again unchecks it).

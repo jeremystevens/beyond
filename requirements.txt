@@ -6,3 +6,4 @@ httpx>=0.28,<1
 tzdata>=2024.1
 ddgs>=9.16,<10          # /web search (DuckDuckGo, no API key)
 segno>=1.6,<2            # /qr codes (offline)
+dateparser>=1.2,<2       # dates like "yesterday" or "oct 3" in /spent

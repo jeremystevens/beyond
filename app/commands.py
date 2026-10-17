@@ -11,11 +11,12 @@ message's own buttons.
 """
 import difflib
 from dataclasses import dataclass, field
+from datetime import date, timedelta
 from typing import Callable
 
 import httpx
 
-from app import chats, checklists, learning, memory, notes, rules, settings
+from app import chats, checklists, expenses, learning, memory, notes, rules, settings
 from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewrite, weather, web_search, wikipedia
 from app.tools.calculator import calculate
 from app.tools.dice import roll_dice
@@ -404,6 +405,110 @@ def _list_button(what, detail):
     return None
 
 
+# ---------- expenses ----------
+
+def _spent_saved(cents, category, note, day):
+    today = date.today()
+    when = 'today' if day == today else 'yesterday' if day == today - timedelta(days=1) else f'{day:%b} {day.day}'
+    month = expenses.parse_period(f'{day.year}-{day.month}', today)
+    month_total = sum(r[1] for r in expenses._rows(month[1], month[2]))
+    label = 'This month' if (day.year, day.month) == (today.year, today.month) else month[3]
+    return (f'💸 {expenses.money(cents)} · {expenses.category_label(category)} · {when}' +
+            (f'\n“{note}”' if note else '') + f'\n{label}: {expenses.money(month_total)}')
+
+
+def _spent_done_buttons(expense_id):
+    return [[button('↩️ Undo', f'spent:undo:{expense_id}'), button('🏷 Change category', f'spent:pick:{expense_id}')]]
+
+
+def _spent_picker(expense_id, word):
+    """Buttons to pick a category (rows of 3), keep the typed word as a new one, or undo."""
+    picks = rows([button(f'{icon} {label}', f'spent:cat:{expense_id}:{key}')
+                  for key, (label, icon, _) in expenses.CATEGORIES.items()], 3)
+    if word:
+        picks.append([button(f'➕ New category “{word.title()[:20]}”', f'spent:new:{expense_id}')])
+    return picks + [[button('↩️ Undo', f'spent:undo:{expense_id}')]]
+
+
+def _spent_report(period):
+    text, has_rows = expenses.report(period, date.today())
+    # A link, not an action: the page downloads the file from /api/expenses.csv.
+    return Reply(text, [[{'label': '📄 Download CSV', 'url': f'/api/expenses.csv?period={period[4]}'}]]
+                 if has_rows else [])
+
+
+def _spent_recent():
+    latest = expenses.recent()
+    if not latest:
+        return Reply('No expenses logged yet.\n\n' + expenses.HELP)
+    lines = []
+    for number, (_, cents, category, note, spent_on) in enumerate(latest, 1):
+        day = date.fromisoformat(spent_on)
+        lines.append(f'{number}. {expenses.money(cents)} · {expenses.category_label(category)} · {day:%b} {day.day}' +
+                     (f' · {note[:40]}' if note else ''))
+    return Reply('💸 Your last expenses:\n\n' + '\n'.join(lines) + '\n\nTap 🗑 and a number to delete that expense.',
+                 rows([button(f'🗑 {n}', f'spent:del:{row[0]}') for n, row in enumerate(latest, 1)], 5))
+
+
+def _spent(args):
+    text = args.strip()
+    lowered = text.lower()
+    if lowered == 'help':
+        return expenses.HELP
+    if lowered in ('recent', 'list', 'last', 'undo', 'delete'):
+        return _spent_recent()
+    if lowered in ('categories', 'category'):
+        labels = [expenses.category_label(key) for key in expenses.CATEGORIES] + \
+            [expenses.category_label(c) for c in expenses.user_categories()]
+        return ('Categories (words like "lunch", "gas", "rent" are matched automatically; for unknown words you pick '
+                'one or make a new one):\n' + '\n'.join(labels))
+    # A report? ("", "october", "2025", "all"…). A bare year like 2026 is a report, not a $2,026 expense.
+    period = expenses.parse_period(text, date.today())
+    if period:
+        return _spent_report(period)
+    try:
+        plan = expenses.plan_expense(text)
+    except expenses.ExpenseError as exc:
+        return f'{exc}\n\n{expenses.HELP}' if 'How much' in str(exc) else str(exc)
+    expense_id = expenses.add_expense(plan)
+    saved = _spent_saved(plan['cents'], plan['category'] or 'other', plan['note'], plan['day'])
+    if plan['category']:
+        return Reply(saved, _spent_done_buttons(expense_id))
+    ask = f'I don\'t know which category “{plan["word"]}” is.' if plan['word'] else 'Which category is this?'
+    return Reply(f'{saved}\n\n{ask} Pick one (I\'ll remember it), or keep it as Other:',
+                 _spent_picker(expense_id, plan['word']))
+
+
+def _spent_button(what, detail):
+    expense_id, _, key = detail.partition(':')
+    if not expense_id.isdigit():
+        return None
+    expense_id = int(expense_id)
+    if what in ('undo', 'del'):
+        removed = expenses.delete_expense(expense_id)
+        if what == 'del':   # 🗑 under /spent recent
+            updated = _spent_recent()
+            updated.toast = f'Deleted {expenses.money(removed[1])}' if removed else 'That expense was already deleted.'
+            return updated
+        return Reply(f'↩️ Undone: {expenses.money(removed[1])} removed.' if removed else
+                     'That expense was already deleted.')
+    row = expenses.get_expense(expense_id)
+    if not row:
+        return Reply('That expense was deleted.')
+    if what == 'pick':      # 🏷 Change category: show the choices
+        return Reply(_spent_saved(row[1], row[2], row[3], date.fromisoformat(row[5])), _spent_picker(expense_id, row[4]))
+    if what == 'cat' and key in expenses.CATEGORIES:
+        category = key
+    elif what == 'new' and row[4]:   # keep the typed word as a new category
+        category = row[4].title()[:30]
+    else:
+        return None
+    expenses.set_category(expense_id, category)
+    updated = Reply(_spent_saved(row[1], category, row[3], date.fromisoformat(row[5])), _spent_done_buttons(expense_id))
+    updated.toast = f'Saved as {expenses.category_label(category)}' + (f' · “{row[4]}” remembered' if row[4] else '')
+    return updated
+
+
 # ---------- /qr ----------
 
 def _qr(args):
@@ -517,6 +622,8 @@ COMMANDS = [
     Command('notes', 'Your recent notes (or /notes <words> to search)', '/notes', _notes, group='Notes and lists'),
     Command('list', 'Checklists: groceries, packing, to-dos; tap items to check them off',
             '/list groceries add milk, eggs, bread', _list, aliases=('lists',), group='Notes and lists'),
+    Command('spent', 'Log an expense, or see a report (this month, a month, a year, all) with a CSV download',
+            '/spent 12.50 lunch', _spent, aliases=('expenses',), group='Notes and lists'),
     Command('remember', 'Tell BEYOND something to remember in every chat', '/remember my dog is named Max',
             _remember, group='Memory'),
     Command('memories', 'See what BEYOND remembers about you (and forget things); /memories auto on|off',
@@ -566,6 +673,7 @@ ACTIONS = {
     'learn': _learn_button,
     'note': _note_button,
     'list': _list_button,
+    'spent': _spent_button,
 }
 
 

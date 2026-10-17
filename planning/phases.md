@@ -175,7 +175,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 - `/list` with tap-to-check items, clear checked items, and delete a list.
 - **Done when:** a grocery list can be built, ticked off, and cleared.
 
-### Phase 18: Expenses
+### Phase 18: Expenses ✅ (done 2026-10-17)
 - `/spent` with categories, monthly and yearly reports, and a CSV file download.
 - **Done when:** expenses are logged, a report shows totals, and the CSV opens in Excel.
 

@@ -2,15 +2,16 @@
 import asyncio
 import json
 import logging
+import re
 from typing import Any, Literal
 
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from app import (chats, checklists, commands, config, engine, learning, lookups, memory, notes, ports, rules,
-                 settings)
+from app import (chats, checklists, commands, config, engine, expenses, learning, lookups, memory, notes, ports,
+                 rules, settings)
 
 chats.initialize()
 rules.initialize()
@@ -18,6 +19,7 @@ memory.initialize()
 learning.initialize()
 notes.initialize()
 checklists.initialize()
+expenses.initialize()
 app = FastAPI(title='BEYOND', version=config.VERSION, docs_url=None, redoc_url=None)
 app.mount('/static', StaticFiles(directory=config.WEB_DIR), name='static')
 
@@ -335,6 +337,16 @@ async def press_button(message_id: int, body: ButtonPress):
         return JSONResponse({'error': 'That button is no longer available.'}, status_code=409)
     chats.update_message(message_id, reply.text, reply.buttons)
     return {'id': message_id, 'text': reply.text, 'buttons': reply.buttons, 'toast': reply.toast}
+
+
+@app.get('/api/expenses.csv')
+def expenses_csv(period: str = 'all'):
+    """📄 Download CSV under a /spent report: that period's expenses, UTF-8 with a BOM so Excel opens it."""
+    if not re.fullmatch(r'all|y\d{4}|m\d{4}(0[1-9]|1[0-2])', period):
+        return JSONResponse({'error': 'Unknown period.'}, status_code=400)
+    data, name = expenses.csv_file(expenses.period_from_token(period))
+    return Response(data, media_type='text/csv; charset=utf-8',
+                    headers={'Content-Disposition': f'attachment; filename="{name}"', 'Cache-Control': 'no-store'})
 
 
 @app.get('/api/commands')
