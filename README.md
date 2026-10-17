@@ -4,11 +4,25 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 9 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
-> browser: it has its own personality, follows your house rules, remembers what was said earlier in the chat,
-> writes its answers as you watch (with a Stop button), saves your conversations in a side panel, and has slash
-> commands (/calc, /convert, /time, /roll, /help), some with buttons. It uses an AI server you already run (such
-> as Local AI Studio); BEYOND's own built-in AI engine arrives in Phase 33.
+> **Status: early development (Phase 10 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> browser: it has its own personality, follows your house rules, remembers facts you tell it in every chat and
+> what was said earlier in each chat, writes its answers as you watch (with a Stop button), saves your
+> conversations in a side panel, and has slash commands (/calc, /convert, /time, /roll, /remember, /help), some
+> with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
+> arrives in Phase 33.
+
+## Saved facts
+
+Tell BEYOND things to remember in **every** chat, new or old:
+
+- **/remember &lt;fact&gt;** saves one, for example `/remember my dog is named Max` or
+  `/remember I prefer metric units`.
+- **/memories** lists them, with a **🗑** per fact and **🗑 Forget all** (which asks first).
+- **/forget &lt;number&gt;** or **/forget all** removes them.
+
+Up to 40 facts of up to 200 characters. The same fact twice (even worded differently) is recognised, and BEYOND never
+saves passwords, PINs, codes, or card or account numbers. Facts are added to the AI's instructions with the date they
+were saved, so a newer fact wins over an older one that conflicts.
 
 ## Commands
 
@@ -22,6 +36,7 @@ Tab or Enter to pick one. BEYOND answers commands itself, instantly, without the
 | `/convert` | Units: temperature, distance, weight, cooking, speed and more | `/convert 72 f to c` |
 | `/time` | Time in a city, several cities, or convert a time | `/time 3pm London to Tokyo` |
 | `/roll` | Dice and coin flips | `/roll 2d20+3` · `/roll coin` |
+| `/remember` · `/memories` · `/forget` | Save, list and remove facts BEYOND knows in every chat | `/remember my dog is named Max` |
 | `/rule` · `/rules` | Add, list and delete house rules | `/rule Use metric units` |
 
 A mistyped command gets "Did you mean…?". Commands and their replies are saved in the chat but never sent to the
@@ -137,6 +152,7 @@ app/engine.py        The engine connector: the only place BEYOND talks to an AI 
 app/personality.md   BEYOND's personality (the system prompt)
 app/chats.py         Saved conversations (SQLite database in data/beyond.sqlite3)
 app/rules.py         House rules (same database)
+app/memory.py        Saved facts (same database)
 app/commands.py      Slash commands: one list (name, summary, example, function) drives /help, the / menu
                      and "did you mean…?"; replies can carry buttons, handled by ACTIONS
 app/tools/           The tools behind the commands (calculator, units, world_time, dice, places), from

@@ -13,7 +13,7 @@ import difflib
 from dataclasses import dataclass, field
 from typing import Callable
 
-from app import rules
+from app import memory, rules
 from app.tools.calculator import calculate
 from app.tools.dice import roll_dice
 from app.tools.units import convert
@@ -71,6 +71,79 @@ def _rules_button(what, rule_id):
         updated = _list_rules()
         updated.toast = f'Removed: {gone}' if gone else 'That rule was already removed.'
         return updated
+    return None
+
+
+# ---------- saved facts ----------
+
+REMEMBER_HELP = ('Tell me what to remember, for example:\n/remember my dog is named Max\n'
+                 '/remember I prefer metric units\n/memories shows everything I remember.')
+
+
+def _remember(args):
+    if not args:
+        return REMEMBER_HELP
+    status, fact = memory.add(args, 'manual')
+    return {
+        'added': f'🧠 Got it, I\'ll remember: “{fact}”\nI\'ll know it in every chat. /memories shows everything I '
+                 'remember.',
+        'duplicate': f'I already remember that: “{fact}”',
+        'secret': "🔒 I don't save passwords, codes, card or account numbers. Keep those somewhere safe instead.",
+        'empty': 'That was too short to remember. Example: /remember my favorite color is green',
+        'full': f'My memory is full ({memory.MAX_FACTS} facts). Remove some with /forget <number> first (see '
+                '/memories).',
+    }[status]
+
+
+def _memories(args=''):
+    facts = memory.all_facts()
+    if not facts:
+        return Reply("🧠 I don't have any saved facts about you yet.\nAdd one with /remember, for example:\n"
+                     '/remember my birthday is March 3')
+    lines = [f'{n}. {f["fact"]}' + (' 🤖' if f['source'] == 'auto' else '') for n, f in enumerate(facts, 1)]
+    note = '\n🤖 = picked up from our chats' if any(f['source'] == 'auto' for f in facts) else ''
+    return Reply('🧠 What I remember about you (in every chat):\n\n' + '\n'.join(lines) + note +
+                 '\n\nTap 🗑 to forget one, or type /forget <number>.',
+                 rows([button(f'🗑 {n}', f'mem:del:{f["id"]}') for n, f in enumerate(facts, 1)]) +
+                 [[button('🗑 Forget all', 'mem:all:')]])
+
+
+def _forget(args):
+    word = args.strip().lower().lstrip('#')
+    facts = memory.all_facts()
+    if word == 'all':
+        if not facts:
+            return 'There are no saved facts to forget.'
+        return _confirm_forget_all(len(facts))
+    if not word.isdigit():
+        return 'Use /forget <number> (the numbers are in /memories), or /forget all.'
+    if not 1 <= int(word) <= len(facts):
+        return 'No saved fact has that number. Send /memories to see the list.'
+    removed = memory.remove(facts[int(word) - 1]['id'])
+    return f'🗑 Forgotten: “{removed}”'
+
+
+def _confirm_forget_all(count):
+    what = 'your 1 saved fact' if count == 1 else f'all {count} saved facts about you'
+    return Reply(f'Forget {what}? This can\'t be undone.',
+                 [[button('🗑 Yes, forget it' if count == 1 else f'🗑 Yes, forget all {count}', 'mem:wipe:'),
+                   button('Keep', 'mem:keep:')]])
+
+
+def _memory_button(what, detail):
+    if what == 'del' and detail.isdigit():   # 🗑 under /memories
+        removed = memory.remove(int(detail))
+        updated = _memories()
+        updated.toast = f'Forgotten: {removed}' if removed else 'That fact was already forgotten.'
+        return updated
+    if what == 'all':                        # 🗑 Forget all: ask first
+        count = len(memory.all_facts())
+        return _confirm_forget_all(count) if count else Reply('There are no saved facts to forget.')
+    if what == 'wipe':
+        count = memory.clear()
+        return Reply(f'🗑 Done: forgot {count} saved fact{"s" if count != 1 else ""}. Your chats were not changed.')
+    if what == 'keep':
+        return Reply('Kept your saved facts. /memories shows them.')
     return None
 
 
@@ -144,6 +217,11 @@ COMMANDS = [
     Command('time', 'The time in a city, several cities, or convert a time between places',
             '/time 3pm London to Tokyo', world_time),
     Command('roll', 'Roll dice or flip a coin', '/roll 2d20+3', _roll),
+    Command('remember', 'Tell BEYOND something to remember in every chat', '/remember my dog is named Max',
+            _remember, group='Memory'),
+    Command('memories', 'See what BEYOND remembers about you (and forget things)', '/memories', _memories,
+            aliases=('facts',), group='Memory'),
+    Command('forget', 'Forget one saved fact, or all of them', '/forget 2', _forget, group='Memory'),
     Command('rule', 'Add or delete a house rule BEYOND follows in every chat', '/rule Use metric units', _rule,
             group='House rules'),
     Command('rules', 'List the house rules', '/rules', _list_rules, group='House rules'),
@@ -181,6 +259,7 @@ def run(text):
 ACTIONS = {
     'rules': _rules_button,
     'roll': _roll_button,
+    'mem': _memory_button,
 }
 
 

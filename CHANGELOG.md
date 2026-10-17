@@ -5,6 +5,22 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **Phase 10: saved facts.**
+  - `app/memory.py`: facts in the database, ported from PromptetheusBot's `memory_store` (single user): up to 40
+    facts of 200 characters; never saves passwords, PINs, codes, card or account numbers; recognises the same fact
+    worded differently ("My dog is named Max" = "The user's dog is named Max"); a typed fact always fits (the oldest
+    automatically picked-up fact makes room, for Phase 11). Each fact is marked typed (`manual`) or picked up
+    (`auto`, Phase 11).
+  - Facts are added to the system prompt after the house rules, with the date each was saved ("a newer fact
+    replaces an older one that conflicts"), so the AI server keeps reusing them like the personality.
+  - Commands **/remember**, **/memories** (alias /facts; 🗑 per fact and 🗑 Forget all, which asks first),
+    **/forget &lt;number|all&gt;**.
+  - Personality: "What You Can Do Right Now" and "Memory and Privacy" now include saved facts.
+  - Tested: a fact saved in one chat answered correctly in a brand-new chat ("Your dog's name is Max", "You live in
+    Portland, Oregon"); duplicate, PIN, too-short and wrong-number replies; 🗑 removed the right fact; Forget all
+    with Keep and with Yes.
+
 ### Fixed
 - **Phones: the header scrolled out of sight** (owner's report: you had to scroll all the way up the conversation to
   reach it). Reproduced by shrinking the view to 375×450 (a phone with its keyboard open) and scrolling the page the

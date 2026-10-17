@@ -7,7 +7,7 @@ import json
 
 import httpx
 
-from app import config, rules, settings
+from app import config, memory, rules, settings
 
 FALLBACK_PROMPT = ("You are BEYOND, a friendly and helpful assistant that runs entirely on the user's own computer. "
                    "Answer clearly and get to the point.")
@@ -18,13 +18,13 @@ class EngineError(Exception):
 
 
 def system_prompt():
-    """BEYOND's personality (app/personality.md) followed by the house rules. Read on every message, so edits to
-    either apply straight away."""
+    """BEYOND's personality (app/personality.md), then the house rules, then the saved facts. Read on every message,
+    so changes to any of them apply straight away. All three rarely change, so the AI server can keep reusing them."""
     try:
         personality = config.PERSONALITY_FILE.read_text(encoding='utf-8').strip() or FALLBACK_PROMPT
     except OSError:
         personality = FALLBACK_PROMPT
-    return personality + rules.prompt_block()
+    return personality + rules.prompt_block() + memory.prompt_block()
 
 
 def history_window(total):
