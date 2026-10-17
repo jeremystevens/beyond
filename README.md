@@ -4,11 +4,29 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 7 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> **Status: early development (Phase 8 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
 > browser: it has its own personality, follows your house rules, remembers what was said earlier in the chat,
-> writes its answers as you watch (with a Stop button), and saves your conversations in a side panel (open,
-> rename, delete). It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI
-> engine arrives in Phase 33.
+> writes its answers as you watch (with a Stop button), saves your conversations in a side panel, and has slash
+> commands (/calc, /convert, /time, /roll, /help). It uses an AI server you already run (such as Local AI
+> Studio); BEYOND's own built-in AI engine arrives in Phase 33.
+
+## Commands
+
+Type **/** in the message box to see the commands; keep typing to narrow the list, use the arrow keys, and press
+Tab or Enter to pick one. BEYOND answers commands itself, instantly, without the AI.
+
+| Command | What it does | Example |
+|---|---|---|
+| `/help` | List every command, or explain one | `/help calc` |
+| `/calc` | Calculator: maths, percentages, tips, splitting a bill | `/calc tip 85.50 18% split 4` |
+| `/convert` | Units: temperature, distance, weight, cooking, speed and more | `/convert 72 f to c` |
+| `/time` | Time in a city, several cities, or convert a time | `/time 3pm London to Tokyo` |
+| `/roll` | Dice and coin flips | `/roll 2d20+3` · `/roll coin` |
+| `/rule` · `/rules` | Add, list and delete house rules | `/rule Use metric units` |
+
+A mistyped command gets "Did you mean…?". Commands and their replies are saved in the chat but never sent to the
+AI. `/calc`, `/convert` and `/roll` work fully offline; `/time` works offline for about 400 cities and looks up
+other places (only the place name) with the free Open-Meteo geocoder.
 
 ## Personality
 
@@ -108,7 +126,10 @@ app/engine.py        The engine connector: the only place BEYOND talks to an AI 
 app/personality.md   BEYOND's personality (the system prompt)
 app/chats.py         Saved conversations (SQLite database in data/beyond.sqlite3)
 app/rules.py         House rules (same database)
-app/commands.py      Slash commands typed in a chat (/rule, /rules so far)
+app/commands.py      Slash commands: one list (name, summary, example, function) drives /help, the / menu
+                     and "did you mean…?"
+app/tools/           The tools behind the commands (calculator, units, world_time, dice, places), from
+                     PromptetheusBot
 app/ports.py         Port checks (free? who's using it?) and this PC's network addresses
 app/server.py        The web server (FastAPI): pages, chat, settings and status endpoints
 app/web/             The pages: index.html (chat), settings.html, style.css (shared look)

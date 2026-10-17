@@ -6,6 +6,23 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 8: slash commands framework.**
+  - `app/commands.py` rebuilt around one list of `Command` entries (name, one-line summary, example, function,
+    aliases, group). `/help` (all commands, or `/help <command>`), the page's "/" menu (`GET /api/commands`) and
+    **"Did you mean…?"** for mistyped commands (`difflib`) are all generated from it. Command names ignore
+    capitals.
+  - First tools, copied from PromptetheusBot into `app/tools/`: **/calc** (`calculator.py`), **/convert**
+    (`units.py`), **/time** (`world_time.py`), **/roll** (`dice.py`). `/time`'s online place lookup now lives in
+    `app/tools/places.py` (Open-Meteo geocoder, `requests` replaced by `httpx`), ready for /weather in Phase 13.
+  - Commands run in a background thread (some look things up online), and a failing command gives a short
+    "ran into a problem" reply instead of breaking the chat.
+  - The chat page shows a **command list when you type "/"**: filters as you type, arrow keys to move, Tab or Enter
+    to pick (Enter sends once a whole command is typed), Esc to close; a matching hint in the message box.
+  - Personality: "What You Can Do Right Now" mentions the commands, so the AI can point people to them.
+  - New library: `tzdata` (Windows has no time-zone database of its own; needed by /time).
+  - Tested: all 7 commands with examples, usage text for an empty /calc, "Did you mean /calc?" for /calk and
+    "/convert?" for /conver, /CALC in capitals, normal chat still answered by the AI; the "/" menu filters, picks
+    with Tab and Enter, and hides on Esc, no match, or a "/" mid-sentence.
 - **Phase 7: house rules.**
   - `app/rules.py`: house rules in the database (up to 25, 5–300 characters, the same rule twice is ignored),
     ported from PromptetheusBot (its link from rules to automatic lookups waits for Phase 14).

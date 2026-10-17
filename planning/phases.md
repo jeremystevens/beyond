@@ -124,7 +124,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 - A list of house rules added to every chat (add, list, delete), from the settings page and with `/rule` / `/rules`.
 - **Done when:** a rule like "always answer in under 3 sentences" visibly changes the answers.
 
-### Phase 8: Slash commands framework
+### Phase 8: Slash commands framework ✅ (done 2026-10-17)
 - Typing `/` shows a command list; `/help` lists every command; mistyped commands get a "did you mean…?"
 - First easy commands to prove it works: `/calc`, `/convert`, `/time`, `/roll`.
 - **Done when:** those four commands work and `/help` lists them.

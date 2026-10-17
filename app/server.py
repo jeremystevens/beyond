@@ -1,6 +1,7 @@
 """BEYOND's web server: the pages, a health check, the AI status, chat (saved conversations), and settings."""
 import asyncio
 import json
+import logging
 from typing import Any, Literal
 
 from fastapi import FastAPI, Request
@@ -147,16 +148,25 @@ def _command_reply(chat_id, new_chat, content):
     """A /command: BEYOND answers it itself. Both are saved in the chat (so they're there when you come back) but
     marked as commands, so they're never sent to the AI. Same event stream as an AI answer, so the page needs no
     special handling."""
-    reply = commands.run(content) or commands.unknown_reply(content)
-    chats.add_message(chat_id, 'user', content, kind='command')
-    chats.add_message(chat_id, 'assistant', reply, kind='command')
-
-    def events():
+    async def events():
         yield json.dumps({'type': 'chat', 'id': chat_id, 'new': new_chat, 'title': chats.title_from(content)}) + '\n'
+        try:
+            reply = await asyncio.to_thread(commands.run, content)   # some commands look things up online
+        except Exception:   # a bug in one command shouldn't break the chat
+            logging.exception('Command failed: %s', content.split()[0])
+            reply = f'Sorry, {content.split()[0]} ran into a problem. Please try again.'
+        chats.add_message(chat_id, 'user', content, kind='command')
+        chats.add_message(chat_id, 'assistant', reply, kind='command')
         yield json.dumps({'type': 'token', 'text': reply, 'kind': 'command'}) + '\n'
         yield json.dumps({'type': 'done'}) + '\n'
 
     return StreamingResponse(events(), media_type='application/x-ndjson')
+
+
+@app.get('/api/commands')
+def list_commands():
+    """The commands, for the list the page shows when you type "/"."""
+    return commands.menu()
 
 
 # ---------- house rules ----------

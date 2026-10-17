@@ -48,7 +48,16 @@
     .assistant.command { border-style: dashed; font-size: 0.92rem; }   /* BEYOND's own reply to a /command */
     .user .note { color: var(--accent-text); opacity: 0.85; }
     form { padding: 12px 16px 16px; background: var(--panel); border-top: 1px solid var(--border); }
-    .composer { max-width: 760px; margin: 0 auto; display: flex; gap: 8px; align-items: flex-end; }
+    .composer { max-width: 760px; margin: 0 auto; display: flex; gap: 8px; align-items: flex-end; position: relative; }
+    #cmdmenu { position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); max-height: 320px; overflow-y: auto;
+               margin: 0; padding: 6px; list-style: none; background: var(--panel); border: 1px solid var(--border);
+               border-radius: 12px; box-shadow: 0 -4px 16px rgba(0,0,0,0.12); z-index: 3; }
+    #cmdmenu[hidden] { display: none; }
+    #cmdmenu li { padding: 8px 10px; border-radius: 8px; cursor: pointer; line-height: 1.35; }
+    #cmdmenu li.on, #cmdmenu li:hover { background: var(--bg); }
+    #cmdmenu b { color: var(--accent); }
+    #cmdmenu .s { color: var(--text); font-size: 0.9rem; }
+    #cmdmenu .e { display: block; color: var(--muted); font-size: 0.8rem; }
     textarea { flex: 1; resize: none; max-height: 200px; overflow-y: auto; scrollbar-width: thin; line-height: 1.4; }
     @media (max-width: 760px) {
       .menu { display: inline-block; }
@@ -79,8 +88,10 @@
       <main id="log"><div class="inner" id="messages"></div></main>
       <form id="form">
         <div class="composer">
-          <textarea id="input" rows="1" placeholder="Message BEYOND…" aria-label="Message"
-                    title="Enter sends · Shift+Enter starts a new line"></textarea>
+          <ul id="cmdmenu" role="listbox" aria-label="Commands" hidden></ul>
+          <textarea id="input" rows="1" placeholder="Message BEYOND…  (type / for commands)" aria-label="Message"
+                    title="Enter sends · Shift+Enter starts a new line · / shows the commands"
+                    aria-controls="cmdmenu" aria-autocomplete="list"></textarea>
           <button id="send" type="submit">Send</button>
         </div>
       </form>
@@ -244,9 +255,62 @@
       input.style.height = Math.min(needed, 200) + 'px';
       input.style.overflowY = needed > 200 ? 'auto' : 'hidden';   // a scrollbar only once the box is full
     }
-    input.addEventListener('input', autoGrow);
+    // ---------- the "/" command list ----------
+    let commandList = [], menuItems = [], menuIndex = 0;
+    fetch('/api/commands').then(r => r.json()).then(list => { commandList = list; }).catch(() => {});
+    const menu = $('cmdmenu');
+
+    function updateMenu() {
+      const text = input.value;
+      const typing = /^\/\S*$/.test(text);   // a "/" and the start of a command name, no space yet
+      const word = text.slice(1).toLowerCase();
+      menuItems = typing ? commandList.filter(c => c.name.startsWith(word))
+                                      .concat(commandList.filter(c => !c.name.startsWith(word) &&
+                                              (c.name.includes(word) || c.summary.toLowerCase().includes(word)))) : [];
+      if (!menuItems.length) { menu.hidden = true; return; }
+      menuIndex = Math.min(menuIndex, menuItems.length - 1);
+      menu.innerHTML = '';
+      menuItems.forEach((c, i) => {
+        const li = document.createElement('li');
+        li.setAttribute('role', 'option');
+        if (i === menuIndex) { li.className = 'on'; li.setAttribute('aria-selected', 'true'); }
+        const name = document.createElement('b'); name.textContent = '/' + c.name;
+        const summary = document.createElement('span'); summary.className = 's'; summary.textContent = ' — ' + c.summary;
+        const example = document.createElement('span'); example.className = 'e'; example.textContent = c.example;
+        li.append(name, summary, example);
+        li.onmousedown = e => { e.preventDefault(); pickCommand(i); };
+        menu.appendChild(li);
+      });
+      menu.hidden = false;
+      menu.children[menuIndex]?.scrollIntoView({ block: 'nearest' });
+    }
+
+    function pickCommand(i) {
+      input.value = '/' + menuItems[i].name + ' ';
+      menuIndex = 0;
+      menu.hidden = true;
+      autoGrow();
+      input.focus();
+    }
+
+    input.addEventListener('input', () => { autoGrow(); menuIndex = 0; updateMenu(); });
+    input.addEventListener('blur', () => { menu.hidden = true; });
     input.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!current) $('form').requestSubmit(); }
+      if (!menu.hidden) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          menuIndex = (menuIndex + (e.key === 'ArrowDown' ? 1 : -1) + menuItems.length) % menuItems.length;
+          updateMenu();
+          return;
+        }
+        if (e.key === 'Tab') { e.preventDefault(); pickCommand(menuIndex); return; }
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); menu.hidden = true; return; }
+        // Enter picks the highlighted command, unless that whole command is already typed (then it sends).
+        if (e.key === 'Enter' && !e.shiftKey && input.value.trim().toLowerCase() !== '/' + menuItems[menuIndex].name) {
+          e.preventDefault(); pickCommand(menuIndex); return;
+        }
+      }
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); menu.hidden = true; if (!current) $('form').requestSubmit(); }
     });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') stop(); });
     send.addEventListener('click', e => { if (current) { e.preventDefault(); stop(); } });
