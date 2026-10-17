@@ -4,8 +4,9 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 1 of the plan in `planning/phases.md`).** Right now BEYOND only shows a
-> placeholder page. Chat arrives in Phase 2.
+> **Status: early development (Phase 2 of the plan in `planning/phases.md`).** You can chat with an AI in your
+> browser, using an AI server you already run (such as Local AI Studio). Chats aren't saved yet (Phase 5), and
+> BEYOND's own built-in AI engine arrives in Phase 33.
 
 ## What this project is about
 
@@ -37,6 +38,17 @@ py -3.14 -m venv .venv
 
 Then open **http://127.0.0.1:7770** in your browser.
 
+**Connecting an AI (for now):** BEYOND doesn't have its own AI engine yet, so point it at one you already run.
+Create `data\settings.json` with that server's address, for example Local AI Studio's engine:
+
+```json
+{ "ai_server_url": "http://127.0.0.1:10086" }
+```
+
+Any server with the standard OpenAI-compatible chat API works (llama.cpp's `llama-server`, Local AI Studio,
+LM Studio, Ollama). Changes take effect at once, without restarting. Without this file, the page says
+"No AI set up yet". The status light at the top shows whether the AI is connected.
+
 - **Port:** BEYOND uses port **7770** by default. If another program already uses it, BEYOND says which one and
   stops instead of crashing. (Changing the port from a settings page comes in Phase 4.)
 - **Network:** by default BEYOND is reachable **only from this PC**.
@@ -48,9 +60,11 @@ Then open **http://127.0.0.1:7770** in your browser.
 ```
 beyond.py            Start BEYOND (checks the port, then runs the web server)
 app/config.py        Default settings, including every port number (the only place ports are defined)
+app/settings.py      Your settings: the defaults plus your changes in data/settings.json
+app/engine.py        The engine connector: the only place BEYOND talks to an AI server
 app/ports.py         Port checks: is a port free, and which program is using it
-app/server.py        The web server (FastAPI)
-app/web/             The web page(s)
+app/server.py        The web server (FastAPI): the page, /api/health, /api/ai-status, /api/chat
+app/web/             The chat page
 planning/            Brainstorm, project pitch and the phased plan
 data/                Your settings, chats and logs (created at runtime, git-ignored)
 ```

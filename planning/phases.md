@@ -79,7 +79,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 
 ## Stage A: Foundation (chat in the browser)
 
-### Phase 1: Project setup
+### Phase 1: Project setup ✅ (done 2026-10-17)
 - Git repository, Python 3.14 virtual environment, folder layout, `.gitignore`, `README.md` (with the pitch),
   `CHANGELOG.md`.
 - A tiny web server showing a "BEYOND" placeholder page on port **7770** (see "Running alongside PromptetheusBot"),
@@ -87,7 +87,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 - **Done when:** opening the page in the browser shows the placeholder while the bot and Studio keep running
   normally, and the first commit is made.
 
-### Phase 2: First chat
+### Phase 2: First chat ✅ (done 2026-10-17; the AI server address is a setting, empty on a fresh install)
 - A simple chat page: message box, Send button, chat bubbles.
 - One small **engine connector** file that sends messages to an AI server in the standard OpenAI format. At first
   it points at Studio's engine on port 10086, which is already running.
