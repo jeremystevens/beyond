@@ -129,7 +129,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 - First easy commands to prove it works: `/calc`, `/convert`, `/time`, `/roll`.
 - **Done when:** those four commands work and `/help` lists them.
 
-### Phase 9: Buttons in chat
+### Phase 9: Buttons in chat ✅ (done 2026-10-17; used by /roll "Roll again" and /rules 🗑)
 - Messages can carry buttons (like Telegram's buttons under a message), and pressing one updates that message in
   place. This is needed by ratings, lists, reminders and the games.
 - **Done when:** a test command shows buttons, and pressing them changes the message.

@@ -43,6 +43,10 @@ class NewRule(BaseModel):
     text: str = Field(max_length=1000)
 
 
+class ButtonPress(BaseModel):
+    action: str = Field(max_length=300)
+
+
 class SettingsChanges(BaseModel):
     changes: dict[str, Any]
 
@@ -154,13 +158,36 @@ def _command_reply(chat_id, new_chat, content):
             reply = await asyncio.to_thread(commands.run, content)   # some commands look things up online
         except Exception:   # a bug in one command shouldn't break the chat
             logging.exception('Command failed: %s', content.split()[0])
-            reply = f'Sorry, {content.split()[0]} ran into a problem. Please try again.'
+            reply = commands.Reply(f'Sorry, {content.split()[0]} ran into a problem. Please try again.')
         chats.add_message(chat_id, 'user', content, kind='command')
-        chats.add_message(chat_id, 'assistant', reply, kind='command')
-        yield json.dumps({'type': 'token', 'text': reply, 'kind': 'command'}) + '\n'
+        message_id = chats.add_message(chat_id, 'assistant', reply.text, kind='command', buttons=reply.buttons)
+        yield json.dumps({'type': 'token', 'text': reply.text, 'kind': 'command'}) + '\n'
+        # The saved message's id and buttons, so the page can show the buttons and send presses back.
+        yield json.dumps({'type': 'message', 'id': message_id, 'buttons': reply.buttons}) + '\n'
         yield json.dumps({'type': 'done'}) + '\n'
 
     return StreamingResponse(events(), media_type='application/x-ndjson')
+
+
+@app.post('/api/messages/{message_id}/press')
+async def press_button(message_id: int, body: ButtonPress):
+    """Someone pressed a button under a message: run its action and change the message in place.
+    Only actions that are actually on this message's buttons are accepted."""
+    message = chats.get_message(message_id)
+    if message is None:
+        return JSONResponse({'error': 'That message no longer exists.'}, status_code=404)
+    allowed = {b.get('action') for row in message['buttons'] for b in row}
+    if body.action not in allowed:
+        return JSONResponse({'error': 'That button is no longer available.'}, status_code=409)
+    try:
+        reply = await asyncio.to_thread(commands.press, body.action)
+    except Exception:
+        logging.exception('Button failed: %s', body.action.split(':')[0])
+        return JSONResponse({'error': 'That button ran into a problem. Please try again.'}, status_code=500)
+    if reply is None:
+        return JSONResponse({'error': 'That button is no longer available.'}, status_code=409)
+    chats.update_message(message_id, reply.text, reply.buttons)
+    return {'id': message_id, 'text': reply.text, 'buttons': reply.buttons, 'toast': reply.toast}
 
 
 @app.get('/api/commands')

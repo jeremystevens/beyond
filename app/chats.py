@@ -2,6 +2,7 @@
 
 Each chat has a title and its messages. A new chat is titled from its first message; it can be renamed or deleted.
 """
+import json
 import sqlite3
 from datetime import datetime, timezone
 
@@ -45,6 +46,9 @@ def initialize():
         columns = [row['name'] for row in db.execute('PRAGMA table_info(messages)')]
         if 'kind' not in columns:
             db.execute("ALTER TABLE messages ADD COLUMN kind TEXT NOT NULL DEFAULT 'chat'")
+        # Buttons under a message, as JSON: rows of {"label", "action"} (added in Phase 9).
+        if 'buttons' not in columns:
+            db.execute('ALTER TABLE messages ADD COLUMN buttons TEXT')
 
 
 def title_from(text):
@@ -65,13 +69,41 @@ def exists(chat_id):
         return db.execute('SELECT 1 FROM chats WHERE id = ?', (chat_id,)).fetchone() is not None
 
 
-def add_message(chat_id, role, content, stopped=False, kind='chat'):
+def _buttons_json(buttons):
+    return json.dumps(buttons, ensure_ascii=False) if buttons else None
+
+
+def _buttons(raw):
+    try:
+        return json.loads(raw) if raw else []
+    except ValueError:
+        return []
+
+
+def add_message(chat_id, role, content, stopped=False, kind='chat', buttons=None):
+    """Save a message. `buttons`: rows of {'label', 'action'} to show under it (see app/commands.py)."""
     now = _now()
     with connect() as db:
-        message_id = db.execute('INSERT INTO messages (chat_id, role, content, stopped, created_at, kind) '
-                                'VALUES (?, ?, ?, ?, ?, ?)', (chat_id, role, content, int(stopped), now, kind)).lastrowid
+        message_id = db.execute('INSERT INTO messages (chat_id, role, content, stopped, created_at, kind, buttons) '
+                                'VALUES (?, ?, ?, ?, ?, ?, ?)',
+                                (chat_id, role, content, int(stopped), now, kind, _buttons_json(buttons))).lastrowid
         db.execute('UPDATE chats SET updated_at = ? WHERE id = ?', (now, chat_id))
     return message_id
+
+
+def get_message(message_id):
+    """One message with its buttons, or None."""
+    with connect() as db:
+        row = db.execute('SELECT id, chat_id, role, content, kind, buttons FROM messages WHERE id = ?',
+                         (message_id,)).fetchone()
+    return {**dict(row), 'buttons': _buttons(row['buttons'])} if row else None
+
+
+def update_message(message_id, content, buttons):
+    """Change a message in place (what pressing one of its buttons does)."""
+    with connect() as db:
+        db.execute('UPDATE messages SET content = ?, buttons = ? WHERE id = ?',
+                   (content, _buttons_json(buttons), message_id))
 
 
 def remove_message(message_id):
@@ -108,9 +140,10 @@ def get(chat_id):
         chat = db.execute('SELECT id, title, created_at, updated_at FROM chats WHERE id = ?', (chat_id,)).fetchone()
         if chat is None:
             return None
-        messages = db.execute('SELECT role, content, stopped, created_at, kind FROM messages WHERE chat_id = ? '
-                              'ORDER BY id', (chat_id,)).fetchall()
-    return {**dict(chat), 'messages': [{**dict(m), 'stopped': bool(m['stopped'])} for m in messages]}
+        messages = db.execute('SELECT id, role, content, stopped, created_at, kind, buttons FROM messages '
+                              'WHERE chat_id = ? ORDER BY id', (chat_id,)).fetchall()
+    return {**dict(chat), 'messages': [{**dict(m), 'stopped': bool(m['stopped']), 'buttons': _buttons(m['buttons'])}
+                                       for m in messages]}
 
 
 def rename(chat_id, title):

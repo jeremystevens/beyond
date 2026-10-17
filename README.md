@@ -4,11 +4,11 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 8 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> **Status: early development (Phase 9 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
 > browser: it has its own personality, follows your house rules, remembers what was said earlier in the chat,
 > writes its answers as you watch (with a Stop button), saves your conversations in a side panel, and has slash
-> commands (/calc, /convert, /time, /roll, /help). It uses an AI server you already run (such as Local AI
-> Studio); BEYOND's own built-in AI engine arrives in Phase 33.
+> commands (/calc, /convert, /time, /roll, /help), some with buttons. It uses an AI server you already run (such
+> as Local AI Studio); BEYOND's own built-in AI engine arrives in Phase 33.
 
 ## Commands
 
@@ -25,7 +25,11 @@ Tab or Enter to pick one. BEYOND answers commands itself, instantly, without the
 | `/rule` · `/rules` | Add, list and delete house rules | `/rule Use metric units` |
 
 A mistyped command gets "Did you mean…?". Commands and their replies are saved in the chat but never sent to the
-AI. `/calc`, `/convert` and `/roll` work fully offline; `/time` works offline for about 400 cities and looks up
+AI.
+
+**Buttons:** some replies have buttons underneath, and pressing one changes that message in place: **🎲 Roll
+again** under a `/roll` result, and a **🗑** for each rule under `/rules`. Buttons are saved with the message, so
+they still work when you reopen the chat. BEYOND only accepts a press of a button that's actually on that message. `/calc`, `/convert` and `/roll` work fully offline; `/time` works offline for about 400 cities and looks up
 other places (only the place name) with the free Open-Meteo geocoder.
 
 ## Personality
@@ -127,7 +131,7 @@ app/personality.md   BEYOND's personality (the system prompt)
 app/chats.py         Saved conversations (SQLite database in data/beyond.sqlite3)
 app/rules.py         House rules (same database)
 app/commands.py      Slash commands: one list (name, summary, example, function) drives /help, the / menu
-                     and "did you mean…?"
+                     and "did you mean…?"; replies can carry buttons, handled by ACTIONS
 app/tools/           The tools behind the commands (calculator, units, world_time, dice, places), from
                      PromptetheusBot
 app/ports.py         Port checks (free? who's using it?) and this PC's network addresses

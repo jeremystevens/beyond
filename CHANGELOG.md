@@ -6,6 +6,21 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 9: buttons in chat.**
+  - Messages can carry **buttons** (rows of `{label, action}`), saved with the message (new `buttons` column,
+    added automatically to existing databases). Commands reply with a `Reply(text, buttons, toast)`; an action like
+    `rules:del:5` is routed by its first part to a handler in `commands.ACTIONS`, which returns the message's new
+    text and buttons.
+  - `POST /api/messages/{id}/press` runs a press and changes the message **in place**, with an optional short
+    notice under it. It only accepts actions that are on that message's own buttons (a used, made-up or other
+    message's button gets "That button is no longer available"). The stream sends a `message` event with the
+    saved message's id and buttons; reopened chats include them too.
+  - First uses: **🎲 Roll again** under a `/roll` result (not under errors or usage), and a **🗑** per rule under
+    `/rules` (removes it and shows the updated list, with "Removed: …").
+  - The page draws buttons as rounded chips under the message and disables them while a press is running.
+  - Tested: Roll again replaced the result three times; 🗑 removed the right rule and renumbered; the four safety
+    cases were refused; reopening showed the latest text and buttons; in the browser the same bubble changed with
+    no new message.
 - **Phase 8: slash commands framework.**
   - `app/commands.py` rebuilt around one list of `Command` entries (name, one-line summary, example, function,
     aliases, group). `/help` (all commands, or `/help <command>`), the page's "/" menu (`GET /api/commands`) and
