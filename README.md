@@ -69,6 +69,11 @@ planning/            Brainstorm, project pitch and the phased plan
 data/                Your settings, chats and logs (created at runtime, git-ignored)
 ```
 
+## License
+
+BEYOND is open source under the [MIT License](LICENSE): you're free to use, change and share it, as long as the
+copyright and license notice stay with it. AI models you use with BEYOND have their own licenses from their makers.
+
 ## Planning
 
 - `planning/project_pitch.md`: what BEYOND is about

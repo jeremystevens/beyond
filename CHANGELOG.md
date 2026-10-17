@@ -6,6 +6,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **MIT License** (`LICENSE`, copyright 2026 Jeremy Stevens), with a License section in the README. The project is
+  public on GitHub: https://github.com/jeremystevens/beyond (commits use the GitHub noreply email).
 - **Phase 2: first chat.** The page is now a chat: message box (Enter sends, Shift+Enter for a new line), chat
   bubbles, a "…" bubble while the AI works, and plain-word error messages. The whole conversation is sent with
   each question (last 40 messages), so BEYOND remembers what was said earlier in the chat. The AI's words are
