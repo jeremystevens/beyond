@@ -167,7 +167,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 - `/joke`, `/rewrite`, `/quote`, `/cat`, `/so`, and `/qr` (the QR code shown as a picture in the chat).
 - **Done when:** each command works, and the QR code scans with a phone.
 
-### Phase 16: Notes
+### Phase 16: Notes ✅ (done 2026-10-17)
 - `/note`, `/notes`, `/note find`, delete, clear (with a confirmation button).
 - **Done when:** notes can be saved, found, and deleted.
 

@@ -15,7 +15,7 @@ from typing import Callable
 
 import httpx
 
-from app import chats, learning, memory, rules, settings
+from app import chats, learning, memory, notes, rules, settings
 from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewrite, weather, web_search, wikipedia
 from app.tools.calculator import calculate
 from app.tools.dice import roll_dice
@@ -234,6 +234,79 @@ def _online(lookup, service):
     return run
 
 
+# ---------- notes ----------
+
+def _note_list():
+    latest, total = notes.recent()
+    if not latest:
+        return Reply('📝 Your notepad is empty.\n\n' + notes.HELP)
+    shown = f'your {len(latest)} most recent of {total}' if total > len(latest) else f'all {total}'
+    return Reply(f'📝 Notes ({shown}):\n\n' + '\n\n'.join(notes.format_note(*row) for row in latest) +
+                 '\n\nTap 🗑 to delete one · /note find <words> searches',
+                 rows([button(f'🗑 #{num}', f'note:del:{num}') for num, _, _ in latest]))
+
+
+def _note(args):
+    first, _, rest = args.partition(' ')
+    word, rest = first.lower(), rest.strip()
+    try:
+        if not args or word == 'list':
+            return _note_list()
+        if word == 'help':
+            return notes.HELP
+        if word in ('find', 'search'):
+            found, how = notes.find(rest)
+            if not found:
+                return f'🔍 No notes match “{rest}”. /notes shows your recent notes.'
+            label = {'fuzzy': ' (close spellings)', 'date': ''}.get(how, '')
+            return (f'🔍 {len(found)} note{"s" if len(found) != 1 else ""} for “{rest}”{label}:\n\n' +
+                    '\n\n'.join(notes.format_note(*row) for row in found))
+        if word in ('delete', 'del', 'remove'):
+            number = rest.lstrip('#')
+            if not number.isdigit():
+                return 'Use /note delete <number>; the numbers are shown in /notes and search results.'
+            removed = notes.delete(int(number))
+            return (f'You have no note #{number}. /notes shows your notes.' if removed is None
+                    else f'🗑 Deleted note #{number}: {removed[:200]}')
+        if word == 'clear':
+            total = notes.count()
+            if not total:
+                return 'Your notepad is already empty.'
+            one = total == 1
+            return Reply(f'Delete {"your only note" if one else f"all {total} of your notes"}? This can\'t be undone.',
+                         [[button('🗑 Yes, delete it' if one else f'🗑 Yes, delete all {total}', 'note:wipe:'),
+                           button('Keep it' if one else 'Keep them', 'note:keep:')]])
+        body = rest if word == 'add' else args
+        num = notes.add(body)
+        return Reply(f'📝 Saved as note #{num}: {body.strip()[:200]}\n/note find <word> to search · /notes to list',
+                     [[button('↩️ Undo', f'note:undo:{num}')]])
+    except notes.NoteError as exc:
+        return str(exc)
+
+
+def _notes(args=''):
+    """/notes lists them; "/notes garage" searches, like "/note find garage"."""
+    words = args.strip()
+    return _note(words if not words or words.split()[0].lower() in notes.COMMAND_WORDS else 'find ' + words)
+
+
+def _note_button(what, detail):
+    if what == 'del' and detail.isdigit():     # 🗑 under /notes
+        removed = notes.delete(int(detail))
+        updated = _note_list()
+        updated.toast = f'Deleted #{detail}: {removed[:60]}' if removed else 'That note was already deleted.'
+        return updated
+    if what == 'undo' and detail.isdigit():    # ↩️ Undo right after saving
+        removed = notes.delete(int(detail))
+        return Reply('↩️ Undone: that note was removed.' if removed else 'That note was already deleted.')
+    if what == 'wipe':
+        count = notes.clear()
+        return Reply(f'🗑 Deleted all {count} note{"s" if count != 1 else ""}.')
+    if what == 'keep':
+        return Reply('Kept your notes. /notes shows them.')
+    return None
+
+
 # ---------- /qr ----------
 
 def _qr(args):
@@ -342,6 +415,9 @@ COMMANDS = [
     Command('so', 'Search Stack Overflow for programming questions', '/so python read a file line by line',
             _online(little_lookups.stack_overflow, 'Stack Overflow'), aliases=('stackoverflow',),
             group='Look things up'),
+    Command('note', 'Save a note, or find, delete and clear them', '/note garage key is in the blue folder', _note,
+            group='Notes'),
+    Command('notes', 'Your recent notes (or /notes <words> to search)', '/notes', _notes, group='Notes'),
     Command('remember', 'Tell BEYOND something to remember in every chat', '/remember my dog is named Max',
             _remember, group='Memory'),
     Command('memories', 'See what BEYOND remembers about you (and forget things); /memories auto on|off',
@@ -389,6 +465,7 @@ ACTIONS = {
     'mem': _memory_button,
     'rate': _rate_button,
     'learn': _learn_button,
+    'note': _note_button,
 }
 
 

@@ -6,6 +6,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 16: notes** (version 0.16.0), ported from PromptetheusBot's notepad (one user).
+  - New `app/notes.py`: notes in BEYOND's database (up to 500 of 1,000 characters), numbered #1, #2… (numbers are
+    never reused), with full-text search (word forms and prefixes), a typo-tolerant fallback, and date words
+    (today, yesterday, this/last week, this/last month). Passwords, codes, card and account numbers are refused,
+    like /remember.
+  - **/note** (save, `find`, `delete`, `clear`, `add` for notes that start with a command word, `help`) and
+    **/notes** (the 10 most recent, or `/notes <words>` to search). Buttons: ↩️ Undo after saving, 🗑 per note
+    under /notes, and a confirmation before clearing all.
+  - Tested: save, undo, two refused secrets, exact, misspelled ("plumbr") and date searches, /notes search, 🗑,
+    delete by number (and a missing number), clear with Keep and with Yes, and the empty notepad.
 - **Phase 15: small extras** (version 0.15.0), ported from PromptetheusBot's plugins.
   - **/joke** (dad, pun, nerd, absurd or any topic: icanhazdadjoke, JokeAPI in safe mode, Official Joke API, with
     the AI as a backup), **/quote** (ZenQuotes), **/cat** (catfact.ninja), **/so** (Stack Overflow), **/rewrite**
