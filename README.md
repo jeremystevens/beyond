@@ -9,7 +9,7 @@
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
 > slash commands (/calc, /convert, /time, /roll, /weather, /news, /web, /wiki, /define, /movie, /joke, /qr,
-> /note, /list, /spent, /remind, /morning, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
+> /note, /list, /spent, /remind, /morning, /scan, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
 > arrives in Phase 33.
 
 ## Saved facts
@@ -91,6 +91,7 @@ Tab or Enter to pick one. BEYOND answers commands itself, instantly, without the
 | Command | What it does | Example |
 |---|---|---|
 | `/help` | List every command, or explain one | `/help calc` |
+| `/scan` | Attach a photo, then extract its printed text locally; results have Copy text | Attach a photo, then `/scan` |
 | `/calc` | Calculator: maths, percentages, tips, splitting a bill | `/calc tip 85.50 18% split 4` |
 | `/convert` | Units: temperature, distance, weight, cooking, speed and more | `/convert 72 f to c` |
 | `/time` | Time in a city, several cities, or convert a time | `/time 3pm London to Tokyo` |

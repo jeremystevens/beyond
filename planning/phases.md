@@ -14,6 +14,9 @@
   adapting it, phase by phase. A "shared brain" for both apps can be considered later (see the end of this file).
 - **Same working rules as the bot:** a git commit at the end of every phase, a `CHANGELOG.md` entry, docs updated
   as features land, discuss bigger changes before coding, plain-language explanations.
+- **Every new slash command must appear in /help, /help <command>, and the browser's / menu** through the shared
+  command registry. Update the README command table and relevant usage sections, CHANGELOG.md, this plan, and
+  app/personality.md's capability description alongside it (owner's requirement, 2026-10-17).
 - **On this PC, AI runs on the processor only** (the NVIDIA card crashes every engine).
 
 ## Running alongside PromptetheusBot on the owner's PC
