@@ -21,7 +21,7 @@ from app import briefing, chats, checklists, expenses, learning, memory, notes, 
 from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewrite, weather, web_search, wikipedia
 from app.tools.calculator import calculate
 from app.tools.dice import roll_result
-from app import games, tictactoe, trivia
+from app import engine, games, study_quiz, tictactoe, trivia
 from app.tools.units import convert
 from app.tools.imagine import HELP as IMAGINE_HELP
 from app.tools import speech
@@ -793,6 +793,77 @@ def _tictactoe(args=''):
     return Reply(tictactoe.text(game), game=game)
 
 
+# ---------- study quiz ----------
+
+def send_button(label, command):
+    """A button that sends a command as if typed (the page shows it and streams the reply), e.g. Next question."""
+    return {'label': label, 'send': command}
+
+
+QUIZ_PICKS = ('multiplication', 'addition', 'percentages', 'mixed math', 'world capitals', 'science')
+
+
+def _quiz_question(q, intro=''):
+    rows = [[button(f'{letter}. {choice[:40]}', f"quiz:ans:{q['id']}:{i}")
+             for i, (letter, choice) in enumerate(zip('ABCD', q['choices']))]]
+    return Reply(intro + study_quiz.question_text(q),
+                 [rows[0][:2], rows[0][2:], [button('Skip', f"quiz:skip:{q['id']}"), button('Stop', 'quiz:stop:')]])
+
+
+def _quiz_after(text, toast=''):
+    return Reply(text, [[send_button('Next question ▶', '/quizme next'), button('Stop', 'quiz:stop:')]], toast)
+
+
+def _quizme(args=''):
+    words = args.strip()
+    first = words.lower()
+    if first in ('stop', 'end', 'quit', 'done'):
+        ended = study_quiz.stop()
+        return (f"📚 Quiz stopped: {ended['right']} of {ended['answered']} right. /quizme stats shows your "
+                'progress.' if ended else 'No quiz is running. /quizme <topic> starts one.')
+    if first in ('stats', 'progress', 'score'):
+        return Reply(study_quiz.stats_text(), [[send_button('Start a quiz', '/quizme')]])
+    if not words or first in ('topics', 'help', 'list'):
+        return Reply(study_quiz.TOPICS_TEXT, rows([send_button(t.title(), f'/quizme {t}') for t in QUIZ_PICKS], 3) +
+                     [[send_button('My progress', '/quizme stats')]])
+    try:
+        if first == 'next':
+            if not study_quiz.current():
+                return 'No quiz is running. /quizme <topic> starts one.'
+            return _quiz_question(study_quiz.next_question())
+        topic, table = study_quiz.resolve_topic(words)
+        q = study_quiz.start(topic, table)
+    except (study_quiz.QuizError, engine.EngineError) as exc:
+        return Reply(f'📚 {exc}', [[send_button('Next question ▶', '/quizme next'), button('Stop', 'quiz:stop:')]]
+                     if study_quiz.current() else [[send_button('Math topics', '/quizme')]])
+    intro = '' if study_quiz.is_math(topic) else ('Questions on this topic are written by your AI, so each takes '
+                                                  'a moment.\n\n')
+    return _quiz_question(q, intro)
+
+
+def _quiz_button(what, detail):
+    pressed = PRESSED.get()
+    if what == 'stop':
+        ended = study_quiz.stop()
+        summary = f": {ended['right']} of {ended['answered']} right." if ended else '.'
+        text = (pressed['content'] if pressed else '') + f'\n\n📚 Quiz stopped{summary} /quizme stats shows your progress.'
+        return Reply(text.strip())
+    question_id, _, choice = detail.partition(':')
+    if what == 'ans' and choice.isdigit():
+        graded = study_quiz.answer(question_id, int(choice))
+        if graded is None:
+            return Reply(pressed['content'] if pressed else '', [], 'That question is no longer open.')
+        return _quiz_after(study_quiz.feedback_text(*graded), 'Correct! 🎉' if graded[1] else 'Not quite!')
+    if what == 'skip':
+        q = study_quiz.skip(question_id)
+        if q is None:
+            return Reply(pressed['content'] if pressed else '', [], 'That question is no longer open.')
+        return _quiz_after(study_quiz.question_text(q).split('\n\n(Written by your AI')[0] +
+                           f"\n\n⏭ Skipped. The answer was {study_quiz.answer_text(q)}." +
+                           (f"\n💡 {q['explanation']}" if q.get('explanation') else ''))
+    return None
+
+
 def _games(args=''):
     if args.strip().lower() == 'stats':
         return Reply(games.stats_text(), [[button('Back to games', 'games:menu:')]])
@@ -884,6 +955,8 @@ COMMANDS = [
             '/trivia science hard', _trivia, group='Games'),
     Command('tictactoe', 'Play Easy, Normal or Impossible (never loses); /tictactoe stats shows your record',
             '/tictactoe normal', _tictactoe, aliases=('ttt',), group='Games'),
+    Command('quizme', 'A study quiz that adapts to you: math (instant) or any topic (AI); /quizme stats, /quizme stop',
+            '/quizme multiplication', _quizme, aliases=('quiz',), group='Games'),
     Command('games', 'Open the games menu or see shared game stats (/games stats)', '/games', _games, group='Games'),
     Command('speak', 'Read the last AI answer, or supplied text (up to 1800 characters), with local Kokoro/Piper audio; enable Spoken replies in Settings',
             '/speak Hello from BEYOND', _speak, group='Voice'),
@@ -984,6 +1057,7 @@ def run(text):
 # Button handlers: the first part of a button's action picks the handler; the rest is passed to it.
 ACTIONS = {
     'games': _games_button,
+    'quiz': _quiz_button,
     'rules': _rules_button,
     'roll': _roll_button,
     'mem': _memory_button,

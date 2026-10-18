@@ -302,6 +302,11 @@
           const chip = document.createElement('button');
           chip.type = 'button'; chip.className = 'chip';
           chip.textContent = b.label;
+          if (b.send && b.send.startsWith('/')) {   // e.g. Next question: sends the command like a typed message
+            chip.onclick = () => sendGameCommand(b.send);
+            line.appendChild(chip);
+            continue;
+          }
           // 🔄 Try again writes a whole new answer, so it streams like a question instead of changing this message.
           const retry = b.action.startsWith('rate:retry:');
           if (retry) chip.dataset.retry = '1';
@@ -784,6 +789,11 @@
             const play = document.createElement('button'); play.type = 'button'; play.className = 'chip';
             play.textContent = 'Play trivia'; play.style.marginTop = '10px';
             play.onclick = () => sendGameCommand('/trivia'); card.append(play);
+          }
+          if (item.id === 'quiz' && item.available) {
+            const play = document.createElement('button'); play.type = 'button'; play.className = 'chip';
+            play.textContent = 'Start a quiz'; play.style.marginTop = '10px';
+            play.onclick = () => sendGameCommand('/quizme'); card.append(play);
           }
           box.append(card);
         }

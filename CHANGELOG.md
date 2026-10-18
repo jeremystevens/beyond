@@ -6,6 +6,21 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 30: study quiz** (version 0.30.0), ported from PromptetheusBot's /quizme (one user).
+  - New `app/study_quiz.py`: offline math questions (addition, subtraction, multiplication, division,
+    percentages, squares, mixed math, times tables) with exact answers and worked explanations, and AI-written
+    multiple-choice questions for any other topic (with one retry for malformed replies, and a prompt that
+    forbids a second correct choice). Levels 1–5 per topic (3 right in a row up, 2 wrong down), saved in
+    `quiz_progress`; each answer is also counted in the shared game stats.
+  - **/quizme** (alias /quiz): topic buttons, four answer buttons per question (math wrong answers are typical
+    slips), Skip, Stop, **Next question ▶**, `/quizme stats`, `/quizme stop`. One quiz at a time, shared across
+    chats and devices, ending after 15 idle minutes. An old question's buttons can't be answered twice.
+  - Buttons can now **send a command** as if typed (`{"label", "send"}`), used for Next question and the topic
+    picker. The Games menu's Study quiz card is ready, with **Start a quiz**.
+  - Tested: every math topic and level (four distinct choices including the right answer, worked out
+    independently), level up/down and limits, answer/skip/stop and stale questions, idle expiry, AI question retry
+    and failure, a full play-through over the API (including no AI server), a live AI topic, and the page in the
+    browser (menu card, topic buttons, answering, Next question). 9 new tests; all tests pass.
 - **Phase 29: trivia** (version 0.29.0).
   - Added /trivia, category/difficulty pickers, four answer buttons, feedback, Next question and round totals.
     Up to five questions are fetched together, with Play again, filter changes and saved scores.
