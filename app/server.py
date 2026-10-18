@@ -16,12 +16,13 @@ from pydantic import BaseModel, Field
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
                  https, memory, notes, notify, ports, reminders, rules, settings)
 
-from app import photo_jobs, image_jobs, speech_jobs, games, tictactoe
+from app import photo_jobs, image_jobs, speech_jobs, games, tictactoe, trivia
 from app.tools import scan, speech, speech_to_text
 
 chats.initialize()
 games.initialize()
 tictactoe.initialize()
+trivia.initialize()
 rules.initialize()
 memory.initialize()
 learning.initialize()
@@ -136,6 +137,7 @@ app.include_router(photo_jobs.router)
 app.include_router(image_jobs.router)
 app.include_router(speech_jobs.router)
 app.include_router(tictactoe.router)
+app.include_router(trivia.router)
 app.mount('/static', StaticFiles(directory=config.WEB_DIR), name='static')
 
 
@@ -444,6 +446,8 @@ def _command_reply(chat_id, content):
     special handling. A new chat is created after the command runs, so it's named from the safe version of the
     command (a /qr wifi password never ends up in the chat list)."""
     async def events():
+        if content.split()[0].lower() == '/trivia':
+            yield json.dumps({'type': 'status', 'text': 'Getting trivia ready…'}) + '\n'
         try:
             reply = await asyncio.to_thread(commands.run, content)   # some commands look things up online
         except Exception:   # a bug in one command shouldn't break the chat
@@ -463,8 +467,9 @@ def _command_reply(chat_id, content):
             else:
                 reply.text = 'There is no AI answer to read in this chat yet.\n\n' + speech.HELP
                 reply.speech_text = None
-        message_id = chats.add_message(current, 'assistant', reply.text, kind='command', buttons=reply.buttons,
-                                       image=reply.image, game=reply.game)
+        message_id = (reply.save_message(current) if reply.save_message else
+                      chats.add_message(current, 'assistant', reply.text, kind='command', buttons=reply.buttons,
+                                        image=reply.image, game=reply.game))
         if reply.on_saved:   # e.g. /remind: the reminder goes off in this chat
             reply.on_saved(current)
         spoken = _start_speech(message_id, reply.speech_text) if reply.speech_text is not None else None

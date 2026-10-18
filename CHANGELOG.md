@@ -6,6 +6,24 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 29: trivia** (version 0.29.0).
+  - Added /trivia, category/difficulty pickers, four answer buttons, feedback, Next question and round totals.
+    Up to five questions are fetched together, with Play again, filter changes and saved scores.
+  - Ported the bot's categories/aliases, Open Trivia DB/The Trivia API fallback and Easy/Medium/Hard 1/2/3
+    scoring, accuracy and streak rules. Added bounded source requests, batch caching, validation and credits.
+  - Private answer keys/future questions stay off the browser. Rounds survive reload/restart, and answer,
+    progress and shared/local scores commit together. Stale/duplicate clicks cannot score twice.
+  - Updated /help, command discovery, Games, README, personality and phase plan. Phase 28 owner test passed.
+  - Verification: all 111 tests passed, including 15 trivia checks for filtering/aliases, source decoding,
+    bounded HTTP, fallback/cache/validation, complete-round points/accuracy/streaks, private answers, duplicate
+    and stale submissions, rollback, deletion, reloads and concurrent chat while fetching. Both question services
+    returned valid live questions. Chrome completed a live five-question round with correct/wrong feedback,
+    4/5 scoring, Next, source credits, device refresh, reload, disconnect retry, saved filters, draft preservation
+    and mobile/desktop layouts. HTTP/HTTPS and active-round/score persistence after restart passed.
+    Declared Requests explicitly (already pinned in the lockfile). Python/browser syntax, dependencies and
+    whitespace checked. Owner play check pending.
+
+
 - **Phase 28: tic-tac-toe** (version 0.28.0).
   - Added /tictactoe (/ttt), a difficulty picker and a real clickable 3×3 board accessible from Games.
   - Ported the bot's Easy, Normal and Impossible move rules unchanged. Winning lines, clear results,

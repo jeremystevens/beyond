@@ -266,12 +266,17 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - Shared /help, command menu, README, personality and changelog updated.
 - **Done when:** the menu opens and dice rolls show.
 
-### Phase 28: Tic-tac-toe (implemented 2026-10-18; all 96 tests passed; browser verified; owner play check pending)
+### Phase 28: Tic-tac-toe (implemented 2026-10-18; all 96 tests passed; browser verified; owner play check passed)
 - A real clickable 3×3 grid, three difficulty levels, stats.
 - **Done when:** a full game can be played and won, lost or drawn at each level.
 
-### Phase 29: Trivia
+### Phase 29: Trivia (implemented 2026-10-18; all 111 tests passed; browser verified; owner play check pending)
 - Category and difficulty pickers, answer buttons, score.
+- /trivia and Games start rounds of up to five questions from the bot's sources, with source/license credits.
+- Bot scoring is unchanged: Easy/Medium/Hard earn 1/2/3 points; wrong answers reset the streak.
+- Saved private rounds resume after reload/restart. Duplicate/stale answers cannot score twice; shared points,
+  accuracy and streaks save atomically with progress. /trivia score and /games stats show saved records.
+- Updated shared /help, command discovery, README, personality and changelog.
 - **Done when:** a round of questions can be played with scores kept.
 
 ### Phase 30: Study quiz (`/quizme`)

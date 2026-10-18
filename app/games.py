@@ -4,13 +4,13 @@ from app import chats
 CATALOG = (
     ('dice', 'Dice & coins', 'Ready to play', True),
     ('tictactoe', 'Tic-tac-toe', 'Ready to play', True),
-    ('trivia', 'Trivia', 'Coming in Phase 29', False),
+    ('trivia', 'Trivia', 'Ready to play', True),
     ('quiz', 'Study quiz', 'Coming in Phase 30', False),
     ('blackjack', 'Blackjack', 'Coming in Phase 31', False),
     ('hangman', 'Hangman', 'Coming in Phase 32', False),
 )
 KEYS = {key for key, *_ in CATALOG} | {'coin'}
-HELP = ('/games opens the games menu. Dice, coin flips and tic-tac-toe are ready now; other games arrive in later phases. '
+HELP = ('/games opens the games menu. Dice, coin flips, tic-tac-toe and trivia are ready now; other games arrive in later phases. '
         '/games stats shows the saved totals for this BEYOND installation. '
         '/roll rolls a d6; try /roll 2d20+3, /roll 4d6kh3, /roll 6x 4d6kh3 or /roll coin. '
         'Roll again makes a fresh roll. Scores and stats are shared across your chats and devices.')
@@ -82,6 +82,8 @@ def stats_text():
         line = f"{names[row['game']]}: {row['played']} plays"
         if row['game'] == 'dice':
             line += f" · total of rolls {row['score']} · highest total {row['best_score']}"
+        elif row['game'] == 'trivia':
+            line = f"Trivia: {row['played']} answered · {row['score']} points"
         elif row['game'] != 'coin':
             line += f" · {row['wins']} wins, {row['losses']} losses, {row['draws']} draws"
             if row['best_score'] is not None:

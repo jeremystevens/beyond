@@ -21,7 +21,7 @@ from app import briefing, chats, checklists, expenses, learning, memory, notes, 
 from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewrite, weather, web_search, wikipedia
 from app.tools.calculator import calculate
 from app.tools.dice import roll_result
-from app import games, tictactoe
+from app import games, tictactoe, trivia
 from app.tools.units import convert
 from app.tools.imagine import HELP as IMAGINE_HELP
 from app.tools import speech
@@ -39,6 +39,7 @@ class Reply:
     toast: str = ''
     image: str = ''            # a picture under the text, as a data: URL (e.g. /qr's code)
     saved_command: str = ''    # how to save the typed command instead (e.g. /qr wifi with the password hidden)
+    save_message: Callable = None  # optional atomic storage for private game state
     game: dict | None = None  # menu or dice result, saved and rendered by the browser
     speech_text: str | None = None  # empty string = read the last AI answer; None = no speech request
     on_saved: Callable = None  # called with the chat's id once the reply is saved (e.g. where a reminder goes off)
@@ -756,6 +757,29 @@ def _qr(args):
 
 # ---------- dice ----------
 
+def _trivia(args=''):
+    requested = args.strip().lower()
+    if requested in ('score', 'scores', 'stats', 'me'):
+        return Reply(trivia.stats_text())
+    if requested in ('categories', 'category', 'list'):
+        return Reply('Trivia categories:\n' + ', '.join(sorted(trivia.source.CATEGORIES)) + '\n\n' + trivia.HELP,
+                     game=trivia.picker())
+    if requested in ('', 'help', '?'):
+        return Reply('Trivia\nChoose a category and difficulty for a round of up to five questions. Internet is needed to fetch questions.',
+                     game=trivia.picker())
+    try:
+        words = requested.split()
+        category, difficulty = trivia.source.parse_options(words[1:] if words[0] == 'start' else words)
+    except ValueError as exc:
+        return Reply(str(exc) + '\n\n' + trivia.HELP, game=trivia.picker())
+    try:
+        state = trivia.prepare(category, difficulty)
+    except trivia.source.TriviaError as exc:
+        return Reply(str(exc), game=trivia.picker(category, difficulty))
+    game = trivia.public(state)
+    return Reply(trivia.text(game), game=game, save_message=lambda cid: trivia.save_new(cid, state))
+
+
 def _tictactoe(args=''):
     requested = args.strip().lower()
     if requested == 'stats':
@@ -856,6 +880,8 @@ def _help(args=''):
 
 
 COMMANDS = [
+    Command('trivia', 'Play category/difficulty trivia; /trivia score shows points, accuracy and streaks',
+            '/trivia science hard', _trivia, group='Games'),
     Command('tictactoe', 'Play Easy, Normal or Impossible (never loses); /tictactoe stats shows your record',
             '/tictactoe normal', _tictactoe, aliases=('ttt',), group='Games'),
     Command('games', 'Open the games menu or see shared game stats (/games stats)', '/games', _games, group='Games'),

@@ -4,18 +4,18 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 28 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> **Status: early development (Phase 29 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
 > browser, by typing or by speaking (🎤): it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
 > slash commands (/calc, /convert, /time, /roll, /weather, /news, /web, /wiki, /define, /movie, /joke, /qr,
-> /note, /list, /spent, /remind, /morning, /scan, /look, /imagine, /speak, /games, /tictactoe, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
+> /note, /list, /spent, /remind, /morning, /scan, /look, /imagine, /speak, /games, /tictactoe, /trivia, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
 > arrives in Phase 33.
 
 ## Games and dice
 
-Open **Games** in the header or type **/games**. Dice, coins and tic-tac-toe are available now; the menu shows the planned
-phases for trivia, study quiz, blackjack and hangman. Quick buttons roll a d6 or d20, flip a coin,
+Open **Games** in the header or type **/games**. Dice, coins, tic-tac-toe and trivia are available now; the menu shows the planned
+phases for study quiz, blackjack and hangman. Quick buttons roll a d6 or d20, flip a coin,
 or show **Game stats**. Opening Games keeps any message draft or photo attachment in place.
 
 - **/roll** rolls a d6. **/roll 2d20+3**, **/roll 4d6kh3**, **/roll 4d6dl1**, **/roll adv+5**,
@@ -30,6 +30,36 @@ or show **Game stats**. Opening Games keeps any message draft or photo attachmen
 - Shared stats survive restarting BEYOND and deleting a chat. The local, gitignored SQLite database stores
   these totals in `game_stats`; `app/games.py` also supports scores and win/loss/draw records for later games.
   No Telegram accounts, imported bot scores or AI calls are needed.
+
+## Trivia
+
+Choose **Play trivia** in Games or type **/trivia**, choose a category and difficulty, then **Start round**.
+Each round has up to five multiple-choice questions with four answer buttons.
+
+- **/trivia science hard** starts directly; **/trivia easy** chooses any category at Easy.
+  **/trivia start** starts a mixed round. **/trivia categories** lists the bot's category names and aliases.
+- Choose one answer to reveal the correct answer and points. Press **Next question** to continue.
+  Correct Easy, Medium and Hard answers earn **1, 2 and 3 points**. Wrong answers earn zero and reset the current
+  streak. At the end, the round shows its total points and number correct; **Play again** keeps your filters.
+- **/trivia score** (or **/trivia stats**) shows total points, accuracy, current streak and best streak.
+  **/games stats** includes trivia's answered-question count and points. These records are shared across chats
+  and devices and stay saved when a chat is deleted.
+- Questions come from [Open Trivia DB](https://opentdb.com/api_config.php) with
+  [The Trivia API](https://the-trivia-api.com/docs/) as fallback, using the bot's category mappings and scoring.
+  Fallback categories can be broader; each question shows its actual category. Batches are cached and Open
+  Trivia DB's request interval is respected. Smaller available batches make a shorter round.
+- Internet is needed to fetch a round. Only category/difficulty filters are sent to the services; your chat,
+  chosen answers and scores stay on this PC. Once fetched, the complete round is saved locally, so Next and
+  answering do not make another public request. No chat AI generates or grades questions.
+- Rounds resume after reload/restart. Private answer keys and future questions stay on the server until needed;
+  duplicate or stale submissions refresh the question and cannot score twice. Answers, private round progress
+  and both score records save in one transaction. Fetch errors keep your filters available to retry.
+- Every question displays source and license credits: Open Trivia DB data is
+  [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); The Trivia API data is
+  [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
+
+Implementation: `app/tools/trivia.py` fetches/validates/caches batches; `app/trivia.py` stores private rounds and
+scores in BEYOND's existing, gitignored SQLite database. The browser renders all question/answer text safely.
 
 ## Tic-tac-toe
 
