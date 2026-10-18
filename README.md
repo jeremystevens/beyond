@@ -4,7 +4,7 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 20b of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> **Status: early development (Phase 21 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
 > browser: it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
@@ -116,6 +116,20 @@ AI.
 again** under a `/roll` result, and a **🗑** for each rule under `/rules`. Buttons are saved with the message, so
 they still work when you reopen the chat. BEYOND only accepts a press of a button that's actually on that message. `/calc`, `/convert` and `/roll` work fully offline; `/time` works offline for about 400 cities and looks up
 other places (only the place name) with the free Open-Meteo geocoder.
+
+## Photos and text scanning
+
+Attach a **PNG, JPEG or WebP** with the 📷 button, or **drop one onto the chat**. Choose **Read text** or send
+**/scan** with the photo attached. The result has a **Copy text** button (also works on devices using the home
+network). Photos must be at most **10 MB / 25 megapixels**; phone rotation is handled automatically.
+
+The bot's **RapidOCR** reader runs locally on the CPU, with its small models included in the package. The first
+scan loads the reader; later scans are usually quicker. Printed text works best; handwriting and blurred photos
+may read incorrectly. Only one scan runs at a time, and other requests get a clear busy message.
+
+The prepared photo and extracted text are saved in this chat on your PC and remain after a reload. Deleting the
+chat removes them. Metadata is stripped from the saved photo. Neither is sent to the chat model or online
+services. Describing photos with the vision model comes in Phase 22.
 
 ## Personality
 
@@ -249,6 +263,7 @@ app/tools/           The tools behind the commands (calculator, units, world_tim
                      online lookups: web, web_search, weather, news, wikipedia, dictionary, movies; and
                      jokes, little_lookups, rewrite, qr),
                      from PromptetheusBot
+app/tools/scan.py    Offline photo text reader (RapidOCR, ported from the bot)
 app/ports.py         Port checks (free? who's using it?) and this PC's network addresses
 app/server.py        The web server (FastAPI): pages, chat, settings and status endpoints
 app/web/             The pages: index.html (chat), settings.html, style.css (shared look), app-height.js

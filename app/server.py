@@ -1,5 +1,6 @@
 """BEYOND's web server: the pages, a health check, the AI status, chat (saved conversations), and settings."""
 import asyncio
+import base64
 import json
 import logging
 import re
@@ -14,6 +15,8 @@ from pydantic import BaseModel, Field
 
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
                  memory, notes, notify, ports, reminders, rules, settings)
+
+from app.tools import scan
 
 chats.initialize()
 rules.initialize()
@@ -559,6 +562,45 @@ def rename_chat(chat_id: int, body: Rename):
 def delete_chat(chat_id: int):
     return {'ok': True} if chats.delete(chat_id) else JSONResponse({'error': 'That chat no longer exists.'},
                                                                    status_code=404)
+
+
+
+# ---------- photos and offline text recognition ----------
+
+@app.post('/api/scan')
+async def scan_photo(request: Request, chat_id: int | None = None):
+    """Read a bounded raw image body in a worker; save the photo and result only after success."""
+    if chat_id is not None and not chats.exists(chat_id):
+        return JSONResponse({'error': 'That chat no longer exists. Start a new one.'}, status_code=404)
+    body = bytearray()
+    async for chunk in request.stream():
+        if len(body) + len(chunk) > scan.MAX_PHOTO_BYTES:
+            return JSONResponse({'error': 'Photos must be 10 MB or smaller.'}, status_code=413)
+        body.extend(chunk)
+    try:
+        png, text, seconds = await asyncio.to_thread(scan.read_photo, bytes(body))
+    except scan.ScanBusy as exc:
+        return JSONResponse({'error': str(exc)}, status_code=409)
+    except scan.ScanError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=400)
+    except ImportError:
+        return JSONResponse({'error': 'The text reader is not installed. Install requirements-lock.txt and restart BEYOND.'},
+                            status_code=503)
+    except Exception:
+        logging.exception('Reading text from a photo failed')
+        return JSONResponse({'error': "The text reader could not read that photo. Please try another picture."},
+                            status_code=503)
+    # A chat could have been deleted while the OCR worker was running.
+    if chat_id is not None and not chats.exists(chat_id):
+        return JSONResponse({'error': 'That chat was deleted while the photo was being read.'}, status_code=404)
+    new_chat = chat_id is None
+    current = chats.create('Scan text from a photo') if new_chat else chat_id
+    image = 'data:image/png;base64,' + base64.b64encode(png).decode('ascii')
+    photo_id = chats.add_message(current, 'user', 'Photo for /scan', kind='photo', image=image)
+    content = text or "I couldn't find readable text. Try a sharper, well-lit photo with printed text."
+    answer_id = chats.add_message(current, 'assistant', content, kind='scan')
+    return {'chat_id': current, 'new': new_chat, 'photo_id': photo_id, 'id': answer_id,
+            'text': content, 'has_text': bool(text), 'image': image, 'seconds': round(seconds, 2)}
 
 
 # ---------- settings ----------

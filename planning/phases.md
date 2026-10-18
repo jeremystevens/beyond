@@ -205,7 +205,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 
 ## Stage D: Photos, pictures and voice
 
-### Phase 21: Photos in, and `/scan`
+### Phase 21: Photos in, and `/scan` ✅ (done 2026-10-17; OCR/API checked with a receipt image; real-phone UI check pending)
 - Drag-and-drop and a 📎 button for photos; `/scan` reads the text in them (instant).
 - **Done when:** dropping a photo of a receipt and choosing "Read text" shows its text, ready to copy.
 

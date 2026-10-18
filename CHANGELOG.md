@@ -6,6 +6,20 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 21: photos and /scan** (version 0.21.0).
+  - Photo picker and drag-and-drop, local preview, Read text, and /scan with an attached photo.
+  - Ported PromptetheusBot's RapidOCR reader and receipt row/column grouping to app/tools/scan.py. Bundled
+    models run on the CPU; no LLM or external OCR call. One reader at a time, with a busy response.
+  - Bounded raw-image upload (10 MB), pixel and format checks (PNG/JPEG/WebP, still photos), EXIF rotation,
+    transparent backgrounds flattened onto white, and metadata stripped before saving.
+  - Photo and OCR output saved in the existing SQLite chat storage with separate photo/scan kinds, excluded
+    from LLM history. Reload keeps both; deleting the chat removes them. Copy text includes a fallback for
+    home-network devices where the Clipboard API is unavailable.
+  - Added rapidocr, onnxruntime and opencv-python-headless; refreshed the exact dependency lock.
+  - Verification: eight automated tests, including actual receipt OCR, persistence, LLM-history exclusion,
+    invalid/oversized files, pixel bounds, busy responses, missing chats, and blank-result handling. Python
+    and browser-script syntax checks, dependency checks and git diff whitespace checks. Real-phone UI check
+    remains for the owner; no live chats or bot files were used by the tests.
 - **Phase 20b: morning briefing** (version 0.20.1), ported from PromptetheusBot (one user; the voice version comes
   with the speech phase).
   - New `app/briefing.py`: your city (which also sets the time zone, via the /time and /weather place lookup),

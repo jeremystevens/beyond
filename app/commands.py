@@ -22,6 +22,7 @@ from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewri
 from app.tools.calculator import calculate
 from app.tools.dice import roll_dice
 from app.tools.units import convert
+from app.tools.scan import HELP as SCAN_HELP
 from app.tools.web import Unavailable
 from app.tools.world_time import world_time
 
@@ -809,6 +810,8 @@ def _help(args=''):
 
 
 COMMANDS = [
+    Command('scan', 'Read printed text from an attached photo, entirely offline', '/scan',
+            lambda _args: SCAN_HELP, group='Photos'),
     Command('help', 'List every command, or explain one', '/help calc', _help, group='Help'),
     Command('calc', 'Calculator: maths, percentages, tips and splitting a bill', '/calc tip 85.50 18% split 4',
             calculate),

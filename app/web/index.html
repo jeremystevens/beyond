@@ -62,6 +62,13 @@
     .reminder-banner span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
     .note-msg { align-self: flex-start; background: transparent; color: var(--muted); font-size: 0.85rem;
                 padding: 4px 6px; margin-top: -4px; }
+    #photo-preview { max-width: 760px; margin: 0 auto 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    #photo-preview[hidden] { display: none; }
+    #photo-thumb { max-width: 80px; max-height: 80px; object-fit: contain; border-radius: 8px; }
+    #photo-status { flex: 1; min-width: 100px; font-size: 0.85rem; color: var(--muted); }
+    body.photo-drag .chatcol { outline: 3px dashed var(--accent); outline-offset: -5px; }
+    .scan-copy { display: block; margin-top: 10px; }
+    .user .picture { image-rendering: auto; }
     .picture { display: block; margin-top: 10px; width: 260px; max-width: 100%; height: auto; border-radius: 8px;
                image-rendering: pixelated; background: #fff; }
     .lookup { display: block; margin-top: 10px; font-size: 0.82rem; color: var(--muted); white-space: normal; }
@@ -92,7 +99,7 @@
     #cmdmenu b { color: var(--accent); }
     #cmdmenu .s { color: var(--text); font-size: 0.9rem; }
     #cmdmenu .e { display: block; color: var(--muted); font-size: 0.8rem; }
-    textarea { flex: 1; resize: none; max-height: 200px; overflow-y: auto; scrollbar-width: thin; line-height: 1.4; }
+    textarea { flex: 1; min-width: 0; resize: none; max-height: 200px; overflow-y: auto; scrollbar-width: thin; line-height: 1.4; }
     @media (max-width: 760px) {
       .menu { display: inline-block; }
       aside { position: absolute; z-index: 5; top: 0; bottom: 0; left: 0; width: min(300px, 85vw);
@@ -137,7 +144,15 @@
     <div class="chatcol">
       <main id="log"><div class="inner" id="messages"></div></main>
       <form id="form">
+        <div id="photo-preview" hidden>
+          <img id="photo-thumb" alt="Attached photo">
+          <span id="photo-status" role="status"></span>
+          <button type="button" id="read-photo">Read text</button>
+          <button type="button" class="ghost" id="remove-photo" aria-label="Remove attached photo">Remove</button>
+        </div>
+        <input id="photo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
         <div class="composer">
+          <button type="button" class="ghost" id="attach-photo" aria-label="Attach a photo" title="Attach a photo to read its text">📷</button>
           <ul id="cmdmenu" role="listbox" aria-label="Commands" hidden></ul>
           <textarea id="input" rows="1" placeholder="Message BEYOND…  (type / for commands)" aria-label="Message"
                     title="Enter sends · Shift+Enter starts a new line · / shows the commands"
@@ -150,6 +165,7 @@
   <script>
     let chatId = null;    // the open saved chat (null = a new chat that isn't saved until its first message)
     let current = null;   // the reply being written: { controller, stopped }
+    let scanning = false;
     let titles = {};      // chat id -> title, from the last list refresh
     const $ = id => document.getElementById(id);
     const log = $('log'), list = $('messages'), input = $('input'), send = $('send');
@@ -243,7 +259,7 @@
     function showImage(el, src) {
       if (!src || !src.startsWith('data:image/png;base64,') || el.querySelector('.picture')) return;
       const img = document.createElement('img');
-      img.className = 'picture'; img.src = src; img.alt = 'QR code';
+      img.className = 'picture'; img.src = src; img.alt = el.classList.contains('user') ? 'Uploaded photo' : 'QR code';
       el.insertBefore(img, el.querySelector('.lookup, .buttons'));
     }
 
@@ -345,6 +361,7 @@
 
     function newChat() {
       stop();
+      clearPhoto();
       chatId = null;
       list.innerHTML = WELCOME;
       showChatInAddress();
@@ -355,6 +372,7 @@
 
     async function openChat(id) {
       stop();
+      clearPhoto();
       document.body.classList.remove('panel-open');
       let chat;
       try { chat = await api('/api/chats/' + id); }
@@ -370,6 +388,7 @@
         if (m.kind === 'retried') addNote(el, RETRIED);
         showLookup(el, m.lookup);
         showImage(el, m.image);
+        if (m.kind === 'scan') showCopy(el, m.content);
         showButtons(el, m.id, m.buttons);
       }
       scrollDown(true);
@@ -484,7 +503,15 @@
     $('form').addEventListener('submit', e => {
       e.preventDefault();
       const text = input.value.trim();
-      if (!text || current) return;
+      if (current || scanning) return;
+      if (pendingPhoto) {
+        if (text && text.toLowerCase() !== '/scan') {
+          $('photo-status').textContent = 'Choose Read text or send /scan for this photo. Photo descriptions arrive in Phase 22.';
+          return;
+        }
+        input.value = ''; autoGrow(); readPhoto(); return;
+      }
+      if (!text) return;
       input.value = ''; autoGrow();
       const question = bubble('user', text);
       streamAnswer('/api/chat/stream', { chat_id: chatId, content: text }, question, () => {
@@ -495,7 +522,7 @@
 
     // 🔄 Try again: the old answer stays (marked), and a different one streams in below it.
     function tryAgain(el, messageId, buttons) {
-      if (current) return;
+      if (current || scanning) return;
       el.querySelector('.buttons')?.remove();
       const note = addNote(el, RETRIED);
       streamAnswer(`/api/messages/${messageId}/retry`, null, el, () => {
@@ -593,6 +620,103 @@
         finish();
       }
     }
+
+
+    // ---------- photos and /scan ----------
+    let pendingPhoto = null, previewUrl = null;
+    function clearPhoto() {
+      pendingPhoto = null;
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = null;
+      $('photo-preview').hidden = true;
+      $('photo-thumb').removeAttribute('src');
+      $('photo-file').value = '';
+    }
+    function choosePhoto(files) {
+      if (current || scanning) { bubble('error', 'Wait for this answer to finish before attaching a photo.'); return; }
+      if (!files || !files.length) return;
+      if (files.length !== 1) { bubble('error', 'Choose one photo at a time.'); return; }
+      const file = files[0];
+      if (!/\.(png|jpe?g|webp)$/i.test(file.name) && !['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+        bubble('error', 'Choose a PNG, JPEG or WebP photo.'); return;
+      }
+      if (!file.size || file.size > 10 * 1024 * 1024) { bubble('error', 'Choose a photo up to 10 MB.'); return; }
+      clearPhoto();
+      pendingPhoto = file;
+      previewUrl = URL.createObjectURL(file);
+      $('photo-thumb').src = previewUrl;
+      $('photo-status').textContent = 'Photo attached. Read its text locally; the photo and result will be saved in this chat.';
+      $('photo-preview').hidden = false;
+    }
+    function showCopy(el, text) {
+      const copy = document.createElement('button');
+      copy.type = 'button'; copy.className = 'chip scan-copy'; copy.textContent = 'Copy text';
+      copy.onclick = async () => {
+        try {
+          if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(text);
+          else {
+            const area = document.createElement('textarea');
+            area.value = text; area.style.position = 'fixed'; area.style.opacity = '0';
+            document.body.appendChild(area); area.focus(); area.select();
+            const ok = document.execCommand('copy'); area.remove();
+            if (!ok) throw new Error('Copy not available');
+          }
+          copy.textContent = 'Copied';
+        } catch {
+          const range = document.createRange(); range.selectNodeContents(el);
+          const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range);
+          copy.textContent = 'Text selected — copy with your device';
+        }
+      };
+      el.appendChild(copy);
+    }
+    async function readPhoto() {
+      if (!pendingPhoto || current || scanning) return;
+      const file = pendingPhoto, originChat = chatId;
+      scanning = true;
+      for (const id of ['send', 'attach-photo', 'read-photo', 'remove-photo']) $(id).disabled = true;
+      $('photo-status').textContent = 'Reading text on this PC… The first scan may take a little longer.';
+      const progress = bubble('assistant thinking', 'Reading text from the photo…');
+      try {
+        const response = await fetch('/api/scan' + (originChat === null ? '' : '?chat_id=' + originChat),
+                                     { method: 'POST', body: file, headers: { 'Content-Type': file.type || 'application/octet-stream' } });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'The photo could not be read.');
+        if (progress.isConnected && chatId === originChat) {
+          progress.remove();
+          chatId = data.chat_id; showChatInAddress();
+          const photo = bubble('user', 'Photo for /scan'); showImage(photo, data.image);
+          const answer = bubble('assistant command', data.text);
+          if (data.has_text) showCopy(answer, data.text);
+          addNote(answer, 'Read locally · ' + data.seconds + ' seconds');
+          clearPhoto(); scrollDown(true);
+        }
+        loadList();
+      } catch (error) {
+        if (progress.isConnected) { progress.remove(); bubble('error', error.message); }
+        if (pendingPhoto === file) $('photo-status').textContent = 'Could not read this photo. Try again or choose another.';
+      } finally {
+        progress.remove(); scanning = false;
+        for (const id of ['send', 'attach-photo', 'read-photo', 'remove-photo']) $(id).disabled = false;
+      }
+    }
+    $('attach-photo').onclick = () => { if (!current && !scanning) $('photo-file').click(); };
+    $('photo-file').onchange = () => choosePhoto($('photo-file').files);
+    $('remove-photo').onclick = clearPhoto;
+    $('read-photo').onclick = readPhoto;
+    document.addEventListener('dragover', event => {
+      if (!event.dataTransfer.types.includes('Files')) return;
+      event.preventDefault(); document.body.classList.add('photo-drag');
+    });
+    document.addEventListener('dragleave', event => {
+      if (!event.relatedTarget) document.body.classList.remove('photo-drag');
+    });
+    document.addEventListener('drop', event => {
+      if (!event.dataTransfer.types.includes('Files')) return;
+      event.preventDefault(); document.body.classList.remove('photo-drag');
+      choosePhoto(event.dataTransfer.files);
+    });
+
 
     // ---------- start ----------
     const fromAddress = /^#chat=(\d+)$/.exec(location.hash);
