@@ -8,7 +8,7 @@ import re
 
 import httpx
 
-from app import config, memory, rules, settings
+from app import builtin_engine, config, memory, rules, settings
 
 FALLBACK_PROMPT = ("You are BEYOND, a friendly and helpful assistant that runs entirely on the user's own computer. "
                    "Answer clearly and get to the point.")
@@ -80,6 +80,8 @@ def _base_url(url):
 async def status(url=None):
     """Is an AI server set up and answering? Used by the page's status line, and by "Test connection" on the
     settings page (which passes an address that may not be saved yet)."""
+    if url is None and settings.load()['ai_mode'] == 'builtin':
+        return builtin_engine.status()
     url = settings.load()['ai_server_url'] if url is None else url
     if not url:
         return {'state': 'not_set'}
@@ -96,6 +98,11 @@ async def status(url=None):
 
 def _server():
     values = settings.load()
+    if values['ai_mode'] == 'builtin':
+        url = builtin_engine.url()
+        if not url:
+            raise EngineError(builtin_engine.not_ready_message())
+        return url, ''
     url = values['ai_server_url']
     if not url:
         raise EngineError('No AI is set up yet. Open Settings and enter the address of an AI server you run '
@@ -164,6 +171,8 @@ def _client():
 def _explain(exc, url):
     """Turn a connection problem into words for the page."""
     if isinstance(exc, httpx.ConnectError):
+        if settings.load()['ai_mode'] == 'builtin':
+            return EngineError("BEYOND's AI engine isn't answering. It restarts by itself; please try again shortly.")
         return EngineError(f"BEYOND can't reach the AI server at {url}. Is it running, with a model loaded?")
     if isinstance(exc, httpx.TimeoutException):
         return EngineError(f'The AI took longer than {config.AI_TIMEOUT_SECONDS // 60} minutes to answer, '

@@ -76,9 +76,49 @@
     <div class="banner" id="message" hidden></div>
 
     <section>
+      <h2>AI engine</h2>
+      <p class="hint">Where BEYOND's answers come from: its own built-in engine (llama.cpp, started and stopped by
+        BEYOND, on the processor), or an AI server you already run.</p>
+      <label for="ai_mode">Use</label>
+      <select id="ai_mode">
+        <option value="builtin">BEYOND's built-in engine</option>
+        <option value="server">An AI server I already run (Local AI Studio, LM Studio, Ollama…)</option>
+      </select>
+      <div class="result" id="engineState"></div>
+    </section>
+
+    <section id="builtinBox">
+      <h2>Built-in engine</h2>
+      <p class="hint">BEYOND starts llama.cpp's <code>llama-server.exe</code> (a CPU build) with your <code>.gguf</code>
+        model on a free port only this PC can reach, checks that it's healthy, restarts it if it stops, and closes it
+        when BEYOND quits. Saving new settings here restarts it with them.</p>
+      <label for="engine_executable">Engine program (llama-server.exe)</label>
+      <input type="text" id="engine_executable" spellcheck="false" style="width:100%"
+             placeholder="C:\path\to\llama.cpp\cpu\llama-server.exe">
+      <label for="engine_model">AI model (.gguf)</label>
+      <input type="text" id="engine_model" spellcheck="false" style="width:100%"
+             placeholder="C:\path\to\models\Qwen3-4B-Q4_K_M.gguf">
+      <div class="row">
+        <label for="engine_threads">CPU threads <input type="number" id="engine_threads" min="1" max="64"></label>
+        <label for="engine_context">Context size <input type="number" id="engine_context" min="1024" max="131072" step="1024"></label>
+        <label for="engine_cache">Cache
+          <select id="engine_cache">
+            <option value="f16">f16 (fastest)</option>
+            <option value="q8_0">q8_0 (less memory)</option>
+            <option value="q4_0">q4_0 (least memory)</option>
+          </select>
+        </label>
+      </div>
+      <label class="switch"><input type="checkbox" id="engine_thinking"><span><b>Let thinking models think first</b>
+        <span class="small">(Qwen3 and similar: better reasoning, much slower on a processor)</span></span></label>
+      <div class="row"><button type="button" class="ghost" id="engineRestart">Restart engine</button>
+        <span class="small">The engine's own messages are in <code>data\engine.log</code>.</span></div>
+    </section>
+
+    <section id="serverBox">
       <h2>AI server</h2>
-      <p class="hint">The AI BEYOND talks to, for example Local AI Studio's engine, LM Studio or Ollama. BEYOND's own
-        built-in engine arrives later; until then, enter the address of one you already run.</p>
+      <p class="hint">An OpenAI-compatible AI server you already run, for example Local AI Studio's engine, LM Studio
+        or Ollama.</p>
       <label for="ai_server_url">Address</label>
       <div class="row">
         <input type="text" id="ai_server_url" placeholder="http://127.0.0.1:10086" spellcheck="false">
@@ -259,9 +299,10 @@
 
   <script>
     const $ = id => document.getElementById(id);
-    const checkboxes = ['allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
+    const checkboxes = ['engine_thinking', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
                         'popup_errors', 'start_with_windows', 'vision_enabled', 'image_enabled', 'speech_enabled', 'speech_auto'];
-    const fields = ['ai_server_url', 'ai_model', 'web_port', 'quiet_start', 'quiet_end',
+    const fields = ['ai_mode', 'engine_executable', 'engine_model', 'engine_threads', 'engine_context', 'engine_cache',
+                    'ai_server_url', 'ai_model', 'web_port', 'quiet_start', 'quiet_end',
                     'vision_executable', 'vision_model', 'vision_mmproj', 'vision_threads', 'vision_timeout',
                     'image_executable', 'image_model', 'image_threads', 'image_timeout',
                     'speech_engine', 'speech_voice', 'speech_speed', 'speech_threads', 'speech_timeout',
@@ -281,10 +322,11 @@
         if (checkboxes.includes(f)) $(f).checked = v.values[f];
         else $(f).value = v.values[f];
       }
+      showMode();
       $('portDefault').textContent = `(default ${v.defaults.web_port})`;
       $('portShown').textContent = v.running.port;
       // House rules stay editable from any device, like /rule in a chat; the rest is this-PC-only.
-      document.querySelectorAll('input:not(#newRule), select, #save, #reset, #test, #popupTest').forEach(el => el.disabled = !v.can_change);
+      document.querySelectorAll('input:not(#newRule), select, #save, #reset, #test, #popupTest, #engineRestart').forEach(el => el.disabled = !v.can_change);
       $('viewOnly').hidden = v.can_change;
       $('restartBanner').hidden = !(v.can_change && v.restart_needed.length);
       const list = $('addresses');
@@ -359,6 +401,9 @@
 
     function current() {
       return {
+        ai_mode: $('ai_mode').value, engine_executable: $('engine_executable').value,
+        engine_model: $('engine_model').value, engine_threads: Number($('engine_threads').value),
+        engine_context: Number($('engine_context').value), engine_cache: $('engine_cache').value,
         ai_server_url: $('ai_server_url').value, ai_model: $('ai_model').value,
         web_port: Number($('web_port').value), allow_network: $('allow_network').checked,
         quiet_start: $('quiet_start').value, quiet_end: $('quiet_end').value,
@@ -375,6 +420,43 @@
         ...Object.fromEntries(checkboxes.map(f => [f, $(f).checked])),
       };
     }
+
+    // ---------- the AI engine ----------
+    function showMode() {
+      const builtin = $('ai_mode').value === 'builtin';
+      $('builtinBox').hidden = !builtin;
+      $('serverBox').hidden = builtin;
+      refreshEngine();
+    }
+    $('ai_mode').onchange = showMode;
+
+    async function refreshEngine() {
+      const out = $('engineState');
+      if (!view || $('ai_mode').value !== view.values.ai_mode) {
+        out.textContent = 'Press Save to switch.';
+        return;
+      }
+      try {
+        const s = await (await fetch('/api/ai-status')).json();
+        out.innerHTML = '';
+        const dot = document.createElement('span');
+        const text = document.createElement('span');
+        text.style.whiteSpace = 'pre-line';
+        const model = s.model ? s.model.replace(/\.gguf$/i, '') : '';
+        if (s.state === 'ok') { dot.className = 'dot ok'; text.textContent = (s.builtin ? 'Engine running' : 'Connected') + (model ? ': ' + model : ''); }
+        else if (s.state === 'starting') { dot.className = 'dot warn'; text.textContent = 'Starting: loading ' + (model || 'the model') + '…'; }
+        else if (s.state === 'not_set') { dot.className = 'dot warn'; text.textContent = s.message || 'No AI set up yet.'; }
+        else if (s.state === 'off') { dot.className = 'dot warn'; text.textContent = 'The engine is off.'; }
+        else { dot.className = 'dot bad'; text.textContent = s.message || "Can't reach the AI server."; }
+        out.append(dot, text);
+      } catch { out.textContent = 'BEYOND is not responding.'; }
+    }
+    setInterval(refreshEngine, 3000);
+
+    $('engineRestart').onclick = async () => {
+      try { await call('/api/engine/restart'); $('engineState').textContent = 'Restarting the engine…'; }
+      catch (e) { show('bad', e.message); }
+    };
 
     $('popupTest').onclick = async () => {
       const out = $('popupResult');

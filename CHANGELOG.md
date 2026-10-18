@@ -6,6 +6,20 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 33: built-in engine** (version 0.33.0).
+  - Settings → AI engine chooses between BEYOND's own engine and an AI server you already run. The built-in engine
+    starts llama.cpp's `llama-server.exe` with your `.gguf` model on a free port only this PC can reach, waits for
+    `/health`, and is used by every chat, command and lookup exactly like an outside server.
+  - Tuned for a processor-only PC: 12 threads, 8192 context, f16 cache (flash attention only for a q8_0/q4_0 cache),
+    one conversation slot so the prompt cache keeps working, no layers on a graphics card, and thinking models (Qwen3)
+    answer straight away with thinking switched off unless "Let thinking models think first" is on (then the
+    thinking is kept out of the answer). All of these are in Settings.
+  - A watcher keeps the engine in step with the settings: saving new ones restarts it, switching to an AI server
+    stops it, and if it stops by itself it's started again (three tries, then **Restart engine** in Settings). A
+    leftover engine from a crash is stopped on the next start, and quitting BEYOND frees the model's memory. The
+    engine's own output goes to `data\engine.log`.
+  - The chat page shows "AI engine starting…" while the model loads and "AI engine stopped" if it fails; a popup says
+    so too. Fresh installs default to the built-in engine; setups that already had an AI server address keep using it.
 - **Phase 32: hangman** (version 0.32.0), ported from PromptetheusBot.
   - `/hangman` opens a picker with difficulty (Easy 4–6, Medium 7–9, Hard 10+ letters) and five categories;
     `/hangman animals medium` starts directly. The round shows a gallows drawing that gains a body part on each
@@ -419,6 +433,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     with Keep and with Yes.
 
 ### Fixed
+- Automatic memory now notices news about your life even without "my" or "I have": "I just got a new dog named Rex", "I adopted a cat last week", "Started a new job at Tesla today". Before, those were never checked for facts at all.
 - **Phones: the header scrolled out of sight** (owner's report: you had to scroll all the way up the conversation to
   reach it). Reproduced by shrinking the view to 375×450 (a phone with its keyboard open) and scrolling the page the
   way iPhones do: the header went 300 px off the top and the message box below the screen.

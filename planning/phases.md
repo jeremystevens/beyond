@@ -295,7 +295,7 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 
 ## Stage F: Its own engine (no Studio needed)
 
-### Phase 33: Built-in engine
+### Phase 33: Built-in engine (implemented 2026-10-18)
 - BEYOND starts and stops **llama.cpp** itself, with the tuned settings (processor, 12 threads, f16 cache), on a
   free port it picks automatically, and checks that it's healthy. The "connect to an existing server" option from
   Phase 2 stays available. On the owner's PC, test with a small model or with the bot paused (memory).

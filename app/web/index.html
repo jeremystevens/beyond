@@ -561,6 +561,8 @@
         const s = await (await fetch('/api/ai-status')).json();
         if (s.state === 'ok') setStatus('ok', 'AI connected' + (s.model ? ' · ' + s.model.replace(/\.gguf$/i, '') : ''));
         else if (s.state === 'not_set') setStatus('warn', 'No AI set up yet');
+        else if (s.state === 'starting') { setStatus('warn', 'AI engine starting…'); setTimeout(refreshStatus, 3000); }
+        else if (s.builtin) setStatus('bad', 'AI engine stopped');
         else setStatus('bad', "Can't reach the AI");
       } catch { setStatus('bad', 'BEYOND is not responding'); }
     }

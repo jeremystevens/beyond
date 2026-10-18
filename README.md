@@ -20,12 +20,12 @@ things up, keeps you organised, reads photos, listens, talks back and plays game
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.143-d96326?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=0d1117)
 ![License](https://img.shields.io/badge/License-MIT-d96326?style=for-the-badge&labelColor=0d1117)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-d96326?style=for-the-badge&logo=windows&logoColor=white&labelColor=0d1117)
-![Version](https://img.shields.io/badge/Version-0.32.0-d96326?style=for-the-badge&labelColor=0d1117)
+![Version](https://img.shields.io/badge/Version-0.33.0-d96326?style=for-the-badge&labelColor=0d1117)
 
 ![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local-d96326?style=for-the-badge&logo=shield&logoColor=white&labelColor=0d1117)
 ![AI](https://img.shields.io/badge/AI-OpenAI--compatible%20%C2%B7%20llama.cpp-d96326?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117)
 ![Runs on](https://img.shields.io/badge/Runs%20on-CPU%20only-d96326?style=for-the-badge&logo=intel&logoColor=white&labelColor=0d1117)
-![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2032%20of%2043-d96326?style=for-the-badge&labelColor=0d1117)
+![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2033%20of%2043-d96326?style=for-the-badge&labelColor=0d1117)
 ![Status](https://img.shields.io/badge/Status-Active%20development-d96326?style=for-the-badge&labelColor=0d1117)
 
 </div>
@@ -62,8 +62,9 @@ own machine.
 <a id="overview"></a>
 ## `▸ OVERVIEW`
 
-BEYOND is a **Python + FastAPI** web app with a fast, phone-friendly chat page. It connects to any
-**OpenAI-compatible AI server** you run (Local AI Studio, `llama-server`, LM Studio, Ollama) and adds everything a
+BEYOND is a **Python + FastAPI** web app with a fast, phone-friendly chat page. It runs its **own built-in AI
+engine** (llama.cpp, started and looked after by BEYOND), or connects to any **OpenAI-compatible AI server** you
+already run (Local AI Studio, LM Studio, Ollama). Around the model it adds everything a
 real assistant needs around it: long-term memory, live lookups, an organiser, photo understanding, picture generation,
 speech, voice input and games. Every feature runs on the **processor**, so no graphics card is required.
 
@@ -97,6 +98,7 @@ still arrive), and lets your other devices use it over a **secure address on you
 
 ```
 ━━ ASSISTANT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+◆  Its own built-in AI engine: pick a .gguf model and BEYOND runs it, no separate server
 ◆  Answers stream in as they're written, with Stop, Try again and 👍 👎 ratings
 ◆  Its own personality, plus house rules it follows in every chat
 ◆  Saved, searchable conversations in a side panel; rename, delete, pick up later
@@ -150,7 +152,7 @@ box with photo 📷 and voice 🎤 buttons.*
 | Layer | Technology |
 |---|---|
 | **Backend** | Python 3.14 · FastAPI · Uvicorn · Pydantic |
-| **AI connection** | Any OpenAI-compatible server: Local AI Studio, llama.cpp `llama-server`, LM Studio, Ollama |
+| **AI engine** | Built-in llama.cpp `llama-server` (CPU), or any OpenAI-compatible server: Local AI Studio, LM Studio, Ollama |
 | **Storage** | SQLite (WAL) with FTS5 full-text search: chats, memory, notes, lists, expenses, reminders, games |
 | **Speech** | Kokoro ONNX · Piper (fallback) · faster-whisper (voice input) · ONNX Runtime |
 | **Vision & pictures** | RapidOCR · llama.cpp multimodal (Gemma 3) · stable-diffusion.cpp (DreamShaper) |
@@ -172,7 +174,7 @@ flowchart LR
     subgraph PC["🖥️ Your PC"]
         BE["✦ BEYOND<br/>FastAPI · tray · popups"]
         DB[("SQLite<br/>chats · memory · games")]
-        AI["AI server<br/>Local AI Studio / llama.cpp"]
+        AI["AI engine<br/>built-in llama.cpp or your AI server"]
         LT["Local tools<br/>Whisper · Kokoro · OCR<br/>vision · pictures"]
     end
     NET["🌐 Optional lookups<br/>weather · news · web"]
@@ -192,8 +194,8 @@ flowchart LR
 ### 1 — Prerequisites
 
 - **Windows 10 or 11** and **Python 3.14**
-- An **AI server** you already run, for example **Local AI Studio** (its engine at `http://127.0.0.1:10086`),
-  `llama-server`, LM Studio or Ollama. BEYOND's own built-in engine arrives in Phase 33.
+- A **CPU build of llama.cpp** (`llama-server.exe`) and a **`.gguf` model** for BEYOND's built-in engine, for
+  example Qwen3-4B Q4_K_M. Or an **AI server** you already run: Local AI Studio, `llama-server`, LM Studio or Ollama.
 
 ### 2 — Clone & install
 
@@ -216,8 +218,10 @@ Prefer a console window? Run `.\.venv\Scripts\python.exe beyond.py --console` in
 
 ### 4 — Connect your AI
 
-Open **Settings**, enter your AI server's address (for example `http://127.0.0.1:10086`), press **Test connection**,
-and start chatting. Type **/** in the message box to see every command.
+Open **Settings → AI engine**. For the **built-in engine**, choose your `llama-server.exe` and `.gguf` model and
+press **Save**: BEYOND starts the engine itself and shows "Engine running" once the model is loaded. Or pick **An AI
+server I already run**, enter its address (for example `http://127.0.0.1:10086`) and press **Test connection**. Then
+start chatting. Type **/** in the message box to see every command.
 
 ### 5 — Check everything works (optional)
 
@@ -298,6 +302,32 @@ the chat but never sent to the AI.
 *Click a section to open it.*
 
 <details>
+<summary><b>⚡ The built-in AI engine</b></summary>
+
+<br>
+
+With **Settings → AI engine → BEYOND's built-in engine**, BEYOND runs llama.cpp's `llama-server.exe` itself. Choose
+a **CPU build** of `llama-server.exe` and a **`.gguf` model** (for example Qwen3-4B Q4_K_M), press **Save**, and
+BEYOND:
+
+- starts the engine on a **free port only this PC can reach**, waits until the model is loaded, and shows
+  "AI engine starting…" on the chat page until then (loading can take a few minutes from a hard disk);
+- runs it **on the processor only**, tuned for that: 12 threads, an 8192-token context, an f16 cache and one
+  conversation slot, so the start of the prompt stays cached and follow-up answers begin faster;
+- answers straight away with **thinking models** such as Qwen3: their thinking is switched off unless you turn on
+  **Let thinking models think first**, and even then it never shows up in the answer;
+- **restarts it** with new settings when you save them, and by itself if it stops (three tries, then
+  **Restart engine** in Settings), with a popup when it goes down;
+- **closes it** when BEYOND quits, and stops an engine left behind by a crash the next time it starts.
+
+The engine stays loaded for as long as BEYOND runs, so it's always ready. Threads, context size, cache type (f16,
+q8_0 or q4_0) and thinking are all in Settings. The engine's own messages go to `data\engine.log`. Prefer an AI server
+you already run? Choose **An AI server I already run** instead: setups made before the built-in engine keep using
+their server.
+
+</details>
+
+<details>
 <summary><b>💬 Chats, personality and house rules</b></summary>
 
 <br>
@@ -332,9 +362,10 @@ with the keyboard open), buttons are thumb-sized, and the layout leaves room for
 - **/remember &lt;fact&gt;** saves a fact for every chat; **/memories** lists them with a 🗑 for each; **/forget**
   removes one or all. Up to 40 facts of 200 characters. The same fact worded differently is recognised, and BEYOND
   never saves passwords, PINs, codes, or card or account numbers. Newer facts win over older ones that conflict.
-- **Noticing facts.** Mention something lasting about yourself in passing ("I'm a nurse and I have a cat named Luna")
-  and BEYOND saves it after the answer, showing **🧠 Noted for next time**. It only runs after personal-sounding
-  messages and never while another answer is being written. Turn it off with **/memories auto off** or in Settings.
+- **Noticing facts.** Mention something lasting about yourself in passing ("I'm a nurse and I have a cat named Luna",
+  "I just got a new dog named Rex", "Started a new job at Tesla today") and BEYOND saves it after the answer, showing
+  **🧠 Noted for next time**. It only runs after personal-sounding messages and never while another answer is being
+  written. Turn it off with **/memories auto off** or in Settings.
 - **Recalling old conversations.** Every message is indexed for search (SQLite FTS5). Ask "what was that movie I told
   you about?" and BEYOND finds the most related earlier exchanges in any chat and gives them to the AI as background.
 
@@ -505,6 +536,7 @@ from the PC BEYOND runs on; other devices see them read-only.
 
 | Setting | What it does |
 |---|---|
+| **AI engine** | BEYOND's built-in engine (`llama-server.exe` + a `.gguf` model, threads, context, cache, thinking) or an AI server you already run. |
 | **AI server** | The address of your OpenAI-compatible AI server, with **Test connection**. Takes effect at once. |
 | **House rules** | Add and remove the rules BEYOND follows in every chat. |
 | **Memory** | Notice facts automatically · search older conversations. |
@@ -550,6 +582,7 @@ BEYOND's page talks to a small JSON API, which you can use from scripts too.
 | `GET` · `POST` | `/api/settings` | Read or change settings (changes from this PC only) |
 | `POST` | `/api/settings/test` · `/api/settings/reset` | Test an AI server address · reset to defaults |
 | `POST` | `/api/restart` | Restart BEYOND after a port or network change |
+| `POST` | `/api/engine/restart` | Restart the built-in AI engine |
 | `GET` · `POST` | `/api/rules` | List or add house rules |
 | `DELETE` | `/api/rules/{id}` | Remove a house rule |
 
@@ -609,7 +642,8 @@ beyond/
 │   ├── config.py            ← Defaults, version and every port number
 │   ├── ports.py             ← Ports BEYOND won't take (other AI apps, ones in use)
 │   ├── settings.py          ← Your settings (data/settings.json): check, save, reset
-│   ├── engine.py            ← The only place BEYOND talks to the AI server
+│   ├── engine.py            ← The only place BEYOND talks to the AI
+│   ├── builtin_engine.py    ← Starts, watches and stops the built-in llama.cpp engine
 │   ├── personality.md       ← BEYOND's personality (the system prompt)
 │   ├── commands.py          ← Every slash command, its help and its buttons
 │   ├── chats.py             ← Saved conversations (SQLite)
@@ -635,7 +669,7 @@ beyond/
 │
 ├── tests/                   ← python -m unittest discover -s tests
 ├── screenshots/             ← Images for this README
-├── planning/                ← Pitch, brainstorm and the 43-phase plan
+├── planning/                ← Pitch, brainstorm, the 43-phase plan and test checklists
 └── data/                    ← Your chats, settings, logs and certificates (git-ignored)
 ```
 
@@ -655,6 +689,9 @@ beyond/
 
 ⛨  Voice recordings are deleted the moment they're turned into text. Photos are stored
    with their metadata stripped, and only in their own chat.
+
+⛨  The built-in AI engine listens only on this PC (127.0.0.1), on a port BEYOND picks;
+   other devices reach the AI only through BEYOND's own page.
 
 ⛨  Other devices are off by default. When you allow them, they can chat but can't
    change settings. There's no login yet (Phase 38), so keep it off on shared networks.
@@ -697,7 +734,7 @@ BEYOND is being built in **43 small phases**, each one tested before the next. T
 [`planning/phases.md`](planning/phases.md).
 
 <details open>
-<summary><b>✅ Shipped: Phases 1–32</b></summary>
+<summary><b>✅ Shipped: Phases 1–33</b></summary>
 
 <br>
 
@@ -714,13 +751,13 @@ BEYOND is being built in **43 small phases**, each one tested before the next. T
 | ✅ 9 · Buttons in chat | ✅ 20 · Tray icon and popups | ✅ 30 · Study quiz |
 | ✅ 10 · Saved facts | ✅ 20b · Morning briefing | ✅ 31 · Blackjack |
 | ✅ 11 · Automatic memory | ✅ 21 · Photos and `/scan` | ✅ 32 · Hangman |
+| | | ✅ 33 · Built-in engine |
 
 </details>
 
 ### Coming next
 
 ```
-◇  Phase 33 — Built-in engine          BEYOND runs its own AI engine, no separate server needed
 ◇  Phase 34 — Models page              see, switch and manage your AI models
 ◇  Phase 35 — Model downloads          pick a recommended model and download it in the app
 ◇  Phase 36 — Status & health page     speed, memory and a self-test at a glance

@@ -28,7 +28,11 @@ RECALL_CUE_RE = re.compile(r"\b(remember|recall|last time|earlier|before|ago|you
 # Messages that sound like the person is telling something about themselves (worth a pickup check).
 PERSONAL_RE = re.compile(r"\b(i am|i'm|im|my|mine|i have|i've|i live|i work|i like|i love|i hate|i prefer|"
                          r"i don't like|i do not like|call me|i was born|i usually|i always|i never|i'll be|"
-                         r"i will be|i'm going|we have|our)\b", re.I)
+                         r"i will be|i'm going|we have|our)\b"
+                         # News about their life, with or without "I" ("I just got a dog", "Started a new job"):
+                         r"|(?:\b(?:i|we)\s+|^\s*|[.!\n]\s*)(?:just\s+|recently\s+|finally\s+)?"
+                         r"(?:got|bought|adopted|moved|started|joined|graduated|married|switched|quit|retired|became|"
+                         r"turned|own|drive|study|teach|speak|play|named|use)\b", re.I)
 FACT_PROMPT = (
     'You pick out lasting personal facts that a user states about THEMSELVES in a chat message, so an assistant '
     'can remember them later. Return ONLY a JSON array of strings (at most 3), or [] if there are none. '

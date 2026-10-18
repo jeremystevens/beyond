@@ -30,6 +30,8 @@ def load():
         logging.warning('Could not read %s; using the default settings', FILE)
         return values
     if isinstance(saved, dict):
+        if 'ai_mode' not in saved and saved.get('ai_server_url'):
+            saved['ai_mode'] = 'server'   # set up before the built-in engine existed: keep using that AI server
         try:
             values.update(validate({key: value for key, value in saved.items() if key in config.DEFAULTS}))
         except SettingsError as exc:
@@ -51,6 +53,24 @@ def validate(changes):
                 parsed = urlparse(value)
                 if parsed.scheme not in ('http', 'https') or not parsed.hostname:
                     raise SettingsError('The AI server address should look like http://127.0.0.1:10086')
+        elif key == 'ai_mode':
+            if value not in ('builtin', 'server'):
+                raise SettingsError('Choose the built-in engine or an AI server.')
+        elif key in ('engine_executable', 'engine_model'):
+            if not isinstance(value, str):
+                raise SettingsError('AI engine file paths must be text.')
+            value = value.strip().strip('"')
+            suffix = '.exe' if key == 'engine_executable' else '.gguf'
+            if value and (len(value) > 1024 or not value.lower().endswith(suffix)):
+                raise SettingsError('Choose llama-server.exe for the engine program.' if suffix == '.exe'
+                                    else 'The AI model must be a .gguf file.')
+        elif key in ('engine_threads', 'engine_context'):
+            low, high = (1, 64) if key == 'engine_threads' else (1024, 131072)
+            if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
+                raise SettingsError(f'{key} must be a whole number between {low} and {high}.')
+        elif key == 'engine_cache':
+            if value not in ('f16', 'q8_0', 'q4_0'):
+                raise SettingsError('The engine cache must be f16, q8_0 or q4_0.')
         elif key == 'ai_model':
             value = str(value or '').strip()
             if len(value) > 200:
@@ -125,6 +145,8 @@ def save(changes):
     """Apply changes and save only what differs from the defaults. Returns all the settings now in effect."""
     values = {**load(), **validate(changes)}
     different = {key: value for key, value in values.items() if value != config.DEFAULTS[key]}
+    if values['ai_server_url']:   # always saved with an address, so load() can't mistake it for an older setup
+        different['ai_mode'] = values['ai_mode']
     if different:
         config.DATA_DIR.mkdir(exist_ok=True)
         temp = FILE.with_suffix('.tmp')

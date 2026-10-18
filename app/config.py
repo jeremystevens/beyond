@@ -6,8 +6,8 @@ which is never committed and only holds what differs from these defaults, so a n
 """
 from pathlib import Path
 
-VERSION = '0.32.0'
-PHASE = 32
+VERSION = '0.33.0'
+PHASE = 33
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / 'data'                          # settings, chats, logs: created at runtime, git-ignored
@@ -33,8 +33,18 @@ NETWORK_HOST = '0.0.0.0'        # other devices on the network can too ("Allow o
 
 # Settings a person can change. These are the fresh-install values; changes go in data/settings.json.
 DEFAULTS = {
-    # An AI server BEYOND connects to (e.g. Local AI Studio's engine, LM Studio, Ollama), as its web address.
-    # Empty on a fresh install: BEYOND's own built-in engine arrives in Phase 33.
+    # Where BEYOND's AI comes from: 'builtin' = BEYOND starts llama.cpp itself (app/builtin_engine.py),
+    # 'server' = an AI server you already run (Local AI Studio's engine, LM Studio, Ollama…).
+    'ai_mode': 'builtin',
+    # The built-in engine: llama.cpp's llama-server.exe (a CPU build) and a .gguf model. Fresh installs choose their
+    # own files (model downloads arrive in Phase 35). Tuned for a processor-only PC: 12 threads, f16 cache.
+    'engine_executable': '',
+    'engine_model': '',
+    'engine_threads': 12,
+    'engine_context': 8192,
+    'engine_cache': 'f16',
+    'engine_thinking': False,      # let "thinking" models (Qwen3…) reason before answering: slower on a CPU
+    # An AI server BEYOND connects to when ai_mode is 'server', as its web address.
     'ai_server_url': '',
     # Model name to ask for. Empty = whatever model the server has loaded (llama.cpp / Studio ignore it anyway).
     'ai_model': '',
@@ -84,7 +94,7 @@ DEFAULTS = {
     # Start BEYOND (in the tray) when you sign in to Windows.
     'start_with_windows': False,
 }
-BOOLEAN_SETTINGS = ('speech_enabled', 'speech_auto', 'image_enabled', 'vision_enabled', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
+BOOLEAN_SETTINGS = ('engine_thinking', 'speech_enabled', 'speech_auto', 'image_enabled', 'vision_enabled', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
                     'popup_errors', 'start_with_windows')
 TIME_SETTINGS = ('quiet_start', 'quiet_end')
 RESTART_SETTINGS = ('web_port', 'allow_network')   # these only take effect after BEYOND restarts

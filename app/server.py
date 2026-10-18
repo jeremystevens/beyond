@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
                  https, memory, notes, notify, ports, reminders, rules, settings)
 
-from app import photo_jobs, image_jobs, speech_jobs, blackjack, games, hangman, study_quiz, tictactoe, trivia
+from app import builtin_engine, photo_jobs, image_jobs, speech_jobs, blackjack, games, hangman, study_quiz, tictactoe, trivia
 from app.tools import scan, speech, speech_to_text
 
 chats.initialize()
@@ -70,11 +70,14 @@ async def _watch_ai():
     was_ok = None
     while True:
         try:
-            state = (await engine.status())['state']
+            status = await engine.status()
+            state = status['state']
             if state == 'unreachable' and was_ok:
                 notify.show('error', 'BEYOND: the AI stopped answering',
                             "BEYOND can't reach the AI server any more. Is it still running, with a model loaded?")
-            if state != 'not_set':
+            elif state == 'error' and was_ok:
+                notify.show('error', "BEYOND: the AI engine stopped", status['message'].split('\n')[0])
+            if state not in ('not_set', 'starting'):
                 was_ok = state == 'ok'
         except Exception:
             logging.exception('Checking the AI server failed')
@@ -126,13 +129,15 @@ async def lifespan(_app):
     photo_jobs.recover()
     image_jobs.recover()
     speech_jobs.recover()
-    tasks = [asyncio.create_task(loop()) for loop in (_reminder_loop, _briefing_loop, _watch_ai)]
+    tasks = [asyncio.create_task(loop()) for loop in (_reminder_loop, _briefing_loop, _watch_ai,
+                                                      builtin_engine.supervise)]
     try:
         yield
     finally:
         await asyncio.gather(photo_jobs.shutdown(), image_jobs.shutdown(), speech_jobs.shutdown())
         for task in tasks:
             task.cancel()
+        await builtin_engine.stop()   # frees the model's memory; BEYOND starts it again next time
 
 
 app = FastAPI(title='BEYOND', version=config.VERSION, docs_url=None, redoc_url=None, lifespan=lifespan)
@@ -764,6 +769,17 @@ async def test_connection(body: ConnectionTest, request: Request):
     except settings.SettingsError as exc:
         return JSONResponse({'error': str(exc)}, status_code=400)
     return await engine.status(url)
+
+
+@app.post('/api/engine/restart')
+def restart_engine(request: Request):
+    """Settings → Restart engine: start the built-in engine again (also after it gave up following crashes)."""
+    if not is_this_pc(request):
+        return only_this_pc()
+    if settings.load()['ai_mode'] != 'builtin':
+        return JSONResponse({'error': 'The built-in engine is not chosen.'}, status_code=409)
+    builtin_engine.request_restart()
+    return {'ok': True}
 
 
 @app.post('/api/restart')
