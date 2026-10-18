@@ -1,541 +1,770 @@
-# BEYOND
+<div align="center">
 
-**B**uilt **E**ntirely on **Y**our **O**wn **N**etwork & **D**evice
+```
+██████╗ ███████╗██╗   ██╗ ██████╗ ███╗   ██╗██████╗
+██╔══██╗██╔════╝╚██╗ ██╔╝██╔═══██╗████╗  ██║██╔══██╗
+██████╔╝█████╗   ╚████╔╝ ██║   ██║██╔██╗ ██║██║  ██║
+██╔══██╗██╔══╝    ╚██╔╝  ██║   ██║██║╚██╗██║██║  ██║
+██████╔╝███████╗   ██║   ╚██████╔╝██║ ╚████║██████╔╝
+╚═════╝ ╚══════╝   ╚═╝    ╚═════╝ ╚═╝  ╚═══╝╚═════╝
+```
 
-*What Local AI Studio users wanted next.*
+### **B**uilt **E**ntirely on **Y**our **O**wn **N**etwork & **D**evice
 
-> **Status: early development (Phase 29 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
-> browser, by typing or by speaking (🎤): it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
-> tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
-> answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
-> slash commands (/calc, /convert, /time, /roll, /weather, /news, /web, /wiki, /define, /movie, /joke, /qr,
-> /note, /list, /spent, /remind, /morning, /scan, /look, /imagine, /speak, /games, /tictactoe, /trivia, /quizme, /blackjack, /hangman, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
-> arrives in Phase 33.
+*A private AI assistant that lives on your own computer. It remembers you, learns how you like answers, looks
+things up, keeps you organised, reads photos, listens, talks back and plays games. Your data never leaves home.*
 
-## Games and dice
+---
 
-Open **Games** in the header or type **/games** for dice and coins, tic-tac-toe, trivia, the study quiz, blackjack
-and hangman. Quick buttons roll a d6 or d20, flip a coin,
-or show **Game stats**. Opening Games keeps any message draft or photo attachment in place.
+![Python](https://img.shields.io/badge/Python-3.14-d96326?style=for-the-badge&logo=python&logoColor=white&labelColor=0d1117)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.143-d96326?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=0d1117)
+![License](https://img.shields.io/badge/License-MIT-d96326?style=for-the-badge&labelColor=0d1117)
+![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-d96326?style=for-the-badge&logo=windows&logoColor=white&labelColor=0d1117)
+![Version](https://img.shields.io/badge/Version-0.32.0-d96326?style=for-the-badge&labelColor=0d1117)
 
-- **/roll** rolls a d6. **/roll 2d20+3**, **/roll 4d6kh3**, **/roll 4d6dl1**, **/roll adv+5**,
-  **/roll dis**, **/roll d%**, **/roll 6x 4d6kh3** and **/roll coin** keep the bot's existing rules.
-- Results show dice faces or values, dropped dice, repeated-roll totals and an overall total. The plain text
-  and the visual use the same server-generated roll; reopening a saved chat never rolls again.
-  Large rolls show at most 60 visual dice, with every result still in the text above.
-- **Roll again** makes a fresh roll and updates that result. **Games** returns to the menu.
-- **/games stats** shows totals shared across chats and devices on this BEYOND installation. Each successful
-  /roll or Roll again counts as one play, including any repeats requested together. Coin flips have a separate
-  play count; dice track cumulative totals and the highest total. Invalid input and opening menus do not count.
-- Shared stats survive restarting BEYOND and deleting a chat. The local, gitignored SQLite database stores
-  these totals in `game_stats`; `app/games.py` also supports scores and win/loss/draw records for later games.
-  No Telegram accounts, imported bot scores or AI calls are needed.
+![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local-d96326?style=for-the-badge&logo=shield&logoColor=white&labelColor=0d1117)
+![AI](https://img.shields.io/badge/AI-OpenAI--compatible%20%C2%B7%20llama.cpp-d96326?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117)
+![Runs on](https://img.shields.io/badge/Runs%20on-CPU%20only-d96326?style=for-the-badge&logo=intel&logoColor=white&labelColor=0d1117)
+![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2032%20of%2043-d96326?style=for-the-badge&labelColor=0d1117)
+![Status](https://img.shields.io/badge/Status-Active%20development-d96326?style=for-the-badge&labelColor=0d1117)
 
-## Trivia
+</div>
 
-Choose **Play trivia** in Games or type **/trivia**, choose a category and difficulty, then **Start round**.
-Each round has up to five multiple-choice questions with four answer buttons.
+---
 
-- **/trivia science hard** starts directly; **/trivia easy** chooses any category at Easy.
-  **/trivia start** starts a mixed round. **/trivia categories** lists the bot's category names and aliases.
-- Choose one answer to reveal the correct answer and points. Press **Next question** to continue.
-  Correct Easy, Medium and Hard answers earn **1, 2 and 3 points**. Wrong answers earn zero and reset the current
-  streak. At the end, the round shows its total points and number correct; **Play again** keeps your filters.
-- **/trivia score** (or **/trivia stats**) shows total points, accuracy, current streak and best streak.
-  **/games stats** includes trivia's answered-question count and points. These records are shared across chats
-  and devices and stay saved when a chat is deleted.
-- Questions come from [Open Trivia DB](https://opentdb.com/api_config.php) with
-  [The Trivia API](https://the-trivia-api.com/docs/) as fallback, using the bot's category mappings and scoring.
-  Fallback categories can be broader; each question shows its actual category. Batches are cached and Open
-  Trivia DB's request interval is respected. Smaller available batches make a shorter round.
-- Internet is needed to fetch a round. Only category/difficulty filters are sent to the services; your chat,
-  chosen answers and scores stay on this PC. Once fetched, the complete round is saved locally, so Next and
-  answering do not make another public request. No chat AI generates or grades questions.
-- Rounds resume after reload/restart. Private answer keys and future questions stay on the server until needed;
-  duplicate or stale submissions refresh the question and cannot score twice. Answers, private round progress
-  and both score records save in one transaction. Fetch errors keep your filters available to retry.
-- Every question displays source and license credits: Open Trivia DB data is
-  [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); The Trivia API data is
-  [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
+<a id="why"></a>
+## `▸ WHY BEYOND?`
 
-Implementation: `app/tools/trivia.py` fetches/validates/caches batches; `app/trivia.py` stores private rounds and
-scores in BEYOND's existing, gitignored SQLite database. The browser renders all question/answer text safely.
+Running an AI model on your own PC is easy now. Tools like Local AI Studio, LM Studio and Ollama load a model and give
+you a chat box. But a chat box isn't an assistant: it forgets you the moment you close it, it can't check the weather,
+it can't remind you of anything, and it can't do anything with a photo. The cloud assistants that *can* do those
+things want your conversations, your photos and a monthly subscription in return.
 
-## Tic-tac-toe
+**BEYOND** is the missing layer: a full assistant that runs on top of the model you already have, entirely on your
+own machine.
 
-Choose **Play tic-tac-toe** in Games, or type **/tictactoe** (**/ttt** is an alias), then choose a difficulty.
-You are **X**, BEYOND is **O**, and you move first on a real clickable 3×3 board.
-
-- **Easy** picks a random empty square. **Normal** takes a win or blocks yours, prefers the centre/corners,
-  and sometimes makes a loose move. **Impossible** uses the bot's unchanged minimax rules and never loses:
-  your best result against it is a draw.
-- **/tictactoe easy**, **/tictactoe normal** and **/tictactoe impossible** start directly at that difficulty.
-  Each move includes BEYOND's reply. Winning lines are highlighted and finished boards cannot be played again.
-- **New game** starts another board at the same difficulty. **Change difficulty** returns to the picker.
-  Earlier boards stay in the chat; unfinished ones remain playable after reloading or restarting BEYOND.
-- **/tictactoe stats** shows wins, losses and draws for each difficulty. **/games stats** includes the combined
-  tic-tac-toe record. Stats are shared across chats/devices and remain when a chat is deleted.
-- Moves, board state and completed-game stats save in one SQLite transaction. Stale or duplicate clicks are
-  rejected and refresh the board, so the same result counts once. Visible unfinished boards refresh when
-  played from another device. Deleted boards cannot be resurrected.
-- Game logic is local and does not call the chat AI. Boards are attached to their saved chat messages;
-  there is no Telegram user/session dependency or 15-minute expiry.
-
-The rules live in `app/tools/tictactoe.py`; `app/tictactoe.py` handles saved boards and per-difficulty stats,
-using Phase 27's shared score store for the aggregate record.
-
-## Study quiz (/quizme)
-
-Choose **Start a quiz** in Games, or type **/quizme** for the topic buttons, or **/quizme <topic>** to start.
-
-- **Math topics are instant and offline:** addition, subtraction, multiplication, division, percentages, squares,
-  mixed math, or a times table (**/quizme 7 times table**). Answers are exact, and a wrong answer shows a worked
-  explanation.
-- **Any other topic** (*world capitals*, *spanish verbs*, *python*…) gets multiple-choice questions written by your
-  AI. They take a little while on a processor-only PC and may contain mistakes; each is marked as AI-written.
-- Every question has **four answer buttons** (for math, the wrong ones are typical slips: off by one or ten, a
-  neighbouring times-table answer), plus **Skip** and **Stop**. After answering, **Next question ▶** continues.
-- **It adapts:** each topic has levels 1–5. Three right in a row moves you up; two wrong in a row moves you down.
-- **/quizme stats** shows your level, score and best streak per topic; **/games stats** counts each answer.
-  Progress is saved and shared across your chats and devices. One quiz runs at a time; it ends after 15 idle
-  minutes, and **/quizme stop** ends it now.
-
-`app/study_quiz.py` holds the question makers (ported from PromptetheusBot) and the saved progress.
-
-## Blackjack (/blackjack)
-
-Choose **Play blackjack** in Games, or type **/blackjack** (**/bj** also works). You and the dealer get two cards;
-you see only the dealer's first card. Tap **Hit** to take a card or **Stand** to keep your hand, and the dealer then
-plays, drawing until 17 or more (and standing on a soft 17). Get closer to 21 than the dealer without going over.
-You stand automatically on 21, and an ace with a 10-value card on the deal is blackjack, which ends the hand at once
-(the table says why). There's no betting.
-
-- **Deal again**, **Stats**, **Rules** and **Games** sit under every hand. **/blackjack stats** shows wins, losses,
-  pushes and blackjacks; **/blackjack rules** explains the game. Each hand counts once in **/games stats** too.
-- The deck is shuffled fresh for every hand with Windows' secure random source. The dealer's face-down card and the
-  rest of the deck stay on the server: the page (and anyone peeking at it) only ever gets the cards that are face up.
-- Hands are saved, so they survive reloads and restarts, and a hand played on one device updates on another.
-
-`app/tools/blackjack.py` holds the rules (ported unchanged from PromptetheusBot); `app/blackjack.py` saves hands and
-the record.
-
-## Hangman (/hangman)
-
-Choose **Play hangman** in Games, or type **/hangman** to pick a difficulty (Easy 4–6, Medium 7–9, Hard 10+ letters)
-and a category: animals, movies, technology, geography, or random. **/hangman animals medium** starts straight away.
-
-- Tap letters on the on-screen A–Z keyboard, or just type them. Letters in the word turn green, misses turn red and
-  add a body part to the gallows drawing; six misses and the drawing is complete. A letter you already tried never
-  costs a miss.
-- **💡 Free hint** shows a clue once per round. **Play again**, **Change category**, **Stats** and **Games** sit
-  under every round, and **/hangman stats** shows wins, losses, the win rate and streaks.
-- The secret word (and the hint until you ask for it) stays on the server, so it can't be read from the page.
-  Rounds are saved, survive reloads and stay in sync across devices.
-
-The word bank (about 260 words with hints) and the rules come from PromptetheusBot (`app/tools/hangman_words.py`,
-`app/tools/hangman.py`); `app/hangman.py` saves rounds and the record.
-
-## Spoken replies
-
-- **/speak** reads the last AI answer in the current chat; **/speak &lt;text&gt;** reads your own words
-  (up to 1800 characters). **Read aloud** under a normal answer does the same without another command.
-- Enable **Spoken replies** in Settings on the host PC. Select a Kokoro ONNX model and voice pack, and a
-  Piper ONNX voice with its matching `.onnx.json` file. Kokoro is the default; a failed Kokoro run tries
-  Piper automatically. You can also choose Piper directly. Existing local model files can be reused.
-- **Read answers aloud automatically** is optional and off by default. It applies to new, completed normal
-  AI answers. Both manual and automatic reading show progress and leave chat available while speech is made.
-- Use the saved audio player's Play, Pause and seek controls. Browsers may require a Play click before allowing
-  automatic playback. Only the visible, focused chat attempts automatic playback; navigating pauses its audio.
-- Speech runs locally in a separate CPU process (two threads by default), one clip at a time, with a queue of
-  at most four requests and a configurable timeout (180 seconds by default). No cloud speech service is used.
-  Long answers read their first 1800 cleaned characters, with a notice beside the player.
-- Clips are saved with the answer in BEYOND's SQLite database and remain playable after reloading or restarting.
-  Changing the voice affects future clips; deleting a chat removes its clips. Errors offer Retry audio, and
-  an interrupted request can be retried after restarting. Owner settings and audio stay out of git.
-
-Implementation: `app/tools/speech_worker.py` adapts the bot's Kokoro/Piper engines with explicit CPU sessions;
-`app/tools/speech.py` bounds and validates the subprocess output; `app/speech_jobs.py` queues, persists and
-serves the clips, including byte ranges for browser seeking.
-
-## Saved facts
-
-Tell BEYOND things to remember in **every** chat, new or old:
-
-- **/remember &lt;fact&gt;** saves one, for example `/remember my dog is named Max` or
-  `/remember I prefer metric units`.
-- **/memories** lists them, with a **🗑** per fact and **🗑 Forget all** (which asks first).
-- **/forget &lt;number&gt;** or **/forget all** removes them.
-
-Up to 40 facts of up to 200 characters. The same fact twice (even worded differently) is recognised, and BEYOND never
-saves passwords, PINs, codes, or card or account numbers. Facts are added to the AI's instructions with the date they
-were saved, so a newer fact wins over an older one that conflicts.
-
-**Automatic memory:**
-
-- **Noticing facts.** When you mention something lasting about yourself in passing ("I'm a nurse and I have a cat
-  named Luna"), BEYOND saves it after the answer and shows **🧠 Noted for next time** under it. Picked-up facts are
-  marked 🤖 in /memories. It only runs after personal-sounding messages, never while another answer is being
-  written, and skips questions, opinions and one-off plans. Turn it off with **/memories auto off** or on the
-  Settings page.
-- **Recalling old conversations.** Every message is indexed for search (SQLite FTS5). When you ask something like
-  "what was that movie I told you about?", BEYOND finds the most related earlier exchanges in any chat and gives
-  them to the AI as background for that one reply. No extra AI work; turn it off on the Settings page.
-
-## Ratings and learning
-
-Every answer has **👍**, **👎** and **🔄 Try again** under it.
-
-- **👎** asks what was wrong (too long, too short, wrong or made up, not helpful, wrong tone, didn't understand
-  me); you can also skip. After the same kind of complaint twice, BEYOND changes how it answers: for example
-  shorter answers (with a firm word limit), more detail, extra care with facts, or a plainer tone. **👍** slowly
-  undoes old complaints.
-- When you ask something similar to an answer you rated, the AI is shown the one you liked as a guide and the one
-  you didn't as a mistake to avoid.
-- **🔄 Try again** writes a different answer to your last question. The old one stays in the chat, marked
-  "Tried again below", but the AI no longer sees it. It is offered on the newest answer only.
-- **/learned** shows what BEYOND picked up from your ratings, with **🧽 Reset what you learned**.
-
-The AI itself isn't retrained; ratings change what it is told before it answers.
-
-## Looking things up
-
-These commands fetch current information from free public services (no accounts or API keys). Only what you type
-after the command is sent; results are shown as they come, with links you can open, and are never followed as
-instructions.
-
-| Command | What it does | Source |
-|---|---|---|
-| `/web <question>` | Top 5 web results with a snippet each (alias `/search`) | DuckDuckGo (`ddgs` package) |
-| `/weather <place>` | Now, the next 6 hours and 3 days; °F/mph in the US | Open-Meteo |
-| `/news [topic]` | Headlines: top, world, us, politics, tech, science, business, health, entertainment, sports, or any topic | BBC, NPR, Ars Technica, Google News |
-| `/wiki <topic>` | An article's summary | Wikipedia |
-| `/define <word>` | Meanings, pronunciation and examples | Wiktionary (Datamuse as backup) |
-| `/movie <title> [year]` | Year, director, runtime, cast, ratings, summary (alias `/film`) | Wikidata, Wikipedia |
-| `/tv <title>` | Years, network, cast, rating, summary | TVmaze |
-
-Without internet, each one says so plainly.
-
-**Automatic lookups.** You don't need the commands for everyday questions. When a message clearly needs current
-information, BEYOND looks it up first and the AI answers from the results:
-
-- weather words and a place ("what's the weather in Paris?", "do I need an umbrella in London tomorrow?") → Open-Meteo
-  (a place it can't find is searched on the web instead);
-- "latest news about…", "any breaking news?" → the news feeds;
-- other questions about current things ("who won … this year?", "price of…", "current population of…") → web search.
-
-The page shows "🔎 Checking the weather for Paris…" while it looks, and the answer ends with **🔎 Looked up: …**;
-tap it to see exactly what was found. That line is added by BEYOND, never by the AI, and BEYOND removes it if the AI
-writes one itself. The decision is made by quick checks in Python (no extra AI work), and only the place, topic or
-question is sent. Turn it off on the Settings page; then the AI says it can't check and suggests the command.
-
-## Commands
-
-Type **/** in the message box to see the commands; keep typing to narrow the list, use the arrow keys, and press
-Tab or Enter to pick one. BEYOND answers commands itself, instantly, without the AI.
-
-| Command | What it does | Example |
-|---|---|---|
-| `/help` | List every command, or explain one | `/help calc` |
-| `/scan` | Attach a photo, then extract its printed text locally; results have Copy text | Attach a photo, then `/scan` |
-| `/imagine <idea>` | Make a local picture with a prompt helper, automatic defect avoidance, presets, background progress, a popup and Download PNG | `/imagine a cartoon cat in space` |
-| `/look` | Attach a photo, then ask the local vision AI; Describe it, Receipt / totals, or a custom question | Attach a photo, then `/look what is on the table?` |
-| `/calc` | Calculator: maths, percentages, tips, splitting a bill | `/calc tip 85.50 18% split 4` |
-| `/convert` | Units: temperature, distance, weight, cooking, speed and more | `/convert 72 f to c` |
-| `/time` | Time in a city, several cities, or convert a time | `/time 3pm London to Tokyo` |
-| `/roll` | Dice and coin flips | `/roll 2d20+3` · `/roll coin` |
-| `/joke` | A dad joke, pun, nerd or absurd joke, or one about any topic | `/joke cats` |
-| `/quote` · `/cat` | A random quote; a random cat fact | `/quote` |
-| `/rewrite` | Say a message in another tone (professional, friendly, funny, polite, dramatic, concise), written by your AI | `/rewrite polite I can't come tomorrow` |
-| `/qr` | A QR code picture for a link, text or Wi-Fi network; the Wi-Fi password is hidden in the chat | `/qr wifi Home | password` |
-| `/so` | Search Stack Overflow | `/so python read a file line by line` |
-| `/note` · `/notes` | A notepad: save notes, find them (typos and date words like "yesterday" are fine), delete one or all (asks first); ↩️ Undo after saving; passwords and codes are refused | `/note garage key is in the blue folder` · `/note find garage` |
-| `/list` | Checklists (groceries, packing, to-dos): tap an item to check it off, 🧹 clear checked items, 🗑 delete a list (asks first); "groceries" and "my grocery list" are the same list | `/list groceries add milk, eggs` · `/list` |
-| `/spent` | An expense log: `/spent 12.50 lunch` (or `… yesterday`, `… oct 3`, `… last friday`) picks a category from the words and remembers ones you choose; `/spent` shows this month, also `last month`, `october`, `year`, `2025`, `all`, with a 📄 Download CSV button (opens in Excel); `/spent recent` deletes | `/spent 45 gas yesterday` · `/spent year` |
-| `/remind` · `/reminders` | Reminders in plain words, once (`30m`, `tomorrow at 6pm`, `friday`, `March 3`) or repeating (`every Monday at 8am`, `every weekday`, `every 2 hours`, `every month on the 1st`). They pop up in the chat where you set them, with ✅ Done and 😴 10 min / 1 hour; if you're in another chat, a ⏰ banner offers to open it. `/reminders` lists and cancels them | `/remind tomorrow at 6pm call Dan` |
-| `/morning` | A daily **morning briefing** at your times (weekdays and weekends): the weather for your city, today's reminders, three headlines, and a quote or a joke. It arrives in the chat where you set it up, with a popup, even with the browser closed. `/morning` opens a menu with buttons; `/morning city …`, `/morning 7:30`, `/morning name …`, `/morning now` | `/morning city San Carlos, CA` · `/morning on` |
-| `/remember` · `/memories` · `/forget` | Save, list and remove facts BEYOND knows in every chat | `/remember my dog is named Max` |
-| `/learned` | What BEYOND learned from your ratings, with a reset | `/learned` |
-| `/rule` · `/rules` | Add, list and delete house rules | `/rule Use metric units` |
-
-A mistyped command gets "Did you mean…?". Commands and their replies are saved in the chat but never sent to the
-AI.
-
-**Buttons:** some replies have buttons underneath, and pressing one changes that message in place: **🎲 Roll
-again** under a `/roll` result, and a **🗑** for each rule under `/rules`. Buttons are saved with the message, so
-they still work when you reopen the chat. BEYOND only accepts a press of a button that's actually on that message. `/calc`, `/convert` and `/roll` work fully offline; `/time` works offline for about 400 cities and looks up
-other places (only the place name) with the free Open-Meteo geocoder.
-
-## Photos and text scanning
-
-Attach a **PNG, JPEG or WebP** with the 📷 button, or **drop one onto the chat**. Choose **Read text** or send
-**/scan** with the photo attached. The result has a **Copy text** button (also works on devices using the home
-network). Photos must be at most **10 MB / 25 megapixels**; phone rotation is handled automatically.
-
-The bot's **RapidOCR** reader runs locally on the CPU, with its small models included in the package. The first
-scan loads the reader; later scans are usually quicker. Printed text works best; handwriting and blurred photos
-may read incorrectly. Only one scan runs at a time, and other requests get a clear busy message.
-
-The prepared photo and extracted text are saved in this chat on your PC and remain after a reload. Deleting the
-chat removes them. Metadata is stripped from the saved photo. Neither is sent to the chat model or online
-services. Use /look below for a vision-model answer.
-
-## Photo understanding (/look)
-
-Attach a photo and choose **Describe it**, **Receipt / totals**, or type a question in the photo question box and
-choose **Ask a question**. Sending **/look** describes the attached photo; **/look <question>** asks your question.
-The same image limits as /scan apply.
-
-BEYOND saves a progress message and starts a separate **CPU vision process** at background priority on Windows.
-**You can keep chatting, change
-chats or close the browser** while it works. Usually allow about 1–2 minutes; loading the model or a busy PC can
-take several minutes. One photo analysis runs at a time; another request gets a clear busy reply.
-
-The result is saved in the same chat, replacing its progress message. A **Windows popup** opens that chat when
-clicked; it follows **When the AI has replied**, quiet hours, Pause popups and the existing rule to suppress
-popups while you are looking at BEYOND. Failures use the error-popup preference. Restarting BEYOND interrupts a
-running analysis and leaves a clear retry message. Deleting its chat discards the result without recreating it.
-
-On the host PC, open **Settings → Photo understanding (/look)** and select a CPU **llama-mtmd-cli.exe**, a
-**Gemma 3 vision model (.gguf)**, and its **matching mmproj projector (.gguf)**, then enable it and Save.
-Threads and timeout are adjustable; CPU operation is enforced. File paths are stored only in your local settings,
-with empty paths and the feature off on a fresh download. Built-in model downloads come in a later phase.
-
-The photo and answer stay on this PC. Temporary inference files are deleted after the process exits. This does
-not switch the model in Local AI Studio or send photos to the chat server. The vision answer can misread unclear
-details; use /scan for quick printed-text extraction.
-
-## Picture generation (/imagine)
-
-Type **/imagine <picture idea>** in chat. Optionally choose **Improve prompt**, review or edit the result,
-then choose a preset. **Undo improvement** restores the idea from before the last improvement.
-
-| Preset | Picture size | Steps | Approximate CPU time on the development PC |
+| | ☁️ Cloud AI assistants | 🖥️ A bare local model | ✦ **BEYOND** |
 |---|---|---|---|
-| Quick | 256 × 256 | 8 | About 1–2 minutes |
-| Good | 384 × 384 | 12 | About 3–5 minutes |
-| Best | 512 × 512 | 15 | About 9–12 minutes |
+| **Where your data goes** | Their servers | Stays on your PC | **Stays on your PC** |
+| **Remembers you across chats** | Yes, on their servers | No | **Yes: facts, preferences, old conversations** |
+| **Learns how you like answers** | Opaque | No | **Yes: 👍 👎 ratings and house rules** |
+| **Current info (weather, news, web)** | Yes | No | **Yes, and it tells you when it looked** |
+| **Reminders, notes, lists, expenses** | Some | No | **Yes, with Windows popups** |
+| **Reads and understands photos** | Yes, uploaded | Rarely | **Yes, offline** |
+| **Makes pictures** | Yes, uploaded | No | **Yes, on your CPU** |
+| **Voice in and out** | Yes, uploaded | No | **Yes, offline** |
+| **Use it from your phone** | App + account | No | **Your home network, over HTTPS** |
+| **Cost** | Monthly subscription | Free | **Free** |
+| **Open source** | No | Varies | **MIT licensed** |
 
-One picture runs at a time. BEYOND saves progress immediately and runs its own **CPU sd-cli.exe** at below-normal
-Windows priority. Keep chatting, switch chats or close the browser while it works. Actual times depend on the PC
-and other work. A second picture request gets a busy reply. The text model in Studio stays loaded.
+---
 
-The result replaces its own progress message in the same chat, with a **Download PNG** button that also works
-when you return later or use another device on your network. Generated pictures and prompts stay in BEYOND's
-database and are excluded from text-chat history and recall. Deleting the chat removes its pictures and popup
-previews. Failed or interrupted jobs leave a retry message; shutdown stops and reaps the child process.
+<a id="overview"></a>
+## `▸ OVERVIEW`
 
-A completion popup includes a small picture preview where Windows supports it; clicking opens the chat. It uses
-**When the AI has replied**, quiet hours, Pause popups and the existing rule to skip popups while you are looking
-at BEYOND. Errors use the error-popup preference. If a preview cannot be attached, the text popup still works.
+BEYOND is a **Python + FastAPI** web app with a fast, phone-friendly chat page. It connects to any
+**OpenAI-compatible AI server** you run (Local AI Studio, `llama-server`, LM Studio, Ollama) and adds everything a
+real assistant needs around it: long-term memory, live lookups, an organiser, photo understanding, picture generation,
+speech, voice input and games. Every feature runs on the **processor**, so no graphics card is required.
 
-On the host PC, enable **Settings → Picture generation (/imagine)** and select **sd-cli.exe from its CPU folder**
-and a **DreamShaper .safetensors model**, then Save. Default timeout is 20 minutes so Best has room to finish;
-threads and timeout are adjustable. Fresh installs have the feature off and empty file paths. Your paths stay
-in git-ignored local settings. No additional Python dependencies, Studio model switching, GPU calls, or image
-server are needed. Temporary generation files are removed after each job; small popup previews live in
-data/image-previews.
+It starts in the **Windows tray**, keeps working when the browser is closed (so reminders and the morning briefing
+still arrive), and lets your other devices use it over a **secure address on your home network**.
 
-**Better pictures (Phase 24).** Improve prompt asks your existing chat AI for a concise, more detailed image
-description. It is told to preserve the subject, count, colors, style and exclusions, including line drawings and
-coloring-book art. Nothing is generated until you choose a preset. Review the rewrite first; AI suggestions can
-still change a detail. Edit it or use Undo improvement if needed. Chat remains available while the helper works.
-The helper has a one-minute timeout; errors leave your original idea intact, and you can generate without it
-even if the chat AI is unavailable. Closing the panel or changing chats discards late helper results.
+> **Your AI. Your computer. Your network.** No cloud account, no subscription, no data leaving the house, except the
+> weather, news and web lookups you can see it make.
 
-Every picture automatically avoids common defects: blur, low quality/resolution, watermarks, signatures, extra
-fingers/limbs and distorted anatomy. Unwanted text is also avoided unless you request lettering or signage.
-Explicit monochrome/coloring-book requests also avoid color; coloring books and requests for no shading avoid
-shading, gradients and gray fill. The actual prompt and avoid words are saved with the request in its chat.
-These are guidance to DreamShaper, not guarantees. No extra model or dependency is required.
+---
 
-For reproducible API comparisons, POST /api/imagine also accepts an optional integer seed (-1 for random, or
-0–2147483647). Browser users still choose presets only; ordinary generations remain random.
+<a id="contents"></a>
+## `▸ CONTENTS`
 
-## Voice input (🎤)
+<div align="center">
 
-Tap **🎤** next to the message box, speak, and tap **⏹**: your words are turned into text **on this PC** and sent
-like a typed message (anything already in the box is kept in front of them). Recording stops by itself after two
-minutes. While the words are being worked out the button shows ⏳; a short question takes a couple of seconds.
-If an answer is still being written, the words wait in the box for you to send.
+| | | |
+|:---:|:---:|:---:|
+| [**✦ Features**](#features) | [**▣ Screenshots**](#screenshots) | [**⚙ Tech stack**](#tech-stack) |
+| [**⇄ How it works**](#how-it-works) | [**▶ Quick start**](#quick-start) | [**⌘ Commands**](#commands) |
+| [**☰ Feature guides**](#guides) | [**⚒ Settings**](#settings) | [**⌁ API reference**](#api) |
+| [**▤ Project structure**](#structure) | [**⛨ Privacy & security**](#privacy) | [**◷ Roadmap**](#roadmap) |
+| [**⇡ Contributing**](#contributing) | [**§ License**](#license) | [**↻ Changelog**](CHANGELOG.md) |
 
-- Speech recognition is **Whisper "base"** via faster-whisper, on the processor only (the same model and settings
-  as PromptetheusBot's voice notes). The model (about 145 MB) is downloaded once from Hugging Face the first time
-  you use the microphone and then works offline.
-- The recording is never kept: it is written to a temporary file for the decoder and deleted straight away. Only
-  the words become part of the chat.
-- One recording is turned into text at a time; a second one at the same moment gets a "still working" reply.
-- Browsers only allow the microphone on a secure page: **http://127.0.0.1 on this PC** works. On another computer
-  or a phone, use BEYOND's **secure address**, `https://<this PC's address>:7771` (see below); on its plain
-  `http://…:7770` address the 🎤 button is greyed out and offers that link.
+</div>
 
-**The secure address for other devices.** With *Allow other devices on my network* on, BEYOND also serves itself
-over HTTPS on the next port (7771 by default), listed in Settings and in `data\beyond.log`. No company vouches for
-BEYOND's certificate, so the first time each device's browser warns that the connection isn't private: choose
-**Advanced → Continue**. It's still only your own network. If port 7771 is busy, BEYOND keeps running on 7770 only
-and says so.
+---
 
-**Skip the warning for good:** in Settings (under the network addresses) choose **⬇ Download certificate** on the
-other device and install it once; **How to install it** has the steps for Windows, Android, iPhone/iPad and Mac.
-That file is BEYOND's own small *certificate authority* ("BEYOND on <your PC>", valid 10 years). BEYOND signs its
-server certificate with it and renews that automatically (new network address, yearly), so a device that installed
-the authority keeps trusting BEYOND without reinstalling. For safety it is limited by *name constraints* to
-home-network addresses (10.x, 172.16–31.x, 192.168.x, 127.x) and this PC's name: even if its key were copied, it
-could never vouch for real websites. Everything lives in `data\https` (the downloadable file holds no secrets).
+<a id="features"></a>
+## `▸ FEATURES`
 
-## Personality
+```
+━━ ASSISTANT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+◆  Answers stream in as they're written, with Stop, Try again and 👍 👎 ratings
+◆  Its own personality, plus house rules it follows in every chat
+◆  Saved, searchable conversations in a side panel; rename, delete, pick up later
+◆  Looks up the weather, news and the web by itself, and shows you exactly what it found
 
-BEYOND's personality lives in `app/personality.md`: witty, curious, honest, plain-spoken, with short answers unless
-you ask for more. Its "What You Can Do Right Now" section tells the AI exactly which features exist, so it says
-"I can't do that yet" instead of pretending; it's updated as features are added. Edits to the file apply from the
-next message, without restarting.
+━━ MEMORY & LEARNING ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+◆  Remembers facts about you in every chat, ones you tell it and ones it notices
+◆  Recalls related older conversations ("what was that movie I told you about?")
+◆  Learns from your ratings: shorter, longer, plainer, more careful, whatever you prefer
 
-Each question is sent with up to the last 12 messages of the chat. To keep replies fast, the AI server reuses the
-part of the prompt it already read: the personality comes first and never changes, and the chat history grows from
-6 to 12 messages and is then cut back in one step, so the start of the prompt stays the same for several messages.
-Very long earlier messages are shortened in what's sent.
+━━ ORGANISER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+◆  Reminders in plain words, one-off or repeating, with Done and Snooze
+◆  A morning briefing: weather, today's reminders, headlines and a quote
+◆  Notes with typo-tolerant search · tap-to-check lists · an expense log with CSV export
 
-## House rules
+━━ VISION, PICTURES & VOICE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+◆  Reads the text in photos (OCR) and answers questions about them (vision AI)
+◆  Makes pictures from a sentence, with a prompt helper and Quick / Good / Best presets
+◆  Speaks its answers aloud (Kokoro, Piper fallback) and understands your voice (Whisper)
 
-House rules are instructions BEYOND follows in every chat, such as "Always answer in under 3 sentences",
-"Use metric units" or "Always answer in French". Up to 25 rules of 5–300 characters.
+━━ GAMES & TOOLS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+◆  Tic-tac-toe · trivia · an adaptive study quiz · blackjack · hangman · dice
+◆  Calculator, unit converter, world clock, dictionary, Wikipedia, movies & TV, QR codes, jokes
 
-- In a chat: **/rule &lt;text&gt;** adds one, **/rules** lists them, **/rule delete &lt;number&gt;** removes one.
-- On the Settings page: the **House rules** section lists them with **Remove** buttons and an **Add** box (saved
-  straight away; usable from any device that can chat).
+━━ DESKTOP & DEVICES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+◆  Lives in the Windows tray and can start with Windows
+◆  Windows popups for replies, reminders and problems, never while you're watching
+◆  Works on phones and tablets over a secure address, with its own trusted certificate
+◆  Runs entirely on the CPU: no graphics card, no cloud, no account
+```
 
-Rules are added to the end of the personality and repeated in a short note next to your newest message, because
-small models follow instructions best when they're close to the question. Commands like /rules and BEYOND's
-replies to them are saved in the chat but never sent to the AI.
+---
 
-## Chats
+<a id="screenshots"></a>
+## `▸ SCREENSHOTS`
 
-Every conversation is saved on your PC as you go, in `data\beyond.sqlite3`. The panel on the left lists them,
-newest first: click one to open and continue it, **✎** to rename it, **🗑** to delete it, **＋ New chat** to start
-another. A new chat is named after its first message. Refreshing the page or restarting BEYOND keeps your chats,
-and the page reopens the chat you were in. On a phone-sized screen the panel opens with **☰**.
+<div align="center">
 
-**On phones and tablets:** the pages adapt to the screen. On a phone the chat list slides in from **☰** (tap the
-dimmed area to close it), the AI status shows as a coloured dot (its text is a tooltip and is read by screen
-readers), buttons are big enough for a thumb, text boxes don't make the phone zoom in, and the layout leaves room for
-the notch and home bar. The header and message box stay on screen (also with the keyboard open); only the
-conversation scrolls. On a tablet or wider, the chat list stays open beside the chat. After BEYOND is updated,
-browsers check for the new version of each page automatically.
+![BEYOND's chat page](screenshots/Screenshot1.png)
 
-If you press Stop, what the AI wrote so far is saved and marked "Stopped". If you stop it (or it fails) before it
-writes anything, that question isn't saved.
+*The chat page: saved chats on the left, the AI connection status, Games and Settings at the top, and the message
+box with photo 📷 and voice 🎤 buttons.*
 
-## What this project is about
+</div>
 
-**Local AI Studio** loads a model and lets you chat with it.
+---
 
-**BEYOND** is an assistant that runs on that model and actually helps with your day:
+<a id="tech-stack"></a>
+## `▸ TECH STACK`
 
-- **Remembers you:** facts about you, your preferences, and conversations from weeks ago.
-- **Learns how you like answers** from your 👍👎 ratings and house rules.
-- **Knows what's happening now:** it looks up weather, news and the web on its own, and tells you when it did.
-- **Keeps you organized:** reminders, checklists, notes, an expense log and a morning briefing.
-- **Understands photos:** reads the text in them and answers questions about them.
-- **Talks and listens,** and has games and quick tools for when you just want to have fun.
-- **Looks after itself:** speed tracking, a self-test and an error history.
+| Layer | Technology |
+|---|---|
+| **Backend** | Python 3.14 · FastAPI · Uvicorn · Pydantic |
+| **AI connection** | Any OpenAI-compatible server: Local AI Studio, llama.cpp `llama-server`, LM Studio, Ollama |
+| **Storage** | SQLite (WAL) with FTS5 full-text search: chats, memory, notes, lists, expenses, reminders, games |
+| **Speech** | Kokoro ONNX · Piper (fallback) · faster-whisper (voice input) · ONNX Runtime |
+| **Vision & pictures** | RapidOCR · llama.cpp multimodal (Gemma 3) · stable-diffusion.cpp (DreamShaper) |
+| **Online lookups** | httpx · DuckDuckGo · Open-Meteo · Wikipedia · Wiktionary · TVmaze · public news feeds |
+| **Desktop** | pystray (tray icon) · Windows-Toasts (popups) · Pillow |
+| **Security** | `cryptography`: BEYOND's own name-constrained certificate authority for HTTPS |
+| **Frontend** | Hand-written HTML, CSS and JavaScript (no framework, no build step), mobile-first |
+| **Platform** | Windows 10 / 11 · CPU only |
 
-Everything runs on your own computer. Your chats, memories and photos stay there; only web, weather and news
-lookups go online, and the assistant tells you when it used one.
+<a id="how-it-works"></a>
+### How it works
 
-## Running it (development)
+```mermaid
+flowchart LR
+    subgraph Devices["📱 Your devices"]
+        B1["Browser on this PC<br/>http://127.0.0.1:7770"]
+        B2["Phone / tablet / laptop<br/>https://your-pc:7771"]
+    end
+    subgraph PC["🖥️ Your PC"]
+        BE["✦ BEYOND<br/>FastAPI · tray · popups"]
+        DB[("SQLite<br/>chats · memory · games")]
+        AI["AI server<br/>Local AI Studio / llama.cpp"]
+        LT["Local tools<br/>Whisper · Kokoro · OCR<br/>vision · pictures"]
+    end
+    NET["🌐 Optional lookups<br/>weather · news · web"]
+    B1 <--> BE
+    B2 <--> BE
+    BE <--> DB
+    BE <--> AI
+    BE <--> LT
+    BE -. "only what you ask about" .-> NET
+```
 
-Needs **Python 3.14** on Windows.
+---
+
+<a id="quick-start"></a>
+## `▸ QUICK START`
+
+### 1 — Prerequisites
+
+- **Windows 10 or 11** and **Python 3.14**
+- An **AI server** you already run, for example **Local AI Studio** (its engine at `http://127.0.0.1:10086`),
+  `llama-server`, LM Studio or Ollama. BEYOND's own built-in engine arrives in Phase 33.
+
+### 2 — Clone & install
 
 ```powershell
-cd D:\AI\beyond
+git clone https://github.com/jeremystevens/beyond.git
+cd beyond
+
 py -3.14 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-lock.txt
+```
+
+### 3 — Launch
+
+```powershell
 .\.venv\Scripts\pythonw.exe beyond.py
 ```
 
-BEYOND starts in the **Windows tray** (the orange **B** by the clock): click it, or open
-**http://127.0.0.1:7770** in your browser. Its menu has **Open BEYOND**, **Pause popups** and **Quit BEYOND**. It keeps
-running when the browser is closed, so reminders still go off. What it prints goes to `data\beyond.log`. To run it in a
-console window instead (no tray icon), use `.\.venv\Scripts\python.exe beyond.py --console`.
+BEYOND appears in the **Windows tray** (the orange **B** by the clock). Click it, or open **http://127.0.0.1:7770**.
+Prefer a console window? Run `.\.venv\Scripts\python.exe beyond.py --console` instead.
 
-**Popups.** While you're not looking at BEYOND's page, Windows popups tell you when the AI has replied, when a
-reminder goes off (with ✅ Done and 😴 Snooze right on the popup), and when something went wrong (for example the AI
-server stopped answering). Clicking a popup opens that chat. Each kind can be switched off on the Settings page, with
-quiet hours and a **Send a test popup** button. Settings can also add BEYOND to your Windows startup programs (**Start
-BEYOND with Windows**, for your user only). BEYOND registers its name and icon for popups under your Windows user
-(`HKCU\Software\Classes\AppUserModelId\BEYOND.LocalAI`), which Windows needs for the popup buttons to work.
+### 4 — Connect your AI
 
-## Settings
+Open **Settings**, enter your AI server's address (for example `http://127.0.0.1:10086`), press **Test connection**,
+and start chatting. Type **/** in the message box to see every command.
 
-Click **Settings** at the top of the chat page (or open http://127.0.0.1:7770/settings).
+### 5 — Check everything works (optional)
 
-- **AI server:** BEYOND doesn't have its own AI engine yet, so enter the address of one you already run, for
-  example Local AI Studio's engine `http://127.0.0.1:10086`, and press **Test connection**. Any server with the
-  standard OpenAI-compatible chat API works (llama.cpp's `llama-server`, Local AI Studio, LM Studio, Ollama).
-  Takes effect at once. Until one is set, the chat page says "No AI set up yet".
-- **Port:** BEYOND uses **7770** by default. You can change it; BEYOND refuses ports other AI apps rely on
-  (Local AI Studio's 1420, 8080, 10086; LM Studio, Ollama, ComfyUI, Gradio) and ports already in use, naming the
-  program. If 7770 is taken when BEYOND starts, it says which program has it instead of crashing.
-- **Allow other devices on my network:** off by default, so only this PC can open BEYOND. Turn it on to use
-  BEYOND from your phone or another computer at home; the settings page then lists the addresses to open. Leave it
-  off on shared networks: there's no login yet (Phase 38). Other devices can chat but **can't change settings**.
-  If a phone can't connect, Windows Firewall may be blocking Python: allow it on private networks when asked.
-- The **port** and **network** settings need a restart: the page shows **Restart BEYOND now**, and BEYOND restarts
-  itself in the same window (if a new port has meanwhile been taken, it stays on the old one).
-- **Reset to defaults** puts every setting back as on a fresh download.
-
-Your changes are saved in `data\settings.json`, which only holds what differs from the defaults in
-`app/config.py`. The `data` folder (settings, chats, and later memories and logs) is never uploaded to the
-repository, so deleting `data\settings.json` also brings back the defaults.
-
-## Project layout
-
-```
-beyond.py            Start BEYOND: the tray icon, then the web server (checks the port, restarts after port/network
-                     changes); --console runs it without the tray
-app/config.py        Default settings, including every port number (the only place ports are defined)
-app/settings.py      Your settings: the defaults plus your changes in data/settings.json (check, save, reset)
-app/engine.py        The engine connector: the only place BEYOND talks to an AI server (and the history window)
-app/personality.md   BEYOND's personality (the system prompt)
-app/chats.py         Saved conversations (SQLite database in data/beyond.sqlite3)
-app/rules.py         House rules (same database)
-app/memory.py        Saved facts (same database)
-app/learning.py      Ratings and what BEYOND learns from them
-app/notes.py         The notepad (/note, /notes), in the same database
-app/checklists.py    Checklists (/list), in the same database
-app/expenses.py      The expense log and reports (/spent), in the same database
-app/reminders.py     Reminders (/remind): reading times and schedules; the server fires them
-app/briefing.py      The morning briefing (/morning): settings, schedule and the text; the server sends it
-app/notify.py        Windows popups: one shared feature (settings, quiet hours, "not while you're looking")
-app/autostart.py     "Start BEYOND with Windows" (your user's startup programs)
-app/https.py         The secure (https://) address for other devices: BEYOND's own certificate
-app/lookups.py       Automatic lookups: when a question needs the weather, news or web
-app/commands.py      Slash commands: one list (name, summary, example, function) drives /help, the / menu
-                     and "did you mean…?"; replies can carry buttons, handled by ACTIONS
-app/tools/           The tools behind the commands (calculator, units, world_time, dice, places, and the
-                     online lookups: web, web_search, weather, news, wikipedia, dictionary, movies; and
-                     jokes, little_lookups, rewrite, qr),
-                     from PromptetheusBot
-app/tools/scan.py    Offline photo text reader (RapidOCR, ported from the bot)
-app/tools/vision.py  One-off CPU photo analysis (Gemma 3, ported from the bot)
-app/photo_jobs.py    Background /look jobs, saved progress, completion and shutdown
-app/tools/image_prompts.py Reviewable AI prompt expansion and style-aware negative prompts
-app/tools/imagine.py CPU DreamShaper picture worker and Quick / Good / Best presets (ported from the bot)
-app/image_jobs.py    Background /imagine jobs, saved pictures, PNG downloads and popup previews
-app/ports.py         Port checks (free? who's using it?) and this PC's network addresses
-app/server.py        The web server (FastAPI): pages, chat, settings and status endpoints
-app/web/             The pages: index.html (chat), settings.html, style.css (shared look), app-height.js
-                     (keeps the page fitted to the visible screen on phones)
-planning/            Brainstorm, project pitch and the phased plan
-data/                Your settings, chats and logs (created at runtime, git-ignored)
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests
 ```
 
-## License
+---
 
-BEYOND is open source under the [MIT License](LICENSE): you're free to use, change and share it, as long as the
-copyright and license notice stay with it. AI models you use with BEYOND have their own licenses from their makers.
+<a id="commands"></a>
+## `▸ COMMANDS`
 
-## Planning
+Type **/** in the message box for a live, filterable list (arrow keys + Tab or Enter to pick). BEYOND answers commands
+itself, instantly, without the AI. A mistyped command gets "Did you mean…?". Commands and their replies are saved in
+the chat but never sent to the AI.
 
-- `planning/project_pitch.md`: what BEYOND is about
-- `planning/brainstorm_standalone_app.md`: ideas, options and decisions
-- `planning/phases.md`: the step-by-step plan (43 small phases)
+### Assistant & memory
+
+| Command | What it does | Example |
+|---|---|---|
+| `/help` | Every command, or details for one | `/help calc` |
+| `/remember` · `/memories` · `/forget` | Save, list and remove facts BEYOND knows in every chat | `/remember my dog is named Max` |
+| `/learned` | What BEYOND learned from your ratings, with a reset | `/learned` |
+| `/rule` · `/rules` | Add, list and delete house rules | `/rule Use metric units` |
+| `/speak` | Read the last answer (or your text) aloud | `/speak` |
+
+### Looking things up
+
+| Command | What it does | Source |
+|---|---|---|
+| `/web <question>` | Top 5 web results with snippets (alias `/search`) | DuckDuckGo |
+| `/weather <place>` | Now, the next 6 hours and 3 days | Open-Meteo |
+| `/news [topic]` | Headlines by category or any topic | BBC, NPR, Ars Technica, Google News |
+| `/wiki <topic>` | An article's summary | Wikipedia |
+| `/define <word>` | Meanings, pronunciation and examples | Wiktionary (Datamuse backup) |
+| `/movie <title> [year]` · `/tv <title>` | Cast, ratings and a summary | Wikidata, Wikipedia, TVmaze |
+| `/so <question>` | Search Stack Overflow | Stack Exchange |
+
+### Organiser
+
+| Command | What it does | Example |
+|---|---|---|
+| `/remind` · `/reminders` | Reminders in plain words, once or repeating; pop up with ✅ Done and 😴 Snooze | `/remind tomorrow at 6pm call Dan` |
+| `/morning` | A daily morning briefing at your times | `/morning city San Carlos, CA` |
+| `/note` · `/notes` | A notepad with typo-tolerant and date search | `/note find garage` |
+| `/list` | Tap-to-check lists for groceries, packing and to-dos | `/list groceries add milk, eggs` |
+| `/spent` | An expense log with reports and a CSV download | `/spent 45 gas yesterday` |
+
+### Photos, pictures & tools
+
+| Command | What it does | Example |
+|---|---|---|
+| `/scan` | Read the printed text in an attached photo, offline | attach a photo, then `/scan` |
+| `/look` | Ask the vision AI about an attached photo | `/look what is on the table?` |
+| `/imagine <idea>` | Make a picture, with a prompt helper and presets | `/imagine a cartoon cat in space` |
+| `/calc` · `/convert` · `/time` | Maths and tips, units, world clock | `/calc tip 85.50 18% split 4` |
+| `/qr` | A QR code for a link, text or Wi-Fi (the password stays hidden) | `/qr example.com` |
+| `/rewrite` | Rewrite a message in another tone | `/rewrite polite I can't come tomorrow` |
+| `/joke` · `/quote` · `/cat` | A joke, a quote, a cat fact | `/joke cats` |
+
+### Games
+
+| Command | What it does | Example |
+|---|---|---|
+| `/games` | The games menu and shared game stats | `/games stats` |
+| `/roll` | Dice and coins: modifiers, keep/drop, advantage, repeats | `/roll 2d20+3` |
+| `/tictactoe` | Easy, Normal or Impossible (never loses) | `/ttt impossible` |
+| `/trivia` | Five-question rounds by category and difficulty | `/trivia science hard` |
+| `/quizme` | A study quiz that adapts to you | `/quizme 7 times table` |
+| `/blackjack` | Hit or Stand against the dealer | `/bj` |
+| `/hangman` | Guess the word before the drawing is complete | `/hangman animals medium` |
+
+---
+
+<a id="guides"></a>
+## `▸ FEATURE GUIDES`
+
+*Click a section to open it.*
+
+<details>
+<summary><b>💬 Chats, personality and house rules</b></summary>
+
+<br>
+
+Every conversation is saved on your PC as you go, in `data\beyond.sqlite3`. The panel on the left lists them, newest
+first: click one to open it, **✎** to rename it, **🗑** to delete it, **＋ New chat** to start another. A new chat is
+named after its first message. Refreshing the page or restarting BEYOND keeps your chats, and the page reopens the chat
+you were in. If you press Stop, what the AI wrote so far is saved and marked "Stopped".
+
+**Personality.** BEYOND's personality lives in `app/personality.md`: witty, curious, honest and plain-spoken, with
+short answers unless you ask for more. Its "What You Can Do Right Now" section tells the AI exactly which features
+exist, so it says "I can't do that yet" instead of pretending. Edits apply from the next message.
+
+**Fast replies.** Each question is sent with up to the last 12 messages. The personality always comes first and the
+history grows from 6 to 12 messages before it's cut back in one step, so the AI server can reuse what it already read.
+
+**House rules** are instructions BEYOND follows in every chat, such as "Always answer in under 3 sentences" or
+"Always answer in French" (up to 25). Use **/rule**, **/rules**, **/rule delete &lt;number&gt;**, or the House rules
+section in Settings. Rules are also repeated next to your newest message, because small models follow instructions
+best when they're close to the question.
+
+**Phones and tablets.** On a phone the chat list slides in from **☰**, the header and message box stay on screen (also
+with the keyboard open), buttons are thumb-sized, and the layout leaves room for the notch and home bar.
+
+</details>
+
+<details>
+<summary><b>🧠 Memory: saved facts and recall</b></summary>
+
+<br>
+
+- **/remember &lt;fact&gt;** saves a fact for every chat; **/memories** lists them with a 🗑 for each; **/forget**
+  removes one or all. Up to 40 facts of 200 characters. The same fact worded differently is recognised, and BEYOND
+  never saves passwords, PINs, codes, or card or account numbers. Newer facts win over older ones that conflict.
+- **Noticing facts.** Mention something lasting about yourself in passing ("I'm a nurse and I have a cat named Luna")
+  and BEYOND saves it after the answer, showing **🧠 Noted for next time**. It only runs after personal-sounding
+  messages and never while another answer is being written. Turn it off with **/memories auto off** or in Settings.
+- **Recalling old conversations.** Every message is indexed for search (SQLite FTS5). Ask "what was that movie I told
+  you about?" and BEYOND finds the most related earlier exchanges in any chat and gives them to the AI as background.
+
+</details>
+
+<details>
+<summary><b>👍 Ratings and learning</b></summary>
+
+<br>
+
+Every answer has **👍**, **👎** and **🔄 Try again** under it.
+
+- **👎** asks what was wrong (too long, too short, wrong or made up, not helpful, wrong tone, didn't understand). After
+  the same kind of complaint twice, BEYOND changes how it answers: shorter (with a firm word limit), more detail, extra
+  care with facts, or a plainer tone. **👍** slowly undoes old complaints.
+- Ask something similar to an answer you rated, and the AI sees the one you liked as a guide and the one you didn't as a
+  mistake to avoid.
+- **🔄 Try again** writes a different answer to your last question; the old one stays, marked "Tried again below".
+- **/learned** shows what BEYOND picked up, with **🧽 Reset what you learned**. The model itself isn't retrained;
+  ratings change what it's told before it answers.
+
+</details>
+
+<details>
+<summary><b>🔎 Live lookups: weather, news and the web</b></summary>
+
+<br>
+
+The lookup commands (see [Commands](#commands)) use free public services with no accounts or API keys. Only what you
+type after the command is sent, and without internet each one says so plainly.
+
+**Automatic lookups.** For everyday questions you don't need the commands. When a message clearly needs current
+information, BEYOND looks it up first and the AI answers from the results:
+
+- weather words and a place ("do I need an umbrella in London tomorrow?") → Open-Meteo;
+- "latest news about…", "any breaking news?" → the news feeds;
+- other current questions ("who won … this year?", "price of…") → web search.
+
+The page shows "🔎 Checking the weather for Paris…" while it looks, and the answer ends with **🔎 Looked up: …**; tap it
+to see exactly what was found. That line is added by BEYOND, never by the AI. The decision is made by quick checks in
+Python (no extra AI work). Turn it off in Settings; the AI then says it can't check and suggests the command.
+
+</details>
+
+<details>
+<summary><b>📅 Organiser: reminders, morning briefing, notes, lists and expenses</b></summary>
+
+<br>
+
+- **Reminders.** `/remind 30m stretch`, `/remind tomorrow at 6pm call Dan`, `/remind every weekday at 7am stand-up`,
+  `/remind every month on the 1st pay rent`. They pop up in the chat where you set them with ✅ Done, 😴 10 min and
+  😴 1 hour, plus a Windows popup. In another chat, a ⏰ banner offers to open it. `/reminders` lists and cancels them.
+- **Morning briefing.** `/morning` opens a menu: weekday and weekend times, your city, sections (weather with umbrella
+  and jacket tips, today's reminders, three headlines, a quote or a joke). It arrives in its chat with a popup, even
+  with the browser closed.
+- **Notes.** `/note garage key is in the blue folder`; `/note find garage` (typos and "yesterday" or "last week" are
+  fine); ↩️ Undo after saving, 🗑 per note, and a confirmation before clearing all. Passwords and codes are refused.
+- **Lists.** `/list groceries add milk, eggs, bread`: tap an item to check it off, 🧹 clear checked items, 🗑 delete a
+  list. "groceries" and "my grocery list" are the same list.
+- **Expenses.** `/spent 12.50 lunch`, `/spent 45 gas yesterday`; categories are picked from the words and remembered
+  when you choose one. `/spent`, `/spent last month`, `/spent year` and `/spent all` show reports with totals,
+  averages and comparisons, each with a 📄 **Download CSV** button that opens in Excel.
+
+</details>
+
+<details>
+<summary><b>📷 Photos: text scanning and photo understanding</b></summary>
+
+<br>
+
+Attach a **PNG, JPEG or WebP** with the 📷 button, or drop one onto the chat (up to 10 MB / 25 megapixels).
+
+- **Read text / `/scan`** uses **RapidOCR** on the CPU, offline. The result has a **Copy text** button. Printed text
+  works best. Only one scan runs at a time.
+- **Describe it, Receipt / totals or your own question (`/look`)** asks a separate **CPU vision process** (Gemma 3
+  via llama.cpp) at background priority. Allow about 1–2 minutes; you can keep chatting or close the browser, and a
+  popup opens the chat when it's done.
+- Set up `/look` on the host PC in **Settings → Photo understanding**: a CPU `llama-mtmd-cli.exe`, a Gemma 3 vision
+  `.gguf` and its matching `mmproj` projector.
+- Photos and answers stay on this PC, saved in their chat with metadata stripped. Deleting the chat removes them.
+
+</details>
+
+<details>
+<summary><b>🎨 Picture generation</b></summary>
+
+<br>
+
+Type **/imagine &lt;picture idea&gt;**, optionally choose **Improve prompt** (your chat AI writes a more detailed
+description that you can review, edit or undo), then pick a preset:
+
+| Preset | Size | Steps | Approximate CPU time |
+|---|---|---|---|
+| Quick | 256 × 256 | 8 | 1–2 minutes |
+| Good | 384 × 384 | 12 | 3–5 minutes |
+| Best | 512 × 512 | 15 | 9–12 minutes |
+
+One picture runs at a time in its own CPU process at below-normal priority, so chat keeps working. The result replaces
+its progress message, with a **Download PNG** button and a popup preview. Common defects (blur, watermarks, extra
+fingers, distorted anatomy) are avoided automatically; unwanted text is avoided unless you ask for lettering.
+
+Set it up on the host PC in **Settings → Picture generation**: `sd-cli.exe` from its CPU folder and a DreamShaper
+`.safetensors` model.
+
+</details>
+
+<details>
+<summary><b>🔊 Spoken replies and 🎤 voice input</b></summary>
+
+<br>
+
+**Spoken replies.** `/speak` reads the last answer; **Read aloud** under an answer does the same; **Read answers
+aloud automatically** is optional in Settings. Speech uses **Kokoro** (Piper as fallback) in a separate CPU process,
+one clip at a time. Clips are saved with the answer and play in an audio player with seek controls.
+
+**Voice input.** Tap **🎤**, speak, and tap **⏹**: your words are turned into text **on this PC** with **Whisper
+"base"** (faster-whisper, CPU) and sent like a typed message. The recording is deleted straight away. The model (about
+145 MB) is downloaded once on first use. Browsers only allow the microphone on secure pages, so on other devices use
+BEYOND's `https://` address (see [Privacy & security](#privacy)).
+
+</details>
+
+<details>
+<summary><b>🎮 Games</b></summary>
+
+<br>
+
+Open **Games** in the header or type **/games**. Every game saves its state, survives reloads and restarts, stays in
+sync across devices, and counts once in the shared **/games stats**.
+
+- **Dice & coins.** `/roll`, `/roll 2d20+3`, `/roll 4d6kh3`, `/roll adv+5`, `/roll 6x 4d6kh3`, `/roll coin`, with
+  visual dice and **Roll again**.
+- **Tic-tac-toe.** A clickable 3×3 board. **Easy** plays randomly, **Normal** takes wins and blocks, **Impossible**
+  uses minimax and never loses.
+- **Trivia.** Five-question rounds by category and difficulty from Open Trivia DB (The Trivia API as fallback);
+  Easy/Medium/Hard answers earn 1/2/3 points, with streaks. Each question shows its source and licence.
+- **Study quiz.** `/quizme multiplication`, `/quizme 7 times table` or any topic (questions written by your AI). Four
+  answer buttons, worked explanations, and levels 1–5 that adapt as you go.
+- **Blackjack.** Hit or Stand on a card table; the dealer draws to 17. The face-down card and the deck never reach the
+  page.
+- **Hangman.** Pick a category and difficulty, then guess on an on-screen keyboard (or by typing) while the gallows
+  drawing fills in. One free hint per round; the secret word stays on the server.
+
+</details>
+
+<details>
+<summary><b>🖥️ Tray icon, popups and start with Windows</b></summary>
+
+<br>
+
+BEYOND runs from the **Windows tray**: **Open BEYOND**, **Pause popups** and **Quit BEYOND**. It keeps running when the
+browser is closed, and what it prints goes to `data\beyond.log`.
+
+**Windows popups** tell you when the AI has replied, when a reminder goes off (with ✅ Done and 😴 Snooze on the popup),
+and when something went wrong, but only while you're not looking at BEYOND's page. Clicking one opens that chat. Each
+kind can be switched off, with quiet hours and a **Send a test popup** button. **Start BEYOND with Windows** adds it to
+your user's startup programs.
+
+</details>
+
+---
+
+<a id="settings"></a>
+## `▸ SETTINGS`
+
+Click **Settings** at the top of the chat page (or open `http://127.0.0.1:7770/settings`). Settings can only be changed
+from the PC BEYOND runs on; other devices see them read-only.
+
+| Setting | What it does |
+|---|---|
+| **AI server** | The address of your OpenAI-compatible AI server, with **Test connection**. Takes effect at once. |
+| **House rules** | Add and remove the rules BEYOND follows in every chat. |
+| **Memory** | Notice facts automatically · search older conversations. |
+| **Looking things up** | Automatic weather, news and web lookups. |
+| **Photos, pictures & speech** | Paths and options for `/look`, `/imagine` and spoken replies. |
+| **Popups & tray** | Popups per kind, quiet hours, a test popup, **Start BEYOND with Windows**. |
+| **Port** | 7770 by default; ports other AI apps rely on, and ports already in use, are refused. |
+| **Allow other devices** | Off by default. When on, BEYOND lists its addresses and offers its certificate. |
+
+Your changes live in `data\settings.json` (only what differs from the defaults in `app/config.py`). The whole `data`
+folder is git-ignored, and **Reset to defaults** brings back a fresh install's settings.
+
+---
+
+<a id="api"></a>
+## `▸ API REFERENCE`
+
+BEYOND's page talks to a small JSON API, which you can use from scripts too.
+
+<details>
+<summary><b>Show all endpoints</b></summary>
+
+<br>
+
+**Chat**
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/chat/stream` | Send a message or command; the reply streams back as JSON lines |
+| `POST` | `/api/chat` | One-shot reply without saving (for scripts) |
+| `GET` | `/api/chats` | List saved chats |
+| `GET` · `PATCH` · `DELETE` | `/api/chats/{id}` | Open, rename or delete a chat |
+| `POST` | `/api/messages/{id}/press` | Press a button under a message |
+| `POST` | `/api/messages/{id}/retry` | 🔄 Try again on the newest answer |
+| `GET` | `/api/commands` | The command list behind the **/** menu |
+
+**Status, settings & rules**
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/health` | BEYOND's version, phase and secure port |
+| `GET` | `/api/ai-status` | Whether the AI server is reachable, and its model |
+| `GET` · `POST` | `/api/settings` | Read or change settings (changes from this PC only) |
+| `POST` | `/api/settings/test` · `/api/settings/reset` | Test an AI server address · reset to defaults |
+| `POST` | `/api/restart` | Restart BEYOND after a port or network change |
+| `GET` · `POST` | `/api/rules` | List or add house rules |
+| `DELETE` | `/api/rules/{id}` | Remove a house rule |
+
+**Photos, pictures, speech & voice**
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/scan` | Read the text in a photo |
+| `POST` · `GET` | `/api/look` · `/api/look/status` | Ask the vision AI about a photo · its progress |
+| `POST` | `/api/imagine` · `/api/imagine/prompt` | Make a picture · improve a prompt |
+| `GET` | `/api/imagine/status` · `/api/images/{id}.png` | Picture progress · download a picture |
+| `POST` · `GET` | `/api/speech` · `/api/speech/status` | Speak an answer · speech progress |
+| `GET` | `/api/speech/{id}.wav` | A saved clip (supports seeking) |
+| `POST` | `/api/transcribe` | Turn a voice recording into text |
+
+**Organiser, popups & devices**
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/reminders/fired` | Reminders and briefings that arrived since a given message |
+| `GET` | `/api/expenses.csv` | An expense report as CSV |
+| `POST` | `/api/presence` · `/api/notify/test` | "I'm looking" (no popups) · send a test popup |
+| `GET` | `/api/https/certificate` | BEYOND's certificate, to trust it on other devices |
+
+**Games**
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` · `POST` | `/api/tictactoe/{id}` · `…/move` | A board · make a move |
+| `GET` · `POST` | `/api/trivia/{id}` · `…/answer` · `…/next` | A round · answer · next question |
+| `GET` · `POST` | `/api/blackjack/{id}` · `…/hit` · `…/stand` | A hand · hit · stand |
+| `GET` · `POST` | `/api/hangman/{id}` · `…/guess` · `…/hint` | A round · guess a letter · the free hint |
+
+Game moves carry a `revision`, so a stale or repeated request can't change a game twice.
+
+</details>
+
+---
+
+<a id="structure"></a>
+## `▸ PROJECT STRUCTURE`
+
+<details>
+<summary><b>Show the file tree</b></summary>
+
+<br>
+
+```
+beyond/
+│
+├── beyond.py                ← Entry point · tray icon · web server (HTTP + HTTPS) · restarts
+├── requirements.txt         ← Dependencies (tested ranges)
+├── requirements-lock.txt    ← Exact versions known to work together
+│
+├── app/
+│   ├── server.py            ← FastAPI app · chat streaming · settings · background jobs
+│   ├── config.py            ← Defaults, version and every port number
+│   ├── ports.py             ← Ports BEYOND won't take (other AI apps, ones in use)
+│   ├── settings.py          ← Your settings (data/settings.json): check, save, reset
+│   ├── engine.py            ← The only place BEYOND talks to the AI server
+│   ├── personality.md       ← BEYOND's personality (the system prompt)
+│   ├── commands.py          ← Every slash command, its help and its buttons
+│   ├── chats.py             ← Saved conversations (SQLite)
+│   ├── memory.py            ← Saved facts, automatic pickup, conversation recall
+│   ├── learning.py          ← Ratings and what BEYOND learns from them
+│   ├── rules.py             ← House rules
+│   ├── lookups.py           ← Automatic weather, news and web lookups
+│   ├── notes.py · checklists.py · expenses.py · reminders.py · briefing.py
+│   ├── notify.py            ← Windows popups (quiet hours, "not while you're looking")
+│   ├── autostart.py         ← Start BEYOND with Windows
+│   ├── https.py             ← BEYOND's certificate authority and HTTPS certificate
+│   ├── photo_jobs.py · image_jobs.py · speech_jobs.py  ← Background CPU jobs
+│   ├── games.py · tictactoe.py · trivia.py · study_quiz.py · blackjack.py · hangman.py
+│   │
+│   ├── tools/               ← The tools behind the commands
+│   │   ├── calculator · units · world_time · dice · places · qr · rewrite · jokes · little_lookups
+│   │   ├── web · web_search · weather · news · wikipedia · dictionary · movies
+│   │   ├── scan (OCR) · vision · imagine · image_prompts
+│   │   ├── speech · speech_worker · speech_to_text
+│   │   └── tictactoe · trivia · blackjack · hangman · hangman_words
+│   │
+│   └── web/                 ← index.html (chat) · settings.html · style.css · app-height.js
+│
+├── tests/                   ← python -m unittest discover -s tests
+├── screenshots/             ← Images for this README
+├── planning/                ← Pitch, brainstorm and the 43-phase plan
+└── data/                    ← Your chats, settings, logs and certificates (git-ignored)
+```
+
+</details>
+
+---
+
+<a id="privacy"></a>
+## `▸ PRIVACY & SECURITY`
+
+```
+⛨  Everything runs on your PC: chats, memories, photos, recordings, pictures and settings
+   live in the data/ folder, which is never uploaded anywhere (it's git-ignored).
+
+⛨  Only lookups go online, and only the words they need: the place for the weather,
+   the topic for the news, the question for a web search. The answer says when it looked.
+
+⛨  Voice recordings are deleted the moment they're turned into text. Photos are stored
+   with their metadata stripped, and only in their own chat.
+
+⛨  Other devices are off by default. When you allow them, they can chat but can't
+   change settings. There's no login yet (Phase 38), so keep it off on shared networks.
+
+⛨  The secure address (https://…:7771) uses BEYOND's own certificate authority. It's
+   name-constrained to home-network addresses and this PC's name, so even if its key
+   were copied it could never vouch for a real website.
+
+⛨  Game answers stay server-side: the dealer's hole card, hangman's word and trivia
+   answers never reach the page until they're revealed.
+
+⛨  BEYOND never saves passwords, PINs, codes or card numbers as memories or notes.
+```
+
+<details>
+<summary><b>Using BEYOND from your phone or another computer</b></summary>
+
+<br>
+
+Turn on **Allow other devices on my network** in Settings and restart BEYOND. It then serves:
+
+- `http://<this PC's address>:7770` for chatting, and
+- `https://<this PC's address>:7771`, the **secure address**, needed for the 🎤 microphone (browsers only allow it
+  on secure pages).
+
+The first time, the browser warns that the connection isn't private: choose **Advanced → Continue**. To skip that
+warning for good, open Settings on the other device, choose **⬇ Download certificate**, and install it once (**How to
+install it** has the steps for Windows, Android, iPhone/iPad and Mac). BEYOND renews its server certificate by itself,
+so a device that installed the certificate keeps trusting BEYOND. If a device can't connect, Windows Firewall may be
+blocking Python: allow it on private networks when asked.
+
+</details>
+
+---
+
+<a id="roadmap"></a>
+## `▸ ROADMAP`
+
+BEYOND is being built in **43 small phases**, each one tested before the next. The full plan lives in
+[`planning/phases.md`](planning/phases.md).
+
+<details open>
+<summary><b>✅ Shipped: Phases 1–32</b></summary>
+
+<br>
+
+| | | |
+|---|---|---|
+| ✅ 1 · Project setup | ✅ 12 · Ratings and learning | ✅ 22 · Photo understanding (`/look`) |
+| ✅ 2 · First chat | ✅ 13 · Web lookups | ✅ 23 · Picture generation (`/imagine`) |
+| ✅ 3 · Live typing and controls | ✅ 14 · Automatic lookups | ✅ 24 · Better pictures |
+| ✅ 4 · Settings | ✅ 15 · Small extras | ✅ 25 · Spoken replies |
+| ✅ 5 · Saved conversations | ✅ 16 · Notes | ✅ 26 · Voice input |
+| ✅ 6 · Personality and memory | ✅ 17 · Checklists | ✅ 27 · Games menu and dice |
+| ✅ 7 · House rules | ✅ 18 · Expenses | ✅ 28 · Tic-tac-toe |
+| ✅ 8 · Slash commands | ✅ 19 · Reminders | ✅ 29 · Trivia |
+| ✅ 9 · Buttons in chat | ✅ 20 · Tray icon and popups | ✅ 30 · Study quiz |
+| ✅ 10 · Saved facts | ✅ 20b · Morning briefing | ✅ 31 · Blackjack |
+| ✅ 11 · Automatic memory | ✅ 21 · Photos and `/scan` | ✅ 32 · Hangman |
+
+</details>
+
+### Coming next
+
+```
+◇  Phase 33 — Built-in engine          BEYOND runs its own AI engine, no separate server needed
+◇  Phase 34 — Models page              see, switch and manage your AI models
+◇  Phase 35 — Model downloads          pick a recommended model and download it in the app
+◇  Phase 36 — Status & health page     speed, memory and a self-test at a glance
+◇  Phase 37 — Other AI servers         first-class support for more AI servers
+◇  Phase 38 — Login                    accounts for safe use on shared networks
+◇  Phase 39 — Setup script             one command to install everything
+◇  Phase 40 — First-run setup          a guided welcome inside the app
+◇  Phase 41 — Guide and licenses       a full user guide and every licence in one place
+◇  Phase 42 — Test on a clean PC       a fresh-machine install, start to finish
+◇  Phase 43 — First release            BEYOND 1.0
+```
+
+---
+
+<a id="contributing"></a>
+## `▸ CONTRIBUTING`
+
+Ideas, bug reports and pull requests are welcome. For bigger changes, please open an issue first so we can talk about
+the approach.
+
+1. Fork the repository
+2. Create a branch (`git checkout -b feature/my-idea`)
+3. Make your change and run the tests (`python -m unittest discover -s tests`)
+4. Commit with a clear message and push the branch
+5. Open a pull request
+
+New slash commands belong in the shared registry in `app/commands.py`, so they show up in `/help` and the **/** menu.
+
+---
+
+<a id="license"></a>
+## `▸ LICENSE`
+
+BEYOND is open source under the [**MIT License**](LICENSE): you're free to use, change and share it, as long as the
+copyright and licence notice stay with it. AI models you use with BEYOND have their own licences from their makers.
+
+---
+
+<div align="center">
+
+*Built for people who want a real AI assistant without handing their life to the cloud.*
+
+**✦ BEYOND · your AI, on your terms ✦**
+
+**⭐ Star this repo if it's useful to you**
+
+</div>
