@@ -6,6 +6,23 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 25: spoken replies** (version 0.25.0).
+  - Added /speak for the last AI answer or supplied text, Read aloud buttons, and optional automatic reading
+    of completed answers. The shared registry updates /help, /help speak and browser command discovery.
+  - Added saved browser audio players with playback/seek controls, progress, retry and reload persistence.
+  - Ported local Kokoro speech with Piper fallback into isolated, bounded CPU workers; one clip runs at a time
+    with a four-request queue. Interrupted requests recover to a retryable state; chat remains available.
+  - Added host-only speech settings for engine, voice files, speed, CPU threads and timeout. Automatic reading
+    defaults off. Long answers are bounded to 1800 cleaned characters with a visible truncation notice.
+  - Updated README, personality, phase plan and dependency pins. Real Kokoro, Piper and forced fallback
+    generated valid PCM audio on the owner's CPU.
+  - Verification: 41 existing regression checks and 15 speech checks passed, covering CPU-only sessions,
+    fallback, literal subprocess input, bounded/deduplicated queues, concurrent chat, automatic reading, saved
+    clips/ranges/deletion, retry and shutdown/restart recovery. Chrome verified actual decoded playback,
+    automatic playback, reopening saved clips, navigation pause, repeat-error retry controls and mobile layout.
+    Python/browser syntax, dependency consistency and whitespace checks passed. Owner listening check pending.
+
+
 - **Phase 24: better pictures** (version 0.24.0).
   - Added Improve prompt to /imagine: the existing chat AI expands an idea while preserving requested subjects,
     colors, styles and exclusions. Review/edit and Undo improvement keep the person in control before generating.

@@ -4,13 +4,35 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 24 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> **Status: early development (Phase 25 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
 > browser: it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
 > slash commands (/calc, /convert, /time, /roll, /weather, /news, /web, /wiki, /define, /movie, /joke, /qr,
-> /note, /list, /spent, /remind, /morning, /scan, /look, /imagine, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
+> /note, /list, /spent, /remind, /morning, /scan, /look, /imagine, /speak, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
 > arrives in Phase 33.
+
+## Spoken replies
+
+- **/speak** reads the last AI answer in the current chat; **/speak &lt;text&gt;** reads your own words
+  (up to 1800 characters). **Read aloud** under a normal answer does the same without another command.
+- Enable **Spoken replies** in Settings on the host PC. Select a Kokoro ONNX model and voice pack, and a
+  Piper ONNX voice with its matching `.onnx.json` file. Kokoro is the default; a failed Kokoro run tries
+  Piper automatically. You can also choose Piper directly. Existing local model files can be reused.
+- **Read answers aloud automatically** is optional and off by default. It applies to new, completed normal
+  AI answers. Both manual and automatic reading show progress and leave chat available while speech is made.
+- Use the saved audio player's Play, Pause and seek controls. Browsers may require a Play click before allowing
+  automatic playback. Only the visible, focused chat attempts automatic playback; navigating pauses its audio.
+- Speech runs locally in a separate CPU process (two threads by default), one clip at a time, with a queue of
+  at most four requests and a configurable timeout (180 seconds by default). No cloud speech service is used.
+  Long answers read their first 1800 cleaned characters, with a notice beside the player.
+- Clips are saved with the answer in BEYOND's SQLite database and remain playable after reloading or restarting.
+  Changing the voice affects future clips; deleting a chat removes its clips. Errors offer Retry audio, and
+  an interrupted request can be retried after restarting. Owner settings and audio stay out of git.
+
+Implementation: `app/tools/speech_worker.py` adapts the bot's Kokoro/Piper engines with explicit CPU sessions;
+`app/tools/speech.py` bounds and validates the subprocess output; `app/speech_jobs.py` queues, persists and
+serves the clips, including byte ranges for browser seeking.
 
 ## Saved facts
 

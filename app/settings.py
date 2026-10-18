@@ -7,6 +7,7 @@ AI server takes effect at once; the port and network switch take effect after a 
 """
 import json
 import logging
+import math
 import re
 from urllib.parse import urlparse
 
@@ -74,6 +75,27 @@ def validate(changes):
                 raise SettingsError(f'{key} must be a whole number between {low} and {high}.')
         elif key in ('vision_threads', 'vision_timeout'):
             low, high = (1, 64) if key == 'vision_threads' else (30, 3600)
+            if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
+                raise SettingsError(f'{key} must be a whole number between {low} and {high}.')
+        elif key in ('speech_kokoro_model', 'speech_piper_model', 'speech_kokoro_voices'):
+            if not isinstance(value, str):
+                raise SettingsError('Speech file paths must be text.')
+            value = value.strip().strip('"')
+            suffixes = ('.bin', '.npz') if key == 'speech_kokoro_voices' else ('.onnx',)
+            if value and (len(value) > 1024 or not value.lower().endswith(suffixes)):
+                raise SettingsError('Choose the matching speech model or voice-pack file.')
+        elif key == 'speech_engine':
+            if value not in ('kokoro', 'piper'):
+                raise SettingsError('Choose Kokoro or Piper for spoken replies.')
+        elif key == 'speech_voice':
+            if not isinstance(value, str) or not re.fullmatch(r'[a-z]{2}_[a-z]{2,20}', value):
+                raise SettingsError('The Kokoro voice should look like af_heart.')
+        elif key == 'speech_speed':
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or not .5 <= value <= 2:
+                raise SettingsError('Speech speed must be a number between 0.5 and 2.0.')
+            value = round(value, 2)
+        elif key in ('speech_threads', 'speech_timeout'):
+            low, high = (1, 16) if key == 'speech_threads' else (15, 600)
             if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
                 raise SettingsError(f'{key} must be a whole number between {low} and {high}.')
         elif key == 'web_port':

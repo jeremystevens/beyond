@@ -6,8 +6,8 @@ which is never committed and only holds what differs from these defaults, so a n
 """
 from pathlib import Path
 
-VERSION = '0.24.0'
-PHASE = 24
+VERSION = '0.25.0'
+PHASE = 25
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / 'data'                          # settings, chats, logs: created at runtime, git-ignored
@@ -48,6 +48,17 @@ DEFAULTS = {
     'image_model': '',
     'image_threads': 12,
     'image_timeout': 1200,
+    # Offline speech. Models are selected locally; fresh downloads do not contain owner paths.
+    'speech_enabled': False,
+    'speech_auto': False,
+    'speech_engine': 'kokoro',
+    'speech_voice': 'af_heart',
+    'speech_speed': 1.0,
+    'speech_threads': 2,
+    'speech_timeout': 180,
+    'speech_kokoro_model': '',
+    'speech_kokoro_voices': '',
+    'speech_piper_model': '',
     # The port BEYOND's page is on.
     'web_port': WEB_PORT,
     # Let phones and other computers on your network open BEYOND. Off by default: there's no login yet (Phase 38).
@@ -70,7 +81,7 @@ DEFAULTS = {
     # Start BEYOND (in the tray) when you sign in to Windows.
     'start_with_windows': False,
 }
-BOOLEAN_SETTINGS = ('image_enabled', 'vision_enabled', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
+BOOLEAN_SETTINGS = ('speech_enabled', 'speech_auto', 'image_enabled', 'vision_enabled', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
                     'popup_errors', 'start_with_windows')
 TIME_SETTINGS = ('quiet_start', 'quiet_end')
 RESTART_SETTINGS = ('web_port', 'allow_network')   # these only take effect after BEYOND restarts

@@ -23,6 +23,7 @@ from app.tools.calculator import calculate
 from app.tools.dice import roll_dice
 from app.tools.units import convert
 from app.tools.imagine import HELP as IMAGINE_HELP
+from app.tools import speech
 from app.tools.vision import HELP as LOOK_HELP
 from app.tools.scan import HELP as SCAN_HELP
 from app.tools.web import Unavailable
@@ -37,6 +38,7 @@ class Reply:
     toast: str = ''
     image: str = ''            # a picture under the text, as a data: URL (e.g. /qr's code)
     saved_command: str = ''    # how to save the typed command instead (e.g. /qr wifi with the password hidden)
+    speech_text: str | None = None  # empty string = read the last AI answer; None = no speech request
     on_saved: Callable = None  # called with the chat's id once the reply is saved (e.g. where a reminder goes off)
 
 
@@ -790,6 +792,12 @@ def _rule(args):
     return f'Added house rule: {" ".join(args.split())}\nIt applies to every chat from the next message.'
 
 
+def _speak(args):
+    if len(args) > speech.MAX_TEXT:
+        return Reply('Use /speak with up to 1800 characters, or /speak to read the last AI answer.')
+    return Reply(args or 'Preparing audio for the last answer…', speech_text=args)
+
+
 # ---------- help ----------
 
 def _help(args=''):
@@ -812,6 +820,8 @@ def _help(args=''):
 
 
 COMMANDS = [
+    Command('speak', 'Read the last AI answer, or supplied text (up to 1800 characters), with local Kokoro/Piper audio; enable Spoken replies in Settings',
+            '/speak Hello from BEYOND', _speak, group='Voice'),
     Command('imagine', 'Make a local picture with presets, an optional prompt helper, and automatic defect avoidance',
             '/imagine a cartoon cat in space', lambda _args: IMAGINE_HELP, group='Photos'),
     Command('look', 'Ask the local vision AI about an attached photo; describe it, read a receipt, or ask a question',

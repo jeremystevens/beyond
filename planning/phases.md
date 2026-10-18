@@ -241,8 +241,11 @@ Studio's engine on 10086 for most of development; that must never become the def
   words stay with the saved image request. /help imagine, browser menu, README and personality are updated.
 - **Done when:** a short idea like "a cat in space" gives a clearly better picture than the same words without help.
 
-### Phase 25: Spoken replies
+### Phase 25: Spoken replies (implemented 2026-10-18; 56 checks passed; browser playback verified; owner listening check pending)
 - `/speak` and an optional "read answers aloud" setting, with an audio player in the chat (Kokoro, Piper fallback).
+- Ported Kokoro/Piper to a separate CPU process; queued generation keeps chat available, persists audio with
+  answers, and supports retry, restart recovery and browser seeking. Automatic reading is optional and off by default.
+- Added host settings, Read aloud controls, shared /help and command menu entries, README and personality guidance.
 - **Done when:** an answer can be played aloud in the browser.
 
 ### Phase 26: Voice input

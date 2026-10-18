@@ -16,7 +16,8 @@ from pydantic import BaseModel, Field
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
                  memory, notes, notify, ports, reminders, rules, settings)
 
-from app import photo_jobs, image_jobs
+from app import photo_jobs, image_jobs, speech_jobs
+from app.tools import speech
 from app.tools import scan
 
 chats.initialize()
@@ -119,11 +120,12 @@ async def _reminder_loop():
 async def lifespan(_app):
     photo_jobs.recover()
     image_jobs.recover()
+    speech_jobs.recover()
     tasks = [asyncio.create_task(loop()) for loop in (_reminder_loop, _briefing_loop, _watch_ai)]
     try:
         yield
     finally:
-        await asyncio.gather(photo_jobs.shutdown(), image_jobs.shutdown())
+        await asyncio.gather(photo_jobs.shutdown(), image_jobs.shutdown(), speech_jobs.shutdown())
         for task in tasks:
             task.cancel()
 
@@ -131,6 +133,7 @@ async def lifespan(_app):
 app = FastAPI(title='BEYOND', version=config.VERSION, docs_url=None, redoc_url=None, lifespan=lifespan)
 app.include_router(photo_jobs.router)
 app.include_router(image_jobs.router)
+app.include_router(speech_jobs.router)
 app.mount('/static', StaticFiles(directory=config.WEB_DIR), name='static')
 
 
@@ -317,7 +320,10 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 saved = True
                 if previous and learning.has_retry(previous['buttons']):   # 🔄 is only for the newest answer
                     chats.set_buttons(previous['id'], learning.without_retry(previous['buttons']))
-                yield json.dumps({'type': 'message', 'id': answer_id, 'buttons': buttons}) + '\n'
+                voice = settings.load()
+                spoken = _start_speech(answer_id) if voice['speech_enabled'] and voice['speech_auto'] else None
+                yield json.dumps({'type': 'message', 'id': answer_id, 'buttons': buttons,
+                                  'speech': spoken, 'speakable': True}) + '\n'
                 # "done": the answer is complete and saved, so the page can let you type again. Anything after this
                 # (the automatic fact pickup) is extra and arrives a little later on the same connection.
                 yield json.dumps({'type': 'done'}) + '\n'
@@ -401,6 +407,16 @@ async def _pick_up_facts(message):
     return '🧠 Noted for next time: ' + '; '.join(saved) + '\n(/memories to review, /forget to remove)'
 
 
+def _start_speech(message_id, text=None):
+    try:
+        return speech_jobs.start(message_id, text)
+    except speech.SpeechError as exc:
+        with chats.connect() as db:
+            db.execute("UPDATE messages SET speech_state = 'error', speech_error = ? WHERE id = ?",
+                       (str(exc), message_id))
+        return {'state': 'error', 'error': str(exc), 'engine': '', 'truncated': False, 'url': ''}
+
+
 def _command_reply(chat_id, content):
     """A /command: BEYOND answers it itself. Both are saved in the chat (so they're there when you come back) but
     marked as commands, so they're never sent to the AI. Same event stream as an AI answer, so the page needs no
@@ -419,14 +435,23 @@ def _command_reply(chat_id, content):
         chats.add_message(current, 'user', shown, kind='command')
         if reply.saved_command:   # e.g. a Wi-Fi password: hidden on the page too, not only in the saved chat
             yield json.dumps({'type': 'question', 'text': reply.saved_command}) + '\n'
+        if reply.speech_text == '':
+            last = chats.latest_answer(current)
+            if last:
+                reply.speech_text = reply.text = last['content']
+            else:
+                reply.text = 'There is no AI answer to read in this chat yet.\n\n' + speech.HELP
+                reply.speech_text = None
         message_id = chats.add_message(current, 'assistant', reply.text, kind='command', buttons=reply.buttons,
                                        image=reply.image)
         if reply.on_saved:   # e.g. /remind: the reminder goes off in this chat
             reply.on_saved(current)
+        spoken = _start_speech(message_id, reply.speech_text) if reply.speech_text is not None else None
         yield json.dumps({'type': 'token', 'text': reply.text, 'kind': 'command'}) + '\n'
         # The saved message's id, buttons and picture, so the page can show them and send presses back.
         yield json.dumps({'type': 'message', 'id': message_id, 'buttons': reply.buttons,
-                          'image': reply.image}) + '\n'
+                          'image': reply.image, 'speech': spoken,
+                          'speakable': reply.speech_text is not None, 'speak_requested': spoken is not None}) + '\n'
         yield json.dumps({'type': 'done'}) + '\n'
 
     return StreamingResponse(events(), media_type='application/x-ndjson')

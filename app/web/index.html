@@ -72,6 +72,9 @@
     #photo-thumb { max-width: 80px; max-height: 80px; object-fit: contain; border-radius: 8px; }
     #photo-status { flex: 1; min-width: 100px; font-size: 0.85rem; color: var(--muted); }
     body.photo-drag .chatcol { outline: 3px dashed var(--accent); outline-offset: -5px; }
+    .speech-box { margin-top:10px;white-space:normal; }
+    .speech-box audio { display:block;width:100%;max-width:340px;margin-top:6px; }
+    .speech-label { display:block;font-size:.8rem;color:var(--muted);margin-top:4px; }
     .scan-copy { display: block; margin-top: 10px; }
     .user .picture { image-rendering: auto; }
     .picture { display: block; margin-top: 10px; width: 260px; max-width: 100%; height: auto; border-radius: 8px;
@@ -268,8 +271,13 @@
         });
         const data = await r.json();
         if (!r.ok) throw new Error(data.error || 'Something went wrong.');
+        const spoken = el.querySelector('.speech-box');
         fill(el, data.text);   // the message changes in place (plain text, as always)
         showButtons(el, messageId, data.buttons);
+        if (spoken) {
+          spoken.querySelectorAll('button').forEach(button => { button.disabled = false; });
+          el.append(spoken);   // ratings keep the audio player and Read aloud button
+        }
         if (data.toast) {
           const toast = document.createElement('span');
           toast.className = 'toast';
@@ -389,6 +397,7 @@
 
     function newChat() {
       stop();
+      stopSpeechPlayback();
       clearPhoto();
       cancelPromptHelper();
       originalPictureIdea = null; $('imagine-undo').hidden = true;
@@ -403,6 +412,7 @@
 
     async function openChat(id) {
       stop();
+      stopSpeechPlayback();
       clearPhoto();
       cancelPromptHelper();
       originalPictureIdea = null; $('imagine-undo').hidden = true;
@@ -427,6 +437,7 @@
         if (m.kind === 'vision_pending' || m.kind === 'image_pending') el.classList.add('thinking');
         if (m.kind === 'image') el.querySelector('.picture')?.classList.add('generated-picture');
         showButtons(el, m.id, m.buttons);
+        showSpeech(el, m.id, m.speech, m.role === 'assistant' && m.kind === 'chat');
       }
       scrollDown(true);
       showChatInAddress();
@@ -649,6 +660,9 @@
             } else if (event.type === 'question') {
               if (anchor.classList.contains('user')) fill(anchor, event.text);   // e.g. the Wi-Fi password hidden
             } else if (event.type === 'message') {
+              reply.dataset.messageId = String(event.id);
+              if (event.speak_requested) manualSpeech.add(event.id);
+              showSpeech(reply, event.id, event.speech, event.speakable);
               showLookup(reply, lookup);
               showImage(reply, event.image);
               // 🔄 is only offered on the newest answer
@@ -674,6 +688,80 @@
       }
     }
 
+
+    // ---------- saved spoken replies ----------
+    const pendingSpeech = new Set(), manualSpeech = new Set();
+    function stopSpeechPlayback() {
+      list.querySelectorAll('audio').forEach(player => player.pause());
+      pendingSpeech.clear(); manualSpeech.clear();
+    }
+    function showSpeech(el, messageId, info, eligible = false, allowAuto = false) {
+      if (!eligible && !info) return;
+      const signature = JSON.stringify(info ? [info.state, info.url, info.error, info.engine, info.truncated] : []);
+      const previous = el.querySelector('.speech-box');
+      if (previous?.dataset.state === signature) {
+        previous.querySelectorAll('button').forEach(button => { button.disabled = false; });
+        return;
+      }
+      previous?.querySelector('audio')?.pause();
+      previous?.remove();
+      const box = document.createElement('div');
+      box.className = 'speech-box'; box.dataset.state = signature;
+      el.append(box);
+      if (info?.state === 'pending') {
+        pendingSpeech.add(messageId);
+        const status = document.createElement('span'); status.className = 'speech-label';
+        status.setAttribute('role', 'status'); status.textContent = 'Preparing audio… You can keep chatting.';
+        box.append(status);
+      } else if (info?.state === 'ready') {
+        pendingSpeech.delete(messageId);
+        const player = document.createElement('audio');
+        player.controls = true; player.preload = 'metadata'; player.src = info.url;
+        player.setAttribute('aria-label', 'Spoken reply');
+        player.addEventListener('play', () => {
+          list.querySelectorAll('audio').forEach(other => { if (other !== player) other.pause(); });
+        });
+        const label = document.createElement('span'); label.className = 'speech-label';
+        label.textContent = (info.engine || 'Local speech') + (info.truncated ? ' · first 1800 characters' : '');
+        box.append(player, label);
+        if (allowAuto && !document.hidden && document.hasFocus()) {
+          player.play().catch(() => { label.textContent += ' · Press Play to listen'; });
+        }
+        manualSpeech.delete(messageId);
+      } else {
+        pendingSpeech.delete(messageId);
+        const button = document.createElement('button');
+        button.type = 'button'; button.className = 'chip';
+        button.textContent = info?.state === 'error' ? 'Retry audio' : 'Read aloud';
+        button.onclick = async () => {
+          button.disabled = true; manualSpeech.add(messageId);
+          try {
+            const data = await api('/api/speech', { method: 'POST', body: JSON.stringify({ message_id: messageId }) });
+            if (el.isConnected) showSpeech(el, messageId, data, true, true);
+          } catch (error) {
+            if (el.isConnected) showSpeech(el, messageId, { state: 'error', error: error.message }, true);
+            manualSpeech.delete(messageId);
+          }
+        };
+        box.append(button);
+        if (info?.error) {
+          const label = document.createElement('span'); label.className = 'speech-label';
+          label.textContent = info.error; box.append(label);
+        }
+      }
+    }
+    async function checkSpeech() {
+      if (!pendingSpeech.size || chatId === null) return;
+      const origin = chatId;
+      let data;
+      try { data = await api('/api/speech/status?chat_id=' + origin); } catch { return; }
+      if (chatId !== origin) return;
+      for (const item of data.items) {
+        const el = list.querySelector('[data-message-id="' + item.id + '"]');
+        if (el) showSpeech(el, item.id, item, true, manualSpeech.has(item.id) || data.auto_read);
+      }
+    }
+    setInterval(checkSpeech, 2000);
 
     // ---------- background picture generation ----------
     let promptHelper = null, originalPictureIdea = null;

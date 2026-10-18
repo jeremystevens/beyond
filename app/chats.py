@@ -53,7 +53,9 @@ def initialize():
         # answer that 🔄 Try again replaced. A replaced answer gets kind 'retried': shown, but not sent to the AI.
         # lookup (Phase 14): what an automatic lookup found for this answer, as JSON {ok, source, raw}.
         # image (Phase 15): a picture under a message, as a data: URL (e.g. a /qr code).
-        for column in ('rating INTEGER', 'reason TEXT', 'retry_of INTEGER', 'lookup TEXT', 'image TEXT', 'replaces INTEGER'):
+        for column in ('rating INTEGER', 'reason TEXT', 'retry_of INTEGER', 'lookup TEXT', 'image TEXT', 'replaces INTEGER',
+                       'audio BLOB', 'speech_state TEXT', 'speech_error TEXT', 'speech_engine TEXT',
+                       'speech_truncated INTEGER NOT NULL DEFAULT 0'):
             if column.split()[0] not in columns:
                 db.execute('ALTER TABLE messages ADD COLUMN ' + column)
 
@@ -104,7 +106,7 @@ def add_message(chat_id, role, content, stopped=False, kind='chat', buttons=None
 def get_message(message_id):
     """One message with its buttons, or None."""
     with connect() as db:
-        row = db.execute('SELECT id, chat_id, role, content, kind, buttons, rating, reason FROM messages WHERE id = ?',
+        row = db.execute('SELECT id, chat_id, role, content, kind, buttons, rating, reason, speech_state, speech_error, speech_engine, speech_truncated FROM messages WHERE id = ?',
                          (message_id,)).fetchone()
     return {**dict(row), 'buttons': _buttons(row['buttons'])} if row else None
 
@@ -191,16 +193,24 @@ def list_chats():
     return [dict(row) for row in rows]
 
 
+def speech_info(row):
+    state = row['speech_state']
+    return {'state': state, 'error': row['speech_error'] or '', 'engine': row['speech_engine'] or '',
+            'truncated': bool(row['speech_truncated']),
+            'url': f"/api/speech/{row['id']}.wav" if state == 'ready' else ''} if state else None
+
+
 def get(chat_id):
     """A chat and all its messages, or None."""
     with connect() as db:
         chat = db.execute('SELECT id, title, created_at, updated_at FROM chats WHERE id = ?', (chat_id,)).fetchone()
         if chat is None:
             return None
-        messages = db.execute('SELECT id, role, content, stopped, created_at, kind, buttons, lookup, image FROM messages '
+        messages = db.execute('SELECT id, role, content, stopped, created_at, kind, buttons, lookup, image, speech_state, speech_error, '
+                              'speech_engine, speech_truncated FROM messages '
                               'WHERE chat_id = ? ORDER BY id', (chat_id,)).fetchall()
     return {**dict(chat), 'messages': [{**dict(m), 'stopped': bool(m['stopped']), 'buttons': _buttons(m['buttons']),
-                                        'lookup': _lookup(m['lookup'])} for m in messages]}
+                                        'lookup': _lookup(m['lookup']), 'speech': speech_info(m)} for m in messages]}
 
 
 def _lookup(raw):

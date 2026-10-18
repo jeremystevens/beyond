@@ -126,6 +126,34 @@
     </section>
 
     <section>
+      <h2>Spoken replies (/speak)</h2>
+      <p class="hint">Read the last answer with /speak, use /speak followed by your own text, or press Read aloud
+        under an answer. Audio is made on this PC and saved in the chat with Play controls. Kokoro is preferred;
+        Piper is the fallback. Voice model files must already be on this PC.</p>
+      <label class="switch"><input type="checkbox" id="speech_enabled"><span><b>Enable spoken replies</b></span></label>
+      <label class="switch"><input type="checkbox" id="speech_auto"><span><b>Read answers aloud automatically</b>
+        <span class="small">New completed AI answers get audio. It plays in the visible chat when your browser
+          allows it; otherwise press Play. Off by default. Opening an old chat never starts sound.</span></span></label>
+      <label for="speech_engine">Preferred voice engine</label>
+      <select id="speech_engine"><option value="kokoro">Kokoro (Piper fallback)</option><option value="piper">Piper</option></select>
+      <label for="speech_kokoro_model">Kokoro model (.onnx)</label>
+      <input type="text" id="speech_kokoro_model" spellcheck="false" style="width:100%">
+      <label for="speech_kokoro_voices">Kokoro voice pack (.bin or .npz)</label>
+      <input type="text" id="speech_kokoro_voices" spellcheck="false" style="width:100%">
+      <label for="speech_voice">Kokoro voice name</label>
+      <input type="text" id="speech_voice" placeholder="af_heart" spellcheck="false">
+      <label for="speech_piper_model">Piper model (.onnx, with its matching .onnx.json beside it)</label>
+      <input type="text" id="speech_piper_model" spellcheck="false" style="width:100%">
+      <div class="row">
+        <label for="speech_speed">Speed <input type="number" id="speech_speed" min="0.5" max="2" step="0.1"></label>
+        <label for="speech_threads">CPU threads <input type="number" id="speech_threads" min="1" max="16"></label>
+        <label for="speech_timeout">Timeout (seconds) <input type="number" id="speech_timeout" min="15" max="600"></label>
+      </div>
+      <p class="small">Press Save. Settings affect newly generated audio; saved clips keep their original voice.
+        Long answers read their first 1800 characters. Explicit /speak text is limited to 1800 characters.</p>
+    </section>
+
+    <section>
       <h2>House rules</h2>
       <p class="hint">Instructions BEYOND follows in every chat, for example "Always answer in under 3 sentences" or
         "Use metric units". You can also type <b>/rule &lt;text&gt;</b> and <b>/rules</b> in a chat. They're saved straight
@@ -228,10 +256,12 @@
   <script>
     const $ = id => document.getElementById(id);
     const checkboxes = ['allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
-                        'popup_errors', 'start_with_windows', 'vision_enabled', 'image_enabled'];
+                        'popup_errors', 'start_with_windows', 'vision_enabled', 'image_enabled', 'speech_enabled', 'speech_auto'];
     const fields = ['ai_server_url', 'ai_model', 'web_port', 'quiet_start', 'quiet_end',
                     'vision_executable', 'vision_model', 'vision_mmproj', 'vision_threads', 'vision_timeout',
-                    'image_executable', 'image_model', 'image_threads', 'image_timeout', ...checkboxes];
+                    'image_executable', 'image_model', 'image_threads', 'image_timeout',
+                    'speech_engine', 'speech_voice', 'speech_speed', 'speech_threads', 'speech_timeout',
+                    'speech_kokoro_model', 'speech_kokoro_voices', 'speech_piper_model', ...checkboxes];
     let view = null;
 
     function show(kind, text) {
@@ -250,7 +280,7 @@
       $('portDefault').textContent = `(default ${v.defaults.web_port})`;
       $('portShown').textContent = v.running.port;
       // House rules stay editable from any device, like /rule in a chat; the rest is this-PC-only.
-      document.querySelectorAll('input:not(#newRule), #save, #reset, #test, #popupTest').forEach(el => el.disabled = !v.can_change);
+      document.querySelectorAll('input:not(#newRule), select, #save, #reset, #test, #popupTest').forEach(el => el.disabled = !v.can_change);
       $('viewOnly').hidden = v.can_change;
       $('restartBanner').hidden = !(v.can_change && v.restart_needed.length);
       const list = $('addresses');
@@ -286,6 +316,11 @@
         vision_timeout: Number($('vision_timeout').value),
         image_executable: $('image_executable').value, image_model: $('image_model').value,
         image_threads: Number($('image_threads').value), image_timeout: Number($('image_timeout').value),
+        speech_engine: $('speech_engine').value, speech_voice: $('speech_voice').value,
+        speech_speed: Number($('speech_speed').value), speech_threads: Number($('speech_threads').value),
+        speech_timeout: Number($('speech_timeout').value),
+        speech_kokoro_model: $('speech_kokoro_model').value, speech_kokoro_voices: $('speech_kokoro_voices').value,
+        speech_piper_model: $('speech_piper_model').value,
         ...Object.fromEntries(checkboxes.map(f => [f, $(f).checked])),
       };
     }
