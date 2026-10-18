@@ -6,6 +6,23 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 34: Models page** (version 0.34.0).
+  - Models links from chat and Settings open a responsive page with file sizes, live loading status,
+    load/unload/switch controls and a settings panel for each model. Cards stack on phones; names and paths wrap,
+    and controls stay large enough to tap. On phones, Games and Models move into the hamburger drawer,
+    leaving Settings and the AI status in a compact, single-row chat header.
+  - Discovers GGUF files in BEYOND's git-ignored models folder and subfolders, groups split-model parts, skips
+    vision projectors, and keeps the existing model visible without copying it. Existing files elsewhere can be
+    added by path on the host PC.
+  - Threads, context, cache and thinking are saved separately for each model in local settings. Listed models
+    can be loaded and tuned from home-network devices; adding paths and configuring the executable stay local.
+    Unload keeps the model off across restarts until Load is chosen again.
+  - Chat cannot use a previous engine after a different model is selected. Model changes are refused during an
+    AI request, and loading notices Unload or a different model without waiting for the full startup timeout.
+  - Essential checks: three focused model-switch safeguards and the ten existing engine checks passed with
+    temporary stand-ins. Python/browser syntax, HTML IDs and whitespace checked; Phase 34 page, model-list API
+    and HTTPS serve successfully. Jeremy confirmed the Models feature works. His phone-layout feedback moved
+    Games and Models into the hamburger menu; review of that revised layout is pending.
 - **Answer stats:** a small line under every AI answer shows the model that wrote it, how long it thought (thinking
   models), the tokens written, the total time and the writing speed, e.g. `📦 Qwen3-4B-Q4_K_M · 🔤 77 tokens · ⏱ 36s ·
   ⚡ 2.10 t/s`. The numbers come from llama.cpp's own timings (or the server's token usage, or a count of the streamed

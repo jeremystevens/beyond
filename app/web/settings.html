@@ -14,6 +14,8 @@
            padding: 20px max(16px, env(safe-area-inset-right)) max(40px, env(safe-area-inset-bottom))
                     max(16px, env(safe-area-inset-left)); }
     @media (max-width: 520px) {
+      header { flex-wrap: wrap; gap: 8px; }
+      header .right { width: 100%; justify-content: flex-end; gap: 8px; }
       main { padding-top: 14px; }
       section { padding: 16px; }
       .row input[type=text] { min-width: 0; flex-basis: 100%; }   /* the box gets its own line, the button below */
@@ -60,7 +62,7 @@
 <body>
   <header>
     <a class="brand" href="/">BEYOND</a>
-    <div class="right"><a class="ghost button" href="/">Back to chat</a></div>
+    <div class="right"><a class="ghost button" href="/models">Models</a><a class="ghost button" href="/">Back to chat</a></div>
   </header>
   <main><div class="inner">
     <h1>Settings</h1>
@@ -89,6 +91,9 @@
 
     <section id="builtinBox">
       <h2>Built-in engine</h2>
+      <p class="hint"><a href="/models">Open Models</a> to load, unload or switch models and save settings for each one.</p>
+      <label class="switch"><input type="checkbox" id="engine_enabled"><span><b>Keep the selected model loaded</b>
+        <span class="small">Switch this off to free its memory. You can load it again on the Models page.</span></span></label>
       <p class="hint">BEYOND starts llama.cpp's <code>llama-server.exe</code> (a CPU build) with your <code>.gguf</code>
         model on a free port only this PC can reach, checks that it's healthy, restarts it if it stops, and closes it
         when BEYOND quits. Saving new settings here restarts it with them.</p>
@@ -299,7 +304,7 @@
 
   <script>
     const $ = id => document.getElementById(id);
-    const checkboxes = ['engine_thinking', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
+    const checkboxes = ['engine_enabled', 'engine_thinking', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
                         'popup_errors', 'start_with_windows', 'vision_enabled', 'image_enabled', 'speech_enabled', 'speech_auto'];
     const fields = ['ai_mode', 'engine_executable', 'engine_model', 'engine_threads', 'engine_context', 'engine_cache',
                     'ai_server_url', 'ai_model', 'web_port', 'quiet_start', 'quiet_end',
@@ -446,7 +451,7 @@
         if (s.state === 'ok') { dot.className = 'dot ok'; text.textContent = (s.builtin ? 'Engine running' : 'Connected') + (model ? ': ' + model : ''); }
         else if (s.state === 'starting') { dot.className = 'dot warn'; text.textContent = 'Starting: loading ' + (model || 'the model') + '…'; }
         else if (s.state === 'not_set') { dot.className = 'dot warn'; text.textContent = s.message || 'No AI set up yet.'; }
-        else if (s.state === 'off') { dot.className = 'dot warn'; text.textContent = 'The engine is off.'; }
+        else if (s.state === 'off' || s.state === 'stopping') { dot.className = 'dot warn'; text.textContent = s.message || 'No model loaded.'; }
         else { dot.className = 'dot bad'; text.textContent = s.message || "Can't reach the AI server."; }
         out.append(dot, text);
       } catch { out.textContent = 'BEYOND is not responding.'; }

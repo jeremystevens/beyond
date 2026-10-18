@@ -14,11 +14,12 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
-                 https, memory, notes, notify, ports, reminders, rules, settings)
+                 https, memory, models, notes, notify, ports, reminders, rules, settings)
 
 from app import builtin_engine, photo_jobs, image_jobs, speech_jobs, blackjack, games, hangman, study_quiz, tictactoe, trivia
 from app.tools import scan, speech, speech_to_text
 
+models.initialize()
 chats.initialize()
 games.initialize()
 tictactoe.initialize()
@@ -218,6 +219,70 @@ def home():
 @app.get('/settings', include_in_schema=False)
 def settings_page():
     return FileResponse(config.WEB_DIR / 'settings.html')
+
+
+@app.get('/models', include_in_schema=False)
+def models_page():
+    return FileResponse(config.WEB_DIR / 'models.html')
+
+
+class ModelChoice(BaseModel):
+    model_config = {'extra': 'forbid'}
+    id: str = Field(min_length=24, max_length=24, pattern=r'^[a-f0-9]+$')
+
+
+class ModelProfile(ModelChoice):
+    changes: dict[str, Any]
+
+
+class ModelPath(BaseModel):
+    model_config = {'extra': 'forbid'}
+    path: str = Field(min_length=1, max_length=1024)
+
+
+def _model_action(function, *args):
+    try:
+        return function(*args)
+    except models.ModelError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=exc.status)
+    except settings.SettingsError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=400)
+    except OSError:
+        logging.exception('Could not read or save the model list')
+        return JSONResponse({'error': 'The model list could not be read or saved. Check the file permissions on this PC.'},
+                            status_code=503)
+
+
+@app.get('/api/models')
+def get_models(request: Request):
+    result = _model_action(models.view)
+    if isinstance(result, dict):
+        result['can_add'] = is_this_pc(request)
+    return result
+
+
+# Known models can be loaded and tuned from the home-network page. Host paths and the engine program can only
+# be configured on this PC, following the existing Settings rule.
+@app.post('/api/models/load')
+def load_model(body: ModelChoice):
+    return _model_action(models.load, body.id)
+
+
+@app.post('/api/models/unload')
+def unload_model():
+    return _model_action(models.unload)
+
+
+@app.post('/api/models/profile')
+def save_model_profile(body: ModelProfile):
+    return _model_action(models.save_profile, body.id, body.changes)
+
+
+@app.post('/api/models/register')
+def register_model(body: ModelPath, request: Request):
+    if not is_this_pc(request):
+        return only_this_pc()
+    return _model_action(models.register, body.path)
 
 
 # ---------- status ----------
@@ -788,6 +853,7 @@ def restart_engine(request: Request):
         return only_this_pc()
     if settings.load()['ai_mode'] != 'builtin':
         return JSONResponse({'error': 'The built-in engine is not chosen.'}, status_code=409)
+    settings.save({'engine_enabled': True})
     builtin_engine.request_restart()
     return {'ok': True}
 

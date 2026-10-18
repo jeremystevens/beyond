@@ -301,8 +301,18 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
   Phase 2 stays available. On the owner's PC, test with a small model or with the bot paused (memory).
 - **Done when:** with Studio closed, BEYOND starts its own engine and chat works.
 
-### Phase 34: Models page
+### Phase 34: Models page (implemented 2026-10-18; Models tested; mobile navigation review pending)
 - Lists the models in BEYOND's models folder with sizes; load, unload and switch, with settings per model.
+- Responsive cards on phones and computers; link from chat and Settings. Shows the current Phase 33 model
+  without copying it, scans local GGUF subfolders, and allows existing files to be added from the host PC.
+- Per-model threads, context, cache and thinking persist in local settings. Known models can be selected and
+  tuned from a phone. General settings, executable selection and adding host paths stay local-PC-only.
+- Unload stays off across restarts. A matching healthy process is required before chat can use the selected
+  model; switching/unloading cannot interrupt an active AI request. Slow loads can be cancelled or changed.
+- Essential engine checks: three model-switch safeguards and ten existing engine checks passed with temporary
+  stand-ins; syntax/HTML/whitespace checks and HTTP/HTTPS availability passed.
+- Owner confirmed the Models feature works. Mobile feedback moved Games and Models into the hamburger drawer,
+  keeping Settings in the header; the revised mobile layout is ready for the owner to review.
 - **Done when:** switching models from the page works, and the chat uses the new one.
 
 ### Phase 35: Model downloads

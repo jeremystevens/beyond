@@ -20,12 +20,12 @@ things up, keeps you organised, reads photos, listens, talks back and plays game
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.143-d96326?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=0d1117)
 ![License](https://img.shields.io/badge/License-MIT-d96326?style=for-the-badge&labelColor=0d1117)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-d96326?style=for-the-badge&logo=windows&logoColor=white&labelColor=0d1117)
-![Version](https://img.shields.io/badge/Version-0.33.0-d96326?style=for-the-badge&labelColor=0d1117)
+![Version](https://img.shields.io/badge/Version-0.34.0-d96326?style=for-the-badge&labelColor=0d1117)
 
 ![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local-d96326?style=for-the-badge&logo=shield&logoColor=white&labelColor=0d1117)
 ![AI](https://img.shields.io/badge/AI-OpenAI--compatible%20%C2%B7%20llama.cpp-d96326?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117)
 ![Runs on](https://img.shields.io/badge/Runs%20on-CPU%20only-d96326?style=for-the-badge&logo=intel&logoColor=white&labelColor=0d1117)
-![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2033%20of%2043-d96326?style=for-the-badge&labelColor=0d1117)
+![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2034%20of%2043-d96326?style=for-the-badge&labelColor=0d1117)
 ![Status](https://img.shields.io/badge/Status-Active%20development-d96326?style=for-the-badge&labelColor=0d1117)
 
 </div>
@@ -85,7 +85,7 @@ still arrive), and lets your other devices use it over a **secure address on you
 |:---:|:---:|:---:|
 | [**✦ Features**](#features) | [**▣ Screenshots**](#screenshots) | [**⚙ Tech stack**](#tech-stack) |
 | [**⇄ How it works**](#how-it-works) | [**▶ Quick start**](#quick-start) | [**⌘ Commands**](#commands) |
-| [**☰ Feature guides**](#guides) | [**⚒ Settings**](#settings) | [**⌁ API reference**](#api) |
+| [**☰ Feature guides**](#guides) | [**⚒ Settings & models**](#settings) | [**⌁ API reference**](#api) |
 | [**▤ Project structure**](#structure) | [**⛨ Privacy & security**](#privacy) | [**◷ Roadmap**](#roadmap) |
 | [**⇡ Contributing**](#contributing) | [**§ License**](#license) | [**↻ Changelog**](CHANGELOG.md) |
 
@@ -99,6 +99,7 @@ still arrive), and lets your other devices use it over a **secure address on you
 ```
 ━━ ASSISTANT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ◆  Its own built-in AI engine: pick a .gguf model and BEYOND runs it, no separate server
+◆  A phone-friendly Models page: sizes, load/unload/switch and settings saved for each model
 ◆  Answers stream in as they're written, with Stop, Try again and 👍 👎 ratings
 ◆  A stats line under each answer: model, tokens, time and speed (t/s)
 ◆  Its own personality, plus house rules it follows in every chat
@@ -142,6 +143,8 @@ still arrive), and lets your other devices use it over a **secure address on you
 
 *The chat page: saved chats on the left, the AI connection status, Games and Settings at the top, and the message
 box with photo 📷 and voice 🎤 buttons.*
+
+On phones, **Games** and **Models** are in the **☰ menu** beside saved chats. **Settings** stays in the header.
 
 </div>
 
@@ -537,11 +540,13 @@ your user's startup programs.
 ## `▸ SETTINGS`
 
 Click **Settings** at the top of the chat page (or open `http://127.0.0.1:7770/settings`). Settings can only be changed
-from the PC BEYOND runs on; other devices see them read-only.
+from the PC BEYOND runs on; other devices see them read-only. The Models page below lets your home-network
+devices select and tune models already added on the PC.
 
 | Setting | What it does |
 |---|---|
 | **AI engine** | BEYOND's built-in engine (`llama-server.exe` + a `.gguf` model, threads, context, cache, thinking) or an AI server you already run. |
+| **Models** | [Load, unload or switch models](#models), with CPU threads, context, cache and thinking saved per model. |
 | **AI server** | The address of your OpenAI-compatible AI server, with **Test connection**. Takes effect at once. |
 | **House rules** | Add and remove the rules BEYOND follows in every chat. |
 | **Memory** | Notice facts automatically · search older conversations. |
@@ -550,6 +555,41 @@ from the PC BEYOND runs on; other devices see them read-only.
 | **Popups & tray** | Popups per kind, quiet hours, a test popup, **Start BEYOND with Windows**. |
 | **Port** | 7770 by default; ports other AI apps rely on, and ports already in use, are refused. |
 | **Allow other devices** | Off by default. When on, BEYOND lists its addresses and offers its certificate. |
+
+<a id="models"></a>
+### Models
+
+<details>
+<summary><b>Choose a model, switch it and save its settings</b></summary>
+
+<br>
+
+Open **Models** in the chat header on a computer, or in the **☰ menu** on a phone. It is also linked from
+Settings, or visit `/models`. On phones, **Games** is in the same menu, leaving **Settings** in a single-row header.
+The page uses two columns on wider screens and stacked model cards on phones, with wrapping file names and
+paths and large touch controls. It uses the same light/dark theme and safe-area/keyboard layout as chat.
+
+- Put chat `.gguf` files in BEYOND's `models` folder (subfolders work), then **Refresh list**. Sizes are shown in
+  binary units. Split GGUF models appear once, with their combined size; all parts must be present. Vision
+  projectors (`mmproj`) are left out of this chat list.
+- Your existing Phase 33 model appears automatically. **Add a model from this PC** can also register an existing
+  GGUF by full path, without copying or moving it. Adding paths and choosing the engine executable are available
+  on the PC running BEYOND; phone users can load and tune the listed models.
+- **Load model** or **Switch model** selects BEYOND's built-in engine, frees the previous model and loads the chosen
+  one. The page updates while loading and says **Ready to chat** only after the matching engine passes its health
+  check. The next AI reply uses that model, in an existing or new chat. Existing answers keep their original stats.
+- **Unload model** frees the built-in model's memory and keeps it unloaded, including after restarting BEYOND,
+  until you load one again. Local commands and saved chats still work.
+- Expand **Model settings** to save CPU threads, context size, cache type and thinking separately for each model.
+  Saving the loaded model's settings reloads it. Settings for other models apply when you load them. The same
+  values stay in sync with the existing Settings page.
+- Model changes are refused while the AI is answering or completing a background request. Finish the answer or
+  press **Stop** in chat first. You can cancel a slow model load with **Unload model**, or choose another model.
+- Weights stay on disk when you unload; this page never deletes, copies or downloads them. The models folder is
+  git-ignored. Profiles and the selected/unloaded state stay in local `data/settings.json`. Model downloads are
+  Phase 35.
+
+</details>
 
 Your changes live in `data\settings.json` (only what differs from the defaults in `app/config.py`). The whole `data`
 folder is git-ignored, and **Reset to defaults** brings back a fresh install's settings.
@@ -588,6 +628,10 @@ BEYOND's page talks to a small JSON API, which you can use from scripts too.
 | `POST` | `/api/settings/test` · `/api/settings/reset` | Test an AI server address · reset to defaults |
 | `POST` | `/api/restart` | Restart BEYOND after a port or network change |
 | `POST` | `/api/engine/restart` | Restart the built-in AI engine |
+| `GET` | `/api/models` | Model list, file sizes, saved settings and live engine state |
+| `POST` | `/api/models/load` · `/api/models/unload` | Load a listed model by ID · unload it |
+| `POST` | `/api/models/profile` | Save settings for a listed model by ID |
+| `POST` | `/api/models/register` | Add an existing GGUF file path (this PC only) |
 | `GET` · `POST` | `/api/rules` | List or add house rules |
 | `DELETE` | `/api/rules/{id}` | Remove a house rule |
 
@@ -649,6 +693,7 @@ beyond/
 │   ├── settings.py          ← Your settings (data/settings.json): check, save, reset
 │   ├── engine.py            ← The only place BEYOND talks to the AI
 │   ├── builtin_engine.py    ← Starts, watches and stops the built-in llama.cpp engine
+│   ├── models.py            ← Local model list, file sizes, switching and per-model profiles
 │   ├── personality.md       ← BEYOND's personality (the system prompt)
 │   ├── commands.py          ← Every slash command, its help and its buttons
 │   ├── chats.py             ← Saved conversations (SQLite)
@@ -670,11 +715,13 @@ beyond/
 │   │   ├── speech · speech_worker · speech_to_text
 │   │   └── tictactoe · trivia · blackjack · hangman · hangman_words
 │   │
-│   └── web/                 ← index.html (chat) · settings.html · style.css · app-height.js
+│   └── web/                 ← index.html (chat) · settings.html · models.html · models.js
+│                            · style.css · app-height.js
 │
 ├── tests/                   ← python -m unittest discover -s tests
 ├── screenshots/             ← Images for this README
 ├── planning/                ← Pitch, brainstorm, the 43-phase plan and test checklists
+├── models/                  ← Local GGUF chat models (git-ignored; subfolders supported)
 └── data/                    ← Your chats, settings, logs and certificates (git-ignored)
 ```
 
@@ -699,7 +746,8 @@ beyond/
    other devices reach the AI only through BEYOND's own page.
 
 ⛨  Other devices are off by default. When you allow them, they can chat but can't
-   change settings. There's no login yet (Phase 38), so keep it off on shared networks.
+   change general settings or add file paths. They can load and tune models already listed
+   on the Models page. There's no login yet (Phase 38), so keep it off on shared networks.
 
 ⛨  The secure address (https://…:7771) uses BEYOND's own certificate authority. It's
    name-constrained to home-network addresses and this PC's name, so even if its key
@@ -739,7 +787,7 @@ BEYOND is being built in **43 small phases**, each one tested before the next. T
 [`planning/phases.md`](planning/phases.md).
 
 <details open>
-<summary><b>✅ Shipped: Phases 1–33</b></summary>
+<summary><b>Implemented: Phases 1–34 (mobile navigation review pending)</b></summary>
 
 <br>
 
@@ -757,13 +805,13 @@ BEYOND is being built in **43 small phases**, each one tested before the next. T
 | ✅ 10 · Saved facts | ✅ 20b · Morning briefing | ✅ 31 · Blackjack |
 | ✅ 11 · Automatic memory | ✅ 21 · Photos and `/scan` | ✅ 32 · Hangman |
 | | | ✅ 33 · Built-in engine |
+| | | 34 · Models page (tested; mobile navigation revised) |
 
 </details>
 
 ### Coming next
 
 ```
-◇  Phase 34 — Models page              see, switch and manage your AI models
 ◇  Phase 35 — Model downloads          pick a recommended model and download it in the app
 ◇  Phase 36 — Status & health page     speed, memory and a self-test at a glance
 ◇  Phase 37 — Other AI servers         first-class support for more AI servers

@@ -207,24 +207,36 @@
     .hm-key:disabled { cursor: default; opacity: 1; }
     @media (max-width: 420px) { .hm-key { width: 34px; height: 38px; } }
     @media (max-width: 600px) { .trivia-answers { grid-template-columns: 1fr; } }
+    .sidebar-nav { display: none; }
+    @media (max-width: 760px) {
+      header { flex-wrap: nowrap; gap: 8px; }
+      #header-actions { gap: 8px; flex: none; }
+      header .status span:last-child { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+      header .ghost { min-height: 44px; padding: 10px 12px; }
+      .sidebar-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;
+                     padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+      .sidebar-nav .ghost { width: 100%; min-height: 44px; padding: 12px; text-align: center; }
+    }
   </style>
 </head>
 <body>
   <header>
     <div class="right" style="gap: 10px">
-      <button class="ghost menu" id="menu" type="button" aria-label="Show chats">☰</button>
+      <button class="ghost menu" id="menu" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="side-panel">☰</button>
       <div class="brand">BEYOND</div>
     </div>
-    <div class="right">
+    <div class="right" id="header-actions">
       <div class="status" title="AI server status"><span class="dot" id="dot"></span><span id="status">Checking the AI…</span></div>
       <button type="button" class="ghost" id="games-open">Games</button>
-      <a class="ghost button" href="/settings">Settings</a>
+      <a class="ghost button" id="models-open" href="/models">Models</a>
+      <a class="ghost button" id="settings-open" href="/settings">Settings</a>
     </div>
   </header>
   <div class="layout">
     <div id="backdrop" aria-hidden="true"></div>
-    <aside aria-label="Saved chats">
+    <aside id="side-panel" aria-label="Navigation and saved chats">
       <button class="newchat" id="newchat" type="button">＋ New chat</button>
+      <nav class="sidebar-nav" id="sidebar-nav" aria-label="Main"></nav>
       <ul id="chats"></ul>
     </aside>
     <div class="chatcol">
@@ -519,7 +531,7 @@
       list.innerHTML = WELCOME;
       showChatInAddress();
       loadList();
-      document.body.classList.remove('panel-open');
+      setPanelOpen(false);
       input.focus();
     }
 
@@ -530,7 +542,7 @@
       cancelPromptHelper();
       originalPictureIdea = null; $('imagine-undo').hidden = true;
       $('imagine-panel').hidden = true;
-      document.body.classList.remove('panel-open');
+      setPanelOpen(false);
       let chat;
       try { chat = await api('/api/chats/' + id); }
       catch (e) { newChat(); bubble('error', e.message); return; }
@@ -588,6 +600,8 @@
         if (s.state === 'ok') setStatus('ok', 'AI connected' + (s.model ? ' · ' + s.model.replace(/\.gguf$/i, '') : ''));
         else if (s.state === 'not_set') setStatus('warn', 'No AI set up yet');
         else if (s.state === 'starting') { setStatus('warn', 'AI engine starting…'); setTimeout(refreshStatus, 3000); }
+        else if (s.builtin && s.state === 'off') setStatus('warn', 'No model loaded');
+        else if (s.builtin && s.state === 'stopping') { setStatus('warn', 'Unloading model…'); setTimeout(refreshStatus, 3000); }
         else if (s.builtin) setStatus('bad', 'AI engine stopped');
         else setStatus('bad', "Can't reach the AI");
       } catch { setStatus('bad', 'BEYOND is not responding'); }
@@ -657,11 +671,34 @@
       }
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); menu.hidden = true; if (!current) $('form').requestSubmit(); }
     });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') stop(); });
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      if (document.body.classList.contains('panel-open')) { setPanelOpen(false); $('menu').focus(); }
+      else stop();
+    });
     send.addEventListener('click', e => { if (current) { e.preventDefault(); stop(); } });
     $('newchat').addEventListener('click', newChat);
-    $('menu').addEventListener('click', () => document.body.classList.toggle('panel-open'));
-    $('backdrop').addEventListener('click', () => document.body.classList.remove('panel-open'));
+    function setPanelOpen(open) {
+      document.body.classList.toggle('panel-open', open);
+      $('menu').setAttribute('aria-expanded', String(open));
+      $('menu').setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    }
+    $('menu').addEventListener('click', () => setPanelOpen(!document.body.classList.contains('panel-open')));
+    $('backdrop').addEventListener('click', () => { setPanelOpen(false); $('menu').focus(); });
+
+    // Move the same controls, keeping their listeners and busy state, into the phone's drawer.
+    const phoneNavigation = window.matchMedia('(max-width: 760px)');
+    function placeNavigation() {
+      if (phoneNavigation.matches) $('sidebar-nav').append($('games-open'), $('models-open'));
+      else {
+        $('header-actions').insertBefore($('games-open'), $('settings-open'));
+        $('header-actions').insertBefore($('models-open'), $('settings-open'));
+        setPanelOpen(false);
+      }
+    }
+    phoneNavigation.addEventListener('change', placeNavigation);
+    placeNavigation();
+    $('models-open').addEventListener('click', () => setPanelOpen(false));
 
     const RETRIED = '🔄 Tried again below';
 
@@ -830,7 +867,11 @@
       const question = bubble('user', command);
       streamAnswer('/api/chat/stream', { chat_id: chatId, content: command }, question, () => question.remove());
     }
-    $('games-open').onclick = () => sendGameCommand('/games');
+    $('games-open').onclick = () => {
+      if (current || scanning) return;
+      setPanelOpen(false);
+      sendGameCommand('/games');
+    };
     function showGame(el, game) {
       el.querySelector('.game-view')?.remove();
       el.tttState = game?.type === 'tictactoe' ? game : null;

@@ -164,30 +164,32 @@ def _prepare(messages, stream, background='', max_tokens=None, temperature=None)
 async def complete(messages, max_tokens, temperature):
     """A one-off request with its own instructions (not BEYOND's personality), e.g. picking facts out of a message.
     Returns the AI's text."""
-    url, model = _server()
-    payload = _one_off({'messages': messages, 'stream': False, 'max_tokens': max_tokens, 'temperature': temperature})
-    if model:
-        payload['model'] = model
-    try:
-        async with _client() as client:
-            response = await client.post(_base_url(url) + '/v1/chat/completions', json=payload)
-    except httpx.HTTPError as exc:
-        raise _explain(exc, url) from exc
-    return _text(response)
+    with builtin_engine.using_model():
+        url, model = _server()
+        payload = _one_off({'messages': messages, 'stream': False, 'max_tokens': max_tokens, 'temperature': temperature})
+        if model:
+            payload['model'] = model
+        try:
+            async with _client() as client:
+                response = await client.post(_base_url(url) + '/v1/chat/completions', json=payload)
+        except httpx.HTTPError as exc:
+            raise _explain(exc, url) from exc
+        return _text(response)
 
 
 def complete_blocking(messages, max_tokens, temperature):
     """complete() for code that runs in a worker thread (commands such as /rewrite and /joke)."""
-    url, model = _server()
-    payload = _one_off({'messages': messages, 'stream': False, 'max_tokens': max_tokens, 'temperature': temperature})
-    if model:
-        payload['model'] = model
-    try:
-        with httpx.Client(timeout=httpx.Timeout(config.AI_TIMEOUT_SECONDS, connect=5)) as client:
-            response = client.post(_base_url(url) + '/v1/chat/completions', json=payload)
-    except httpx.HTTPError as exc:
-        raise _explain(exc, url) from exc
-    return _text(response)
+    with builtin_engine.using_model():
+        url, model = _server()
+        payload = _one_off({'messages': messages, 'stream': False, 'max_tokens': max_tokens, 'temperature': temperature})
+        if model:
+            payload['model'] = model
+        try:
+            with httpx.Client(timeout=httpx.Timeout(config.AI_TIMEOUT_SECONDS, connect=5)) as client:
+                response = client.post(_base_url(url) + '/v1/chat/completions', json=payload)
+        except httpx.HTTPError as exc:
+            raise _explain(exc, url) from exc
+        return _text(response)
 
 
 def _text(response):
@@ -226,17 +228,18 @@ def _check(status_code):
 
 async def chat(messages):
     """Send the conversation (list of {'role', 'content'}) and return the AI's whole reply as text."""
-    endpoint, url, payload = _prepare(messages, stream=False)
-    try:
-        async with _client() as client:
-            response = await client.post(endpoint, json=payload)
-    except httpx.HTTPError as exc:
-        raise _explain(exc, url) from exc
-    _check(response.status_code)
-    try:
-        return response.json()['choices'][0]['message']['content'].strip()
-    except (ValueError, KeyError, IndexError, TypeError) as exc:
-        raise EngineError("The AI server's answer wasn't in the expected format.") from exc
+    with builtin_engine.using_model():
+        endpoint, url, payload = _prepare(messages, stream=False)
+        try:
+            async with _client() as client:
+                response = await client.post(endpoint, json=payload)
+        except httpx.HTTPError as exc:
+            raise _explain(exc, url) from exc
+        _check(response.status_code)
+        try:
+            return response.json()['choices'][0]['message']['content'].strip()
+        except (ValueError, KeyError, IndexError, TypeError) as exc:
+            raise EngineError("The AI server's answer wasn't in the expected format.") from exc
 
 
 async def chat_stream(messages, background='', max_tokens=None, temperature=None):
@@ -247,42 +250,43 @@ async def chat_stream(messages, background='', max_tokens=None, temperature=None
 
     If the caller stops reading (the person pressed Stop), the connection to the AI server is closed, which tells
     llama.cpp to stop writing, so the AI is free again for the next question (or for the Telegram bot)."""
-    endpoint, url, payload = _prepare(messages, stream=True, background=background, max_tokens=max_tokens,
-                                     temperature=temperature)
-    payload['stream_options'] = {'include_usage': True}   # token counts at the end, from servers that offer them
-    values = settings.load()
-    model = builtin_engine.model_name(values) if values['ai_mode'] == 'builtin' else values['ai_model']
-    started, first_thinking, first_text, chunks, timings, usage = time.monotonic(), None, None, 0, {}, {}
-    try:
-        async with _client() as client:
-            async with client.stream('POST', endpoint, json=payload) as response:
-                _check(response.status_code)
-                async for line in response.aiter_lines():
-                    if not line.startswith('data:'):
-                        continue
-                    data = line[5:].strip()
-                    if data == '[DONE]':
-                        break
-                    try:
-                        chunk = json.loads(data)
-                        model = model or chunk.get('model') or ''
-                        timings = chunk.get('timings') or timings
-                        usage = chunk.get('usage') or usage
-                        if not chunk.get('choices'):
+    with builtin_engine.using_model():
+        endpoint, url, payload = _prepare(messages, stream=True, background=background, max_tokens=max_tokens,
+                                         temperature=temperature)
+        payload['stream_options'] = {'include_usage': True}   # token counts at the end, from servers that offer them
+        values = settings.load()
+        model = builtin_engine.model_name(values) if values['ai_mode'] == 'builtin' else values['ai_model']
+        started, first_thinking, first_text, chunks, timings, usage = time.monotonic(), None, None, 0, {}, {}
+        try:
+            async with _client() as client:
+                async with client.stream('POST', endpoint, json=payload) as response:
+                    _check(response.status_code)
+                    async for line in response.aiter_lines():
+                        if not line.startswith('data:'):
                             continue
-                        delta = chunk['choices'][0]['delta']
-                        piece = delta.get('content') or ''
-                        thinking = bool(delta.get('reasoning_content'))
-                    except (ValueError, KeyError, IndexError, TypeError, AttributeError):
-                        continue
-                    if piece or thinking:
-                        chunks += 1
-                    if piece:
-                        first_text = first_text or time.monotonic()
-                        yield piece
-                    elif thinking:
-                        first_thinking = first_thinking or time.monotonic()
-                        yield THINKING   # the thinking itself is never shown or saved
-        yield _stats(model, started, first_thinking, first_text, chunks, timings, usage)
-    except httpx.HTTPError as exc:
-        raise _explain(exc, url) from exc
+                        data = line[5:].strip()
+                        if data == '[DONE]':
+                            break
+                        try:
+                            chunk = json.loads(data)
+                            model = model or chunk.get('model') or ''
+                            timings = chunk.get('timings') or timings
+                            usage = chunk.get('usage') or usage
+                            if not chunk.get('choices'):
+                                continue
+                            delta = chunk['choices'][0]['delta']
+                            piece = delta.get('content') or ''
+                            thinking = bool(delta.get('reasoning_content'))
+                        except (ValueError, KeyError, IndexError, TypeError, AttributeError):
+                            continue
+                        if piece or thinking:
+                            chunks += 1
+                        if piece:
+                            first_text = first_text or time.monotonic()
+                            yield piece
+                        elif thinking:
+                            first_thinking = first_thinking or time.monotonic()
+                            yield THINKING   # the thinking itself is never shown or saved
+            yield _stats(model, started, first_thinking, first_text, chunks, timings, usage)
+        except httpx.HTTPError as exc:
+            raise _explain(exc, url) from exc

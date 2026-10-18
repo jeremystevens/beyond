@@ -12,6 +12,8 @@ import os
 import socket
 import subprocess
 import time
+import threading
+from contextlib import contextmanager
 from pathlib import Path
 
 import httpx
@@ -37,6 +39,24 @@ class _Engine:
 
 
 _engine = _Engine()
+control_lock = threading.RLock()
+_active_requests = 0
+
+
+@contextmanager
+def using_model():
+    global _active_requests
+    with control_lock:
+        _active_requests += 1
+    try:
+        yield
+    finally:
+        with control_lock:
+            _active_requests -= 1
+
+
+def busy():
+    return _active_requests > 0
 
 
 def log_file():
@@ -49,7 +69,7 @@ def _pid_file():
 
 def wanted(values):
     """The engine settings to run with, or None when the built-in engine isn't chosen."""
-    if values['ai_mode'] != 'builtin':
+    if values['ai_mode'] != 'builtin' or not values['engine_enabled']:
         return None
     return tuple(values[key] for key in SETTING_KEYS)
 
@@ -101,17 +121,24 @@ def model_name(values=None):
 
 def url():
     """The engine's address while it's ready for questions, else None."""
-    return f'http://{HOST}:{_engine.port}' if _engine.state == 'ready' else None
+    with control_lock:
+        return (f'http://{HOST}:{_engine.port}'
+                if _engine.state == 'ready' and _engine.wanted == wanted(settings.load()) else None)
 
 
 def status():
-    """For the page's status line and Settings: {'state', 'model', 'message'}."""
+    """The desired model is only ready once the matching process has passed its health check."""
     values = settings.load()
-    state = _engine.state
-    if state == 'off' and wanted(values):   # chosen, but the watcher hasn't run yet
-        state = 'not_set' if missing(values) else 'starting'
-    message = {'ready': '', 'starting': 'The AI engine is loading the model.', 'off': 'The AI engine is off.'}.get(
-        state, _engine.problem or missing(values))
+    state, desired = _engine.state, wanted(values)
+    if desired is None:
+        stopping = _engine.process is not None and _engine.process.poll() is None
+        state = 'stopping' if stopping else 'off'
+        message = 'Unloading the model…' if stopping else 'No model loaded. Choose one on the Models page.'
+    else:
+        if desired != _engine.wanted or state == 'off':
+            state = 'not_set' if missing(values) else 'starting'
+        message = {'ready': '', 'starting': 'The AI engine is loading the model.'}.get(
+            state, _engine.problem or missing(values))
     return {'state': 'ok' if state == 'ready' else state, 'builtin': True, 'model': model_name(values),
             'message': message, 'port': _engine.port if state == 'ready' else None}
 
@@ -180,6 +207,10 @@ async def start(values):
     deadline = time.monotonic() + START_TIMEOUT
     async with httpx.AsyncClient() as client:
         while time.monotonic() < deadline:
+            # Do not wait five minutes to notice Unload or a different selection during a slow load.
+            if wanted(settings.load()) != _engine.wanted:
+                await stop()
+                return
             if process.poll() is not None:
                 _failed('The AI engine stopped while loading the model.')
                 return

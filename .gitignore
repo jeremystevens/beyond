@@ -7,6 +7,9 @@ __pycache__/
 # Never committed, so a fresh download always starts from the defaults in app/config.py.
 data/
 
+# Local model weights (the folder is created when BEYOND starts).
+models/
+
 # Editors and OS
 .vscode/
 .idea/

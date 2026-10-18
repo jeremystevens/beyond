@@ -9,11 +9,29 @@ import json
 import logging
 import math
 import re
+import threading
+from functools import wraps
+from pathlib import Path
 from urllib.parse import urlparse
 
 from app import config
 
 FILE = config.DATA_DIR / 'settings.json'
+PROFILE_KEYS = ('engine_threads', 'engine_context', 'engine_cache', 'engine_thinking')
+_lock = threading.RLock()
+
+
+def _locked(function):
+    @wraps(function)
+    def wrapped(*args, **kwargs):
+        with _lock:
+            return function(*args, **kwargs)
+    return wrapped
+
+
+def model_path(path):
+    return str(Path(path).resolve())
+
 
 
 class SettingsError(ValueError):
@@ -53,6 +71,17 @@ def validate(changes):
                 parsed = urlparse(value)
                 if parsed.scheme not in ('http', 'https') or not parsed.hostname:
                     raise SettingsError('The AI server address should look like http://127.0.0.1:10086')
+        elif key == 'model_profiles':
+            if not isinstance(value, dict) or len(value) > 1000:
+                raise SettingsError('The saved model list is invalid.')
+            profiles = {}
+            for path, profile in value.items():
+                if not isinstance(path, str) or not path.lower().endswith('.gguf') or len(path) > 1024:
+                    raise SettingsError('Saved models must be .gguf file paths.')
+                if not isinstance(profile, dict) or set(profile) - set(PROFILE_KEYS):
+                    raise SettingsError('The saved model settings are invalid.')
+                profiles[model_path(path)] = validate(profile)
+            value = profiles
         elif key == 'ai_mode':
             if value not in ('builtin', 'server'):
                 raise SettingsError('Choose the built-in engine or an AI server.')
@@ -141,9 +170,15 @@ def validate(changes):
     return clean
 
 
+@_locked
 def save(changes):
     """Apply changes and save only what differs from the defaults. Returns all the settings now in effect."""
     values = {**load(), **validate(changes)}
+    # Settings and the Models page share one atomic file. Editing either saves the active model's profile.
+    if values['engine_model']:
+        profiles = dict(values['model_profiles'])
+        profiles[model_path(values['engine_model'])] = {key: values[key] for key in PROFILE_KEYS}
+        values['model_profiles'] = profiles
     different = {key: value for key, value in values.items() if value != config.DEFAULTS[key]}
     if values['ai_server_url']:   # always saved with an address, so load() can't mistake it for an older setup
         different['ai_mode'] = values['ai_mode']
@@ -157,6 +192,7 @@ def save(changes):
     return values
 
 
+@_locked
 def reset():
     """Back to the fresh-install defaults."""
     FILE.unlink(missing_ok=True)

@@ -6,12 +6,13 @@ which is never committed and only holds what differs from these defaults, so a n
 """
 from pathlib import Path
 
-VERSION = '0.33.0'
-PHASE = 33
+VERSION = '0.34.0'
+PHASE = 34
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / 'data'                          # settings, chats, logs: created at runtime, git-ignored
 WEB_DIR = Path(__file__).resolve().parent / 'web'
+MODELS_DIR = ROOT / 'models'                     # local GGUF chat models; never committed
 
 # BEYOND's own web page. 7770 stays clear of Local AI Studio (1420, 8080, 10086) and of ports other AI apps
 # commonly use (7860 Gradio, 8000, 8188 ComfyUI, 1234 LM Studio, 11434 Ollama, 3000).
@@ -38,6 +39,8 @@ DEFAULTS = {
     'ai_mode': 'builtin',
     # The built-in engine: llama.cpp's llama-server.exe (a CPU build) and a .gguf model. Fresh installs choose their
     # own files (model downloads arrive in Phase 35). Tuned for a processor-only PC: 12 threads, f16 cache.
+    'engine_enabled': True,       # Unload keeps the chosen model, but does not start it again
+    'model_profiles': {},         # local model paths -> their saved engine settings
     'engine_executable': '',
     'engine_model': '',
     'engine_threads': 12,
@@ -94,7 +97,7 @@ DEFAULTS = {
     # Start BEYOND (in the tray) when you sign in to Windows.
     'start_with_windows': False,
 }
-BOOLEAN_SETTINGS = ('engine_thinking', 'speech_enabled', 'speech_auto', 'image_enabled', 'vision_enabled', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
+BOOLEAN_SETTINGS = ('engine_enabled', 'engine_thinking', 'speech_enabled', 'speech_auto', 'image_enabled', 'vision_enabled', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
                     'popup_errors', 'start_with_windows')
 TIME_SETTINGS = ('quiet_start', 'quiet_end')
 RESTART_SETTINGS = ('web_port', 'allow_network')   # these only take effect after BEYOND restarts

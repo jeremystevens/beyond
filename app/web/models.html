@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#f6f4f1" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#141210" media="(prefers-color-scheme: dark)">
+  <title>BEYOND Models</title>
+  <link rel="stylesheet" href="/static/style.css?v=4">
+  <script src="/static/app-height.js?v=3" defer></script>
+  <style>
+    html, body { overflow: hidden; overscroll-behavior: none; }
+    main { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+      padding: 24px max(16px, env(safe-area-inset-right)) max(40px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+    .inner { max-width: 1080px; margin: 0 auto; display: grid; gap: 20px; }
+    h1 { font-size: 1.6rem; margin: 0 0 6px; } h2 { font-size: 1.05rem; margin: 0; overflow-wrap: anywhere; }
+    p { line-height: 1.5; margin: 0; } .muted { color: var(--muted); font-size: .9rem; }
+    .heading, .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .heading { justify-content: space-between; }
+    section, article { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 20px; min-width: 0; }
+    .engine { display: flex; align-items: flex-start; gap: 14px; }
+    .engine .dot { margin-top: 6px; width: 11px; height: 11px; }
+    .engine .copy { flex: 1; min-width: 0; display: grid; gap: 6px; overflow-wrap: anywhere; }
+    .engine h2 { font-size: 1.1rem; }
+    #engineMessage { white-space: pre-line; max-height: 12em; overflow-y: auto; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
+    article { display: flex; flex-direction: column; gap: 14px; }
+    article.loaded { border-color: var(--ok); }
+    .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .badge { border-radius: 8px; background: var(--bg); color: var(--muted); padding: 5px 8px;
+      font-size: .8rem; font-weight: 600; flex: none; }
+    .badge.ok { background: var(--ok-bg); color: var(--ok); }
+    .badge.warn { background: var(--warn-bg); color: var(--warn); }
+    .badge.bad { background: var(--error-bg); color: var(--bad); }
+    .location { overflow-wrap: anywhere; font-size: .8rem; margin-top: 4px; }
+    .spec { color: var(--muted); font-size: .85rem; }
+    details { margin-top: auto; border-top: 1px solid var(--border); padding-top: 4px; }
+    summary { cursor: pointer; min-height: 44px; padding: 12px 0; font-weight: 600; font-size: .9rem; }
+    form { display: grid; gap: 14px; }
+    .fields { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+    label { display: grid; gap: 6px; font-size: .88rem; font-weight: 600; min-width: 0; }
+    input[type=number], input[type=text], select { width: 100%; min-width: 0; min-height: 46px; font: inherit; font-size: 16px; }
+    select { padding: 10px 12px; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 12px; }
+    .check { display: flex; align-items: center; gap: 10px; font-weight: 500; line-height: 1.4; }
+    input[type=checkbox] { width: 24px; height: 24px; accent-color: var(--accent); flex: none; }
+    button, .button { min-height: 44px; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    .form-note { min-height: 1.4em; font-size: .85rem; color: var(--muted); }
+    .notice { padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+    .notice.bad { color: var(--bad); background: var(--error-bg); border-color: var(--bad); }
+    .notice.ok { background: var(--ok-bg); }
+    .folder { margin-top: 6px; overflow-wrap: anywhere; }
+    #addBox { display: grid; gap: 14px; }
+    #addForm { grid-template-columns: minmax(0,1fr) auto; align-items: end; }
+    #empty { text-align: center; padding: 36px 20px; display: grid; gap: 10px; }
+    [hidden] { display: none !important; }
+    @media (max-width: 760px) {
+      main { padding-top: 18px; }
+      .grid { grid-template-columns: minmax(0,1fr); }
+      section, article { padding: 16px; }
+      .engine { flex-wrap: wrap; }
+      .engine > .actions { width: 100%; margin-left: 25px; }
+      header { flex-wrap: wrap; gap: 8px; }
+      header .right { gap: 8px; }
+    }
+    @media (max-width: 420px) {
+      header .brand { font-size: 1rem; }
+      header .right .ghost { padding: 10px; font-size: .8rem; }
+      .card-head { flex-wrap: wrap; gap: 8px; }
+      #addForm { grid-template-columns: minmax(0,1fr); }
+      .engine > .actions { margin-left: 0; }
+      .fields { grid-template-columns: minmax(0,1fr); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="brand" href="/">BEYOND</a>
+    <nav class="right" aria-label="Main"><a class="ghost button" href="/settings">Settings</a><a class="ghost button" href="/">Back to chat</a></nav>
+  </header>
+  <main><div class="inner">
+    <div class="heading">
+      <div><h1>Models</h1><p class="muted">Choose the AI behind your next conversation.</p></div>
+      <button type="button" class="ghost" id="refresh">Refresh list</button>
+    </div>
+    <div id="notice" class="notice" role="status" hidden></div>
+    <section class="engine" aria-label="Current AI">
+      <span class="dot" id="engineDot" aria-hidden="true"></span>
+      <div class="copy" aria-live="polite" aria-atomic="true"><h2 id="engineTitle">Checking the engine…</h2><p class="muted" id="engineMessage"></p></div>
+      <div class="actions"><button type="button" class="ghost" id="unload" hidden>Unload model</button><a class="ghost button" href="/">Go to chat</a></div>
+    </section>
+    <p class="muted" id="busyNote" hidden>The AI is answering. Finish or stop the answer in chat before changing models.</p>
+    <p class="muted" id="setupNote" hidden>Choose llama-server.exe in <a href="/settings">Settings → Built-in engine</a> on this PC before loading a model.</p>
+    <div>
+      <div class="heading"><h2>Your models <span class="muted" id="count"></span></h2></div>
+      <p class="muted folder">Models folder: <span id="folder"></span></p>
+    </div>
+    <section id="empty" hidden><h2>No chat models here yet</h2><p class="muted">Place .gguf files in the models folder on your PC, then refresh. You can also add an existing model below without making a copy.</p></section>
+    <div class="grid" id="models"></div>
+    <section id="addBox">
+      <h2>Add a model from this PC</h2>
+      <p class="muted">Models in the folder above appear automatically, including subfolders. To use a file stored elsewhere, add its full path. The file stays where it is.</p>
+      <form id="addForm" hidden>
+        <label for="modelPath">Existing .gguf file<input id="modelPath" type="text" spellcheck="false" placeholder="D:\AI\models\my-model.gguf" maxlength="1024" required></label>
+        <button type="submit">Add model</button>
+      </form>
+      <p class="muted" id="addLocal" hidden>Add file paths and configure the engine on the PC running BEYOND. You can load models and change their model settings from this device.</p>
+    </section>
+    <p class="muted">One chat model is loaded at a time, on the processor. Loading a large model may take a few minutes.
+      The next AI reply uses the loaded model; your existing chats stay saved. Each model remembers its own settings.
+      Downloads will be available in a later update.</p>
+  </div></main>
+  <script src="/static/models.js?v=1" defer></script>
+</body>
+</html>
