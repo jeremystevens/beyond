@@ -4,12 +4,12 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 20 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> **Status: early development (Phase 20b of the plan in `planning/phases.md`).** You can chat with BEYOND in your
 > browser: it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
 > slash commands (/calc, /convert, /time, /roll, /weather, /news, /web, /wiki, /define, /movie, /joke, /qr,
-> /note, /list, /spent, /remind, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
+> /note, /list, /spent, /remind, /morning, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
 > arrives in Phase 33.
 
 ## Saved facts
@@ -104,6 +104,7 @@ Tab or Enter to pick one. BEYOND answers commands itself, instantly, without the
 | `/list` | Checklists (groceries, packing, to-dos): tap an item to check it off, 🧹 clear checked items, 🗑 delete a list (asks first); "groceries" and "my grocery list" are the same list | `/list groceries add milk, eggs` · `/list` |
 | `/spent` | An expense log: `/spent 12.50 lunch` (or `… yesterday`, `… oct 3`, `… last friday`) picks a category from the words and remembers ones you choose; `/spent` shows this month, also `last month`, `october`, `year`, `2025`, `all`, with a 📄 Download CSV button (opens in Excel); `/spent recent` deletes | `/spent 45 gas yesterday` · `/spent year` |
 | `/remind` · `/reminders` | Reminders in plain words, once (`30m`, `tomorrow at 6pm`, `friday`, `March 3`) or repeating (`every Monday at 8am`, `every weekday`, `every 2 hours`, `every month on the 1st`). They pop up in the chat where you set them, with ✅ Done and 😴 10 min / 1 hour; if you're in another chat, a ⏰ banner offers to open it. `/reminders` lists and cancels them | `/remind tomorrow at 6pm call Dan` |
+| `/morning` | A daily **morning briefing** at your times (weekdays and weekends): the weather for your city, today's reminders, three headlines, and a quote or a joke. It arrives in the chat where you set it up, with a popup, even with the browser closed. `/morning` opens a menu with buttons; `/morning city …`, `/morning 7:30`, `/morning name …`, `/morning now` | `/morning city San Carlos, CA` · `/morning on` |
 | `/remember` · `/memories` · `/forget` | Save, list and remove facts BEYOND knows in every chat | `/remember my dog is named Max` |
 | `/learned` | What BEYOND learned from your ratings, with a reset | `/learned` |
 | `/rule` · `/rules` | Add, list and delete house rules | `/rule Use metric units` |
@@ -238,6 +239,7 @@ app/notes.py         The notepad (/note, /notes), in the same database
 app/checklists.py    Checklists (/list), in the same database
 app/expenses.py      The expense log and reports (/spent), in the same database
 app/reminders.py     Reminders (/remind): reading times and schedules; the server fires them
+app/briefing.py      The morning briefing (/morning): settings, schedule and the text; the server sends it
 app/notify.py        Windows popups: one shared feature (settings, quiet hours, "not while you're looking")
 app/autostart.py     "Start BEYOND with Windows" (your user's startup programs)
 app/lookups.py       Automatic lookups: when a question needs the weather, news or web

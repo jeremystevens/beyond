@@ -6,6 +6,22 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 20b: morning briefing** (version 0.20.1), ported from PromptetheusBot (one user; the voice version comes
+  with the speech phase).
+  - New `app/briefing.py`: your city (which also sets the time zone, via the /time and /weather place lookup),
+    weekday and weekend times (or off), sections (weather with umbrella/jacket tips, today's reminders, three
+    headlines from a chosen category, a quote or a joke), and an optional name for the greeting. A failing section
+    is left out instead of failing the briefing. If BEYOND was off at briefing time it still comes within two hours.
+  - **/morning** (alias /briefing): a menu with buttons (on/off, weekday and weekend time pickers, section toggles,
+    news category, quote or joke, 📨 Send it now) and typed settings (`city`, a time, `weekends 9am`, `news tech`,
+    `name Sam`, `on`, `off`, `now`).
+  - The server checks every 30 seconds and posts a due briefing in the chat where /morning was last used (or a
+    "☀️ Morning briefing" chat), with a "☀️ Good morning" popup (under the reminder popup setting). The page shows
+    it like a reminder (`GET /api/reminders/fired` now also returns briefings).
+  - Added `top_headlines()` to the news tool (left out of the Phase 13 port).
+  - Tested: the menu and every button, a bad and a good city, `/morning now`, Send it now, and a briefing
+    scheduled two minutes ahead that arrived on time (5:12:08 PM) with no browser open; the settings were reset
+    afterwards.
 - **Phase 20: tray icon and popups** (version 0.20.0).
   - `beyond.py` now runs BEYOND from a **system-tray icon** (an orange B drawn with Pillow): Open BEYOND (also a
     double-click), Pause popups, Quit BEYOND; the web server runs in a background thread and keeps running when the

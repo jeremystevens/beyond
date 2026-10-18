@@ -129,6 +129,23 @@ def _gather(feeds):
     return items, failures
 
 
+def top_headlines(category='top', limit=3):
+    """[(title, source)] for a news category (used by the morning briefing); raises Unavailable if none."""
+    _, urls = CATEGORIES[ALIASES.get(str(category).lower(), 'top')]
+    items, _ = _gather([(url, SOURCE_NAMES.get(urlparse(url).hostname, 'News')) for url in urls])
+    seen, headlines = set(), []
+    for _published, title, source, _link in items:
+        key = re.sub(r'\W+', '', title.lower())[:80]
+        if key not in seen:
+            seen.add(key)
+            headlines.append((title, source))
+        if len(headlines) >= limit:
+            break
+    if not headlines:
+        raise Unavailable('the news feeds')
+    return headlines
+
+
 def get_news(topic: str = '') -> str:
     topic = re.sub(r'\s+', ' ', topic.strip())[:100]
     category = ALIASES.get(topic.lower())

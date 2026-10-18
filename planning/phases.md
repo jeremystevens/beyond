@@ -197,7 +197,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 - **Done when:** with BEYOND's page in the background, a finished reply, a due reminder and a test error each show
   a popup, and clicking one opens the right chat.
 
-### Phase 20b: Morning briefing
+### Phase 20b: Morning briefing ✅ (done 2026-10-17)
 - `/morning`: weather, today's reminders and headlines at a set time, delivered in the chat with a popup.
 - **Done when:** the briefing arrives at its set time, with the browser closed.
 

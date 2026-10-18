@@ -21,7 +21,8 @@ from datetime import datetime
 from app import config, settings
 
 APP_ID = 'BEYOND.LocalAI'
-KINDS = {'reply': 'popup_replies', 'reminder': 'popup_reminders', 'error': 'popup_errors'}
+KINDS = {'reply': 'popup_replies', 'reminder': 'popup_reminders', 'briefing': 'popup_reminders',
+         'error': 'popup_errors'}
 PAGE_GRACE_SECONDS = 25        # the page says "I'm visible" every 10 s; this long without word = not looking
 ICON = config.DATA_DIR / 'beyond-icon.png'
 

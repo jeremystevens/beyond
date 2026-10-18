@@ -17,7 +17,7 @@ from typing import Callable
 
 import httpx
 
-from app import chats, checklists, expenses, learning, memory, notes, reminders, rules, settings
+from app import briefing, chats, checklists, expenses, learning, memory, notes, reminders, rules, settings
 from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewrite, weather, web_search, wikipedia
 from app.tools.calculator import calculate
 from app.tools.dice import roll_dice
@@ -595,6 +595,148 @@ def _remind_button(what, detail):
     return None
 
 
+# ---------- morning briefing ----------
+
+def _morning_buttons(s):
+    toggles = [button(('✅ ' if key in s['sections'] else '▫️ ') + label.split(' ', 1)[1], f'morning:sec:{key}')
+               for key, label in briefing.SECTIONS.items()]
+    return [[button('⏹ Turn off' if s['enabled'] else '▶️ Turn on', 'morning:toggle:')],
+            [button(f"⏰ Weekdays {briefing.display_time(s['weekday_time'])}", 'morning:pick:wd'),
+             button(f"🛋 Weekends {briefing.display_time(s['weekend_time'])}", 'morning:pick:we')],
+            toggles[:2], toggles[2:],
+            [button(f"📰 News: {s['news']} ▸", 'morning:news:'), button(f"💬 Ending: {s['closer']} ▸", 'morning:closer:')],
+            [button('📨 Send it now', 'morning:now:')]]
+
+
+def _morning_menu(s, note=''):
+    return Reply((note + '\n\n' if note else '') + briefing.menu_text(s), _morning_buttons(s))
+
+
+def _remember_chat(s):
+    """The briefing arrives in the chat where /morning was last used."""
+    def save(chat_id):
+        current = briefing.get_settings()
+        current['chat_id'] = chat_id
+        briefing.save_settings(current)
+    return save
+
+
+def _morning(args):
+    s = briefing.get_settings()
+    first, _, rest = args.strip().partition(' ')
+    first, rest = first.lower(), rest.strip()
+    note = ''
+    try:
+        if not first:
+            pass
+        elif first == 'help':
+            return briefing.HELP
+        elif first == 'on':
+            if not s['timezone']:
+                return 'First tell me your city (it also sets the time zone):\n/morning city San Carlos, CA'
+            s['enabled'] = 1
+            briefing.skip_today_if_passed(s)
+            note = '✅ Morning briefing is on. It will arrive in this chat, with a popup.'
+        elif first == 'off':
+            s['enabled'] = 0
+            note = '⏹ Morning briefing is off.'
+        elif first == 'now':
+            if not s['timezone']:
+                return 'Set your city first: /morning city San Carlos, CA'
+            return Reply(briefing.build(s), on_saved=_remember_chat(s))
+        elif first == 'city':
+            if not rest:
+                return 'Usage: /morning city San Carlos, CA'
+            try:
+                briefing.set_city(s, rest)
+            except httpx.HTTPError:
+                return "🌐 I couldn't reach the place lookup (Open-Meteo). Is this computer connected to the internet?"
+            briefing.skip_today_if_passed(s)
+            note = f"📍 City set to {s['place']} ({s['timezone']})."
+        elif first == 'name':
+            s['name'] = ' '.join(rest.split())[:40] or None
+            note = f"👋 I'll say good morning to {s['name']}." if s['name'] else '👋 No name in the greeting.'
+        elif first in ('weekday', 'weekdays', 'weekend', 'weekends'):
+            key = 'weekday_time' if first.startswith('weekday') else 'weekend_time'
+            s[key] = briefing.parse_time(rest)
+            briefing.skip_today_if_passed(s)
+            note = f"⏰ {first.rstrip('s').title()}s: {briefing.display_time(s[key])}."
+        elif first == 'news' and rest.lower() not in ('on', 'off'):
+            topic = {'technology': 'tech', 'u.s.': 'us', 'usa': 'us', 'sport': 'sports'}.get(rest.lower(), rest.lower())
+            if topic not in briefing.NEWS_CHOICES:
+                return 'News choices: ' + ', '.join(briefing.NEWS_CHOICES)
+            s['news'] = topic
+            note = f'📰 Headlines: {topic}.'
+        elif first in ('quote', 'joke') or (first == 'ending' and rest.lower() in ('quote', 'joke')):
+            s['closer'] = first if first in ('quote', 'joke') else rest.lower()
+            note = f"💬 Ending with a {s['closer']}."
+        elif first in ('weather', 'reminders', 'headlines', 'news', 'closer') and rest.lower() in ('on', 'off'):
+            key = 'headlines' if first == 'news' else first
+            chosen = [k for k in s['sections'] if k != key] + ([key] if rest.lower() == 'on' else [])
+            s['sections'] = [k for k in briefing.SECTIONS if k in chosen]
+            note = f'{key.title()} {rest.lower()}.'
+        else:
+            value = briefing.parse_time(args)   # "/morning 7:30" sets weekdays and weekends
+            if value == 'off':
+                return 'Use /morning off to stop the briefing.'
+            s['weekday_time'] = s['weekend_time'] = value
+            briefing.skip_today_if_passed(s)
+            note = f'⏰ Every day at {briefing.display_time(value)}.'
+    except ValueError as exc:
+        return f'{exc}\n\n{briefing.HELP}'
+    briefing.save_settings(s)
+    menu = _morning_menu(s, note)
+    menu.on_saved = _remember_chat(s)
+    return menu
+
+
+def _morning_button(what, detail):
+    s = briefing.get_settings()
+    pressed = PRESSED.get()
+    if what == 'pick' and detail in ('wd', 'we'):
+        times = list(briefing.TIME_CHOICES) + (['off'] if detail == 'we' else [])
+        picks = rows([button(briefing.display_time(t) if t != 'off' else 'Off', f"morning:t:{detail}{t.replace(':', '')}")
+                      for t in times], 3)
+        label = 'weekdays' if detail == 'wd' else 'weekends'
+        return Reply(f'⏰ Pick a time for {label} (or type /morning {label} 7:15):',
+                     picks + [[button('⬅ Back', 'morning:back:')]])
+    if what == 'now':
+        if not s['timezone']:
+            return Reply(briefing.menu_text(s), _morning_buttons(s), 'Set your city first: /morning city San Carlos, CA')
+        if pressed:   # the briefing arrives as a new message in this chat, like a scheduled one
+            s['chat_id'] = pressed['chat_id']
+            briefing.save_settings(s)
+            chats.add_message(pressed['chat_id'], 'assistant', briefing.build(s), kind='briefing')
+        return Reply(briefing.menu_text(s), _morning_buttons(s), 'Sent: it appears below in a moment.')
+    toast = ''
+    if what == 'toggle':
+        if not s['enabled'] and not s['timezone']:
+            return Reply(briefing.menu_text(s), _morning_buttons(s), 'First set your city: /morning city San Carlos, CA')
+        s['enabled'] = 0 if s['enabled'] else 1
+        if s['enabled']:
+            briefing.skip_today_if_passed(s)
+        toast = 'Morning briefing on.' if s['enabled'] else 'Morning briefing off.'
+    elif what == 't' and len(detail) in (5, 6):   # wd0730, weoff
+        which, value = detail[:2], detail[2:]
+        if value != 'off' and not value.isdigit():
+            return None
+        s['weekday_time' if which == 'wd' else 'weekend_time'] = 'off' if value == 'off' else f'{value[:2]}:{value[2:]}'
+        briefing.skip_today_if_passed(s)
+    elif what == 'sec' and detail in briefing.SECTIONS:
+        s['sections'] = [k for k in briefing.SECTIONS if (k in s['sections']) != (k == detail)]
+    elif what == 'news':
+        choices = briefing.NEWS_CHOICES
+        s['news'] = choices[(choices.index(s['news']) + 1) % len(choices)] if s['news'] in choices else 'top'
+    elif what == 'closer':
+        s['closer'] = 'joke' if s['closer'] == 'quote' else 'quote'
+    elif what != 'back':
+        return None
+    if pressed:
+        s['chat_id'] = pressed['chat_id']
+    briefing.save_settings(s)
+    return Reply(briefing.menu_text(s), _morning_buttons(s), toast)
+
+
 # ---------- /qr ----------
 
 def _qr(args):
@@ -711,6 +853,8 @@ COMMANDS = [
     Command('remind', 'A reminder that pops up in this chat: once, or repeating', '/remind tomorrow at 6pm call Dan',
             _remind, aliases=('reminder',), group='Reminders'),
     Command('reminders', 'Your upcoming reminders (and cancel them)', '/reminders', _reminders, group='Reminders'),
+    Command('morning', 'A daily morning briefing: weather, reminders, headlines, a quote or joke',
+            '/morning city San Carlos, CA', _morning, aliases=('briefing',), group='Reminders'),
     Command('spent', 'Log an expense, or see a report (this month, a month, a year, all) with a CSV download',
             '/spent 12.50 lunch', _spent, aliases=('expenses',), group='Notes and lists'),
     Command('remember', 'Tell BEYOND something to remember in every chat', '/remember my dog is named Max',
@@ -764,6 +908,7 @@ ACTIONS = {
     'list': _list_button,
     'spent': _spent_button,
     'remind': _remind_button,
+    'morning': _morning_button,
 }
 
 

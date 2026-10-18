@@ -12,8 +12,8 @@ from fastapi.responses import FileResponse, JSONResponse, Response, StreamingRes
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from app import (autostart, chats, checklists, commands, config, engine, expenses, learning, lookups, memory, notes,
-                 notify, ports, reminders, rules, settings)
+from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
+                 memory, notes, notify, ports, reminders, rules, settings)
 
 chats.initialize()
 rules.initialize()
@@ -23,6 +23,7 @@ notes.initialize()
 checklists.initialize()
 expenses.initialize()
 reminders.initialize()
+briefing.initialize()
 
 REMINDERS_CHAT = '⏰ Reminders'   # where a reminder goes off if the chat it was set in was deleted
 
@@ -70,6 +71,35 @@ async def _watch_ai():
         await asyncio.sleep(60)
 
 
+ARRIVALS = ('reminder', 'briefing')   # messages BEYOND posts by itself; the page asks for new ones every few seconds
+BRIEFING_CHAT = '☀️ Morning briefing'
+
+
+def _send_due_briefing():
+    """Post the morning briefing if it's due (marked as sent first, so it can never come twice)."""
+    s = briefing.get_settings()
+    if not briefing.is_due(s):
+        return
+    briefing.mark_sent(s)
+    chat_id = s['chat_id'] if s['chat_id'] and chats.exists(s['chat_id']) else None
+    if chat_id is None:   # the chat it was set up in was deleted
+        chat_id = next((c['id'] for c in chats.list_chats() if c['title'] == BRIEFING_CHAT), None) or \
+            chats.create(BRIEFING_CHAT)
+    text = briefing.build(s)
+    chats.add_message(chat_id, 'assistant', text, kind='briefing')
+    notify.show('briefing', '☀️ Good morning', text.split('\n\n', 2)[1] if text.count('\n\n') > 1 else text, chat_id)
+
+
+async def _briefing_loop():
+    """Checks every 30 seconds whether the morning briefing is due."""
+    while True:
+        try:
+            await asyncio.to_thread(_send_due_briefing)
+        except Exception:
+            logging.exception('The morning briefing failed')
+        await asyncio.sleep(30)
+
+
 async def _reminder_loop():
     """Runs for as long as BEYOND does: checks for due reminders every few seconds."""
     await asyncio.to_thread(reminders.warm_up)   # dateparser's first use is slow; do it now, not on the first /remind
@@ -83,7 +113,7 @@ async def _reminder_loop():
 
 @asynccontextmanager
 async def lifespan(_app):
-    tasks = [asyncio.create_task(_reminder_loop()), asyncio.create_task(_watch_ai())]
+    tasks = [asyncio.create_task(loop()) for loop in (_reminder_loop, _briefing_loop, _watch_ai)]
     yield
     for task in tasks:
         task.cancel()
@@ -395,10 +425,10 @@ def _command_reply(chat_id, content):
 def fired_reminders(after: int = -1):
     """Reminders that went off since message `after`, for the page (which asks every few seconds). after=-1 only
     returns where to start, so opening the page doesn't replay old reminders."""
-    latest = chats.latest_message_id('reminder')
+    latest = chats.latest_message_id(ARRIVALS)
     if after < 0:
         return {'latest': latest, 'items': []}
-    return {'latest': latest, 'items': chats.messages_after('reminder', after)}
+    return {'latest': latest, 'items': chats.messages_after(ARRIVALS, after)}
 
 
 def _press(message_id, action):

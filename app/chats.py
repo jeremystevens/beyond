@@ -143,20 +143,22 @@ def previous_answer(chat_id, before):
     return get_message(row['id']) if row else None
 
 
-def latest_message_id(kind):
-    """The newest message id of one kind (0 if none), e.g. the last reminder that went off."""
+def latest_message_id(kinds):
+    """The newest message id of these kinds (0 if none), e.g. the last reminder or briefing that arrived."""
+    marks = ', '.join('?' * len(kinds))
     with connect() as db:
-        return db.execute('SELECT COALESCE(MAX(id), 0) FROM messages WHERE kind = ?', (kind,)).fetchone()[0]
+        return db.execute(f'SELECT COALESCE(MAX(id), 0) FROM messages WHERE kind IN ({marks})', kinds).fetchone()[0]
 
 
-def messages_after(kind, after, limit=20):
-    """Messages of one kind newer than id `after`, oldest first, with their chat's name (for the page's notices)."""
+def messages_after(kinds, after, limit=20):
+    """Messages of these kinds newer than id `after`, oldest first, with their chat's name (for the page)."""
+    marks = ', '.join('?' * len(kinds))
     with connect() as db:
-        rows = db.execute('SELECT m.id, m.chat_id, m.content, m.buttons, c.title FROM messages m '
-                          'JOIN chats c ON c.id = m.chat_id WHERE m.kind = ? AND m.id > ? ORDER BY m.id LIMIT ?',
-                          (kind, after, limit)).fetchall()
+        rows = db.execute('SELECT m.id, m.chat_id, m.content, m.buttons, m.kind, c.title FROM messages m '
+                          f'JOIN chats c ON c.id = m.chat_id WHERE m.kind IN ({marks}) AND m.id > ? ORDER BY m.id '
+                          'LIMIT ?', (*kinds, after, limit)).fetchall()
     return [{'id': r['id'], 'chat_id': r['chat_id'], 'content': r['content'], 'buttons': _buttons(r['buttons']),
-             'chat_title': r['title']} for r in rows]
+             'kind': r['kind'], 'chat_title': r['title']} for r in rows]
 
 
 def remove_message(message_id):

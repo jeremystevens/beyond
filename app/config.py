@@ -6,7 +6,7 @@ which is never committed and only holds what differs from these defaults, so a n
 """
 from pathlib import Path
 
-VERSION = '0.20.0'
+VERSION = '0.20.1'
 PHASE = 20
 
 ROOT = Path(__file__).resolve().parent.parent

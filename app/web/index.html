@@ -365,7 +365,7 @@
       for (const m of chat.messages) {
         if (m.kind === 'note') { noteBubble(m.content); continue; }
         const el = bubble(m.role + (m.kind === 'command' && m.role === 'assistant' ? ' command' : '') +
-                          (m.kind === 'reminder' ? ' reminder' : ''), m.content);
+                          (['reminder', 'briefing'].includes(m.kind) ? ' reminder' : ''), m.content);
         if (m.stopped) addNote(el, 'Stopped');
         if (m.kind === 'retried') addNote(el, RETRIED);
         showLookup(el, m.lookup);
