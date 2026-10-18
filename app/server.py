@@ -210,7 +210,8 @@ def settings_page():
 @app.get('/api/health')
 def health():
     """Quick "is BEYOND running?" check, used by the page now and by the self-test later."""
-    return {'status': 'ok', 'name': 'BEYOND', 'version': config.VERSION, 'phase': config.PHASE}
+    return {'status': 'ok', 'name': 'BEYOND', 'version': config.VERSION, 'phase': config.PHASE,
+            'https_port': app.state.running.get('https_port')}   # the secure address for other devices, if on
 
 
 @app.get('/api/ai-status')

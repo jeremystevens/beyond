@@ -6,6 +6,20 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **A secure address for other devices** (Phase 26 follow-up, owner's report: 🎤 didn't work from another PC).
+  Browsers only allow the microphone on https:// pages or on the PC itself. With network access on, `beyond.py`
+  now also serves BEYOND over HTTPS on the next port (7771), next to the usual http://…:7770.
+  - New `app/https.py`: BEYOND's own self-signed certificate (EC P-256, 397 days, not a CA) covering this PC's
+    network addresses, its name, 127.0.0.1 and localhost; stored in `data/https/` and made again when the
+    addresses change, it nears expiry, or the files are unreadable. New dependency: `cryptography`.
+  - The second server runs without its own startup jobs (`lifespan='off'`), so reminders, the briefing and the AI
+    watch still run once; it stops together with the main one (Quit, restarts after settings changes). If the port
+    is busy or the certificate can't be made, BEYOND carries on over http only and says why.
+  - `/api/health` reports `https_port`. On a plain-http page from another device, 🎤 now offers the secure link
+    (keeping the open chat) with a note about the one-time browser warning; Settings lists the https:// addresses.
+  - Tested: health, the page and voice input over https://192.168.50.22:7771; the certificate's names; a reminder
+    going off exactly once with both servers; 4 new tests (names covered, reuse, renewal for a new address,
+    unreadable files, both servers stopping together); all 67 tests pass.
 - **Phase 26: voice input** (version 0.26.0).
   - A **🎤 button** beside the message box: tap, speak, tap ⏹. The browser records (WebM/Opus in Chrome and Edge,
     MP4 in Safari), BEYOND turns it into text and the page sends it like a typed message. States: 🎤 → ⏹

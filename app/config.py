@@ -16,6 +16,9 @@ WEB_DIR = Path(__file__).resolve().parent / 'web'
 # BEYOND's own web page. 7770 stays clear of Local AI Studio (1420, 8080, 10086) and of ports other AI apps
 # commonly use (7860 Gradio, 8000, 8188 ComfyUI, 1234 LM Studio, 11434 Ollama, 3000).
 WEB_PORT = 7770
+# With network access on, BEYOND also serves https:// on the next port (7771) for other devices, because browsers
+# only allow the microphone on secure pages (app/https.py).
+HTTPS_PORT_OFFSET = 1
 
 # Ports BEYOND's web page must never take, because other local AI apps rely on them (checked when you change the port).
 RESERVED_PORTS = {

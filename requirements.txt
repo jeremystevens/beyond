@@ -16,3 +16,4 @@ kokoro-onnx>=0.4.7,<0.5  # local natural speech; CPU only
 piper-tts>=1.8,<2        # local speech fallback
 Windows-Toasts>=1.3,<2   # Windows popups (with Done / Snooze buttons)
 faster-whisper>=1.2,<2    # 🎤 voice input: offline speech-to-text (Whisper "base", processor only)
+cryptography>=46,<47     # the secure (https://) address for other devices, so the microphone works there

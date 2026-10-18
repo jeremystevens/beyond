@@ -8,6 +8,7 @@ The tray icon (Phase 20) has Open BEYOND (also a double-click), Pause popups, an
 the browser is closed, so reminders still go off. When the port or the network switch is changed on the settings
 page, BEYOND restarts itself here with the new settings.
 """
+import asyncio
 import sys
 import threading
 import webbrowser
@@ -23,7 +24,7 @@ if sys.stdout is None or sys.stderr is None:
 
 import uvicorn   # noqa: E402  (after the output fix above, so uvicorn logs somewhere)
 
-from app import notify, ports, settings   # noqa: E402
+from app import https, notify, ports, settings   # noqa: E402
 from app.server import app   # noqa: E402
 
 state = {'quitting': False}
@@ -46,18 +47,55 @@ def serve():
         config.DATA_DIR.mkdir(exist_ok=True)
         notify.base_url = f'http://127.0.0.1:{port}'
         print(f'BEYOND {config.VERSION} is running: open http://127.0.0.1:{port} in your browser.', flush=True)
+        servers = [uvicorn.Server(uvicorn.Config(app, host=host, port=port, log_level='warning'))]
+        secure_port = secure_server(servers, host, port) if values['allow_network'] else None
         if values['allow_network']:
             for adapter, ip in ports.network_addresses():
-                print(f'  Other devices on your network can use http://{ip}:{port}  ({adapter})', flush=True)
-        server = uvicorn.Server(uvicorn.Config(app, host=host, port=port, log_level='warning'))
-        app.state.server = server
-        app.state.running = {'host': host, 'port': port, 'allow_network': values['allow_network']}
+                print(f'  Other devices on your network can use http://{ip}:{port}' +
+                      (f' or https://{ip}:{secure_port} (needed for the microphone)' if secure_port else '') +
+                      f'  ({adapter})', flush=True)
+        app.state.server = servers[0]
+        app.state.running = {'host': host, 'port': port, 'allow_network': values['allow_network'],
+                             'https_port': secure_port}
         app.state.restart_requested = False
-        server.run()
+        asyncio.run(run_all(servers))
         if not app.state.restart_requested or state['quitting']:
             return 0
         previous = (host, port)
         print('Restarting BEYOND with the new settings...', flush=True)
+
+
+def secure_server(servers, host, port):
+    """Also serve BEYOND over HTTPS on the next port, for other devices (browsers only allow the microphone on
+    https:// pages). Adds the server to `servers` and returns its port, or None if it can't (and says why)."""
+    secure_port = port + config.HTTPS_PORT_OFFSET
+    problem = ports.problem(host, secure_port)
+    if problem:
+        print(f'No secure address for other devices: port {secure_port} is in use, so the microphone will only '
+              f'work on this PC.', flush=True)
+        return None
+    try:
+        cert, key = https.certificate()
+    except ImportError:
+        print('No secure address for other devices: install requirements-lock.txt (it needs "cryptography").',
+              flush=True)
+        return None
+    except (OSError, ValueError) as exc:
+        print(f'No secure address for other devices: the certificate could not be made ({exc}).', flush=True)
+        return None
+    # lifespan='off': the background jobs (reminders, briefing, ...) already run with the first server, once.
+    servers.append(uvicorn.Server(uvicorn.Config(app, host=host, port=secure_port, log_level='warning',
+                                                 lifespan='off', ssl_certfile=str(cert), ssl_keyfile=str(key))))
+    return secure_port
+
+
+async def run_all(servers):
+    """Run the servers together; when the main one stops (Quit, or a restart for new settings), stop them all."""
+    tasks = [asyncio.create_task(server.serve()) for server in servers]
+    await tasks[0]
+    for server in servers[1:]:
+        server.should_exit = True
+    await asyncio.gather(*tasks[1:], return_exceptions=True)
 
 
 def run_with_tray():

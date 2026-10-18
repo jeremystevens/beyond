@@ -294,8 +294,22 @@
           const line = document.createElement('div');
           const code = document.createElement('code');
           code.textContent = `http://${a.address}:${v.running.port}`;
-          line.append(code, `  (${a.adapter})`);
+          line.append(code);
+          if (v.running.https_port) {   // the secure address: needed there for the 🎤 microphone
+            const secure = document.createElement('code');
+            secure.textContent = `https://${a.address}:${v.running.https_port}`;
+            line.append('  or  ', secure);
+          }
+          line.append(`  (${a.adapter})`);
           list.appendChild(line);
+        }
+        if (v.running.https_port) {
+          const secureTip = document.createElement('div');
+          secureTip.className = 'small';
+          secureTip.textContent = 'Use the https:// address to speak with 🎤 on that device (browsers only allow the ' +
+            "microphone on secure pages). The first time, the browser warns that the connection isn't private, " +
+            "because BEYOND made its own certificate: choose Advanced, then Continue. It's still only your network.";
+          list.appendChild(secureTip);
         }
         const tip = document.createElement('div');
         tip.className = 'small';

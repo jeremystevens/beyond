@@ -241,8 +241,16 @@ If an answer is still being written, the words wait in the box for you to send.
 - The recording is never kept: it is written to a temporary file for the decoder and deleted straight away. Only
   the words become part of the chat.
 - One recording is turned into text at a time; a second one at the same moment gets a "still working" reply.
-- Browsers only allow the microphone on a secure page: **http://127.0.0.1 on this PC** works. On a phone or another
-  computer using BEYOND's network address (plain http), the 🎤 button is greyed out and explains why.
+- Browsers only allow the microphone on a secure page: **http://127.0.0.1 on this PC** works. On another computer
+  or a phone, use BEYOND's **secure address**, `https://<this PC's address>:7771` (see below); on its plain
+  `http://…:7770` address the 🎤 button is greyed out and offers that link.
+
+**The secure address for other devices.** With *Allow other devices on my network* on, BEYOND also serves itself
+over HTTPS on the next port (7771 by default), listed in Settings and in `data\beyond.log`. It uses a certificate
+BEYOND makes for itself (stored in `data\https`, made again automatically when this PC's network addresses change
+or it nears expiry). No company vouches for it, so the first time each device's browser warns that the connection
+isn't private: choose **Advanced → Continue**. It's still only your own network. If port 7771 is busy, BEYOND keeps
+running on 7770 only and says so.
 
 ## Personality
 
@@ -369,6 +377,7 @@ app/reminders.py     Reminders (/remind): reading times and schedules; the serve
 app/briefing.py      The morning briefing (/morning): settings, schedule and the text; the server sends it
 app/notify.py        Windows popups: one shared feature (settings, quiet hours, "not while you're looking")
 app/autostart.py     "Start BEYOND with Windows" (your user's startup programs)
+app/https.py         The secure (https://) address for other devices: BEYOND's own certificate
 app/lookups.py       Automatic lookups: when a question needs the weather, news or web
 app/commands.py      Slash commands: one list (name, summary, example, function) drives /help, the / menu
                      and "did you mean…?"; replies can carry buttons, handled by ACTIONS
