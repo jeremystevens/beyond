@@ -248,7 +248,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 - Added host settings, Read aloud controls, shared /help and command menu entries, README and personality guidance.
 - **Done when:** an answer can be played aloud in the browser.
 
-### Phase 26: Voice input ✅ (done 2026-10-17; a spoken question got a normal answer)
+### Phase 26: Voice input ✅ (done 2026-10-17; a spoken question got a normal answer; owner confirmed 🎤 works from another PC over the secure https:// address)
 - A microphone button: speak, and your words are turned into text and sent.
 - **Done when:** a spoken question gets a normal answer.
 
