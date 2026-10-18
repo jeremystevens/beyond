@@ -39,6 +39,10 @@
     .switch b { display: block; }
     .addresses { margin: 10px 0 0 32px; font-size: 0.9rem; line-height: 1.7; }
     .addresses code { background: var(--bg); padding: 2px 6px; border-radius: 6px; }
+    .addresses .trust { margin-top: 8px; }
+    .addresses a.button { text-decoration: none; display: inline-flex; align-items: center; }
+    .addresses details { margin-top: 4px; }
+    .addresses ol { margin: 6px 0; padding-left: 20px; line-height: 1.5; }
     .banner { border-radius: 12px; padding: 12px 16px; font-size: 0.92rem; line-height: 1.45;
               display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
     .banner.warn { background: var(--warn-bg); border: 1px solid var(--warn); }
@@ -310,6 +314,39 @@
             "microphone on secure pages). The first time, the browser warns that the connection isn't private, " +
             "because BEYOND made its own certificate: choose Advanced, then Continue. It's still only your network.";
           list.appendChild(secureTip);
+          // Install BEYOND's certificate on a device once, and its browser stops warning for good.
+          const trust = document.createElement('div');
+          trust.className = 'row trust';
+          const download = document.createElement('a');
+          download.className = 'button ghost'; download.href = '/api/https/certificate'; download.download = '';
+          download.textContent = '⬇ Download certificate';
+          const why = document.createElement('span');
+          why.className = 'small';
+          why.textContent = 'To skip the warning for good, install it once on each other device.';
+          trust.append(download, why);
+          const steps = document.createElement('details');
+          steps.className = 'small';
+          const summary = document.createElement('summary');
+          summary.textContent = 'How to install it';
+          const howto = document.createElement('ol');
+          for (const step of [
+            'Download it on the other device (or copy BEYOND-certificate.crt to it).',
+            'Windows: double-click the file → Install Certificate → Current User → "Place all certificates in the ' +
+              'following store" → Browse → Trusted Root Certification Authorities → Finish, and say Yes. Then ' +
+              'restart the browser.',
+            'Android: Settings → Security → Encryption & credentials → Install a certificate → CA certificate, ' +
+              'and pick the file.',
+            'iPhone / iPad: open the file, then Settings → Profile Downloaded → Install; then Settings → General → ' +
+              'About → Certificate Trust Settings → switch on "BEYOND on …". Mac: open it in Keychain Access → ' +
+              'System → double-click it → Trust → Always Trust.',
+            "It can only vouch for home-network addresses and this PC's name, never real websites. Remove it the same " +
+              'way if you stop using BEYOND.']) {
+            const item = document.createElement('li');
+            item.textContent = step;
+            howto.appendChild(item);
+          }
+          steps.append(summary, howto);
+          list.append(trust, steps);
         }
         const tip = document.createElement('div');
         tip.className = 'small';

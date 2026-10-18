@@ -17,7 +17,8 @@ class CertificateTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         folder = Path(self.temp.name)
         self.patches = [patch.object(https, 'FOLDER', folder), patch.object(https, 'CERT', folder / 'c.pem'),
-                        patch.object(https, 'KEY', folder / 'k.pem'),
+                        patch.object(https, 'KEY', folder / 'k.pem'), patch.object(https, 'CA_CERT', folder / 'ca.pem'),
+                        patch.object(https, 'CA_KEY', folder / 'ca-k.pem'),
                         patch.object(https, 'names', return_value=(['127.0.0.1', '192.168.1.20'], ['PC1', 'localhost']))]
         for p in self.patches:
             p.start()
@@ -51,10 +52,60 @@ class CertificateTests(unittest.TestCase):
 
     def test_unreadable_files_are_replaced(self):
         https.FOLDER.mkdir(exist_ok=True)
-        https.CERT.write_text('not a certificate')
-        https.KEY.write_text('not a key')
+        for path in (https.CERT, https.KEY, https.CA_CERT, https.CA_KEY):
+            path.write_text('not a certificate')
         https.certificate()
         self.assertTrue(self.load().serial_number)
+
+    def verify(self, leaf, name):
+        """Check `leaf` the way a browser that installed the authority does (chain, names, name constraints)."""
+        from cryptography.x509.verification import PolicyBuilder, Store
+        ca = x509.load_pem_x509_certificate(https.authority_file().read_bytes())
+        return PolicyBuilder().store(Store([ca])).build_server_verifier(name).verify(leaf, [])
+
+    def test_trusted_through_the_authority_which_outlives_renewals(self):
+        import ipaddress
+        https.certificate()
+        ca_serial = x509.load_pem_x509_certificate(https.CA_CERT.read_bytes()).serial_number
+        for name in (x509.IPAddress(ipaddress.ip_address('192.168.1.20')), x509.DNSName('PC1')):
+            self.verify(self.load(), name)
+        with patch.object(https, 'names', return_value=(['127.0.0.1', '10.0.0.5'], ['PC1', 'localhost'])):
+            https.certificate()                      # a new address: new server certificate…
+            self.verify(self.load(), x509.IPAddress(ipaddress.ip_address('10.0.0.5')))
+        self.assertEqual(x509.load_pem_x509_certificate(https.CA_CERT.read_bytes()).serial_number, ca_serial)
+        # …but the same authority, so devices that installed it keep trusting BEYOND
+
+    def test_authority_cannot_vouch_for_real_websites(self):
+        """Even with its key, a certificate for a real website (or a public address) is rejected."""
+        import ipaddress
+        from cryptography.hazmat.primitives import hashes
+        from cryptography.hazmat.primitives.asymmetric import ec
+        from cryptography.x509.oid import NameOID
+        ca, ca_key = https.authority()
+        nc = ca.extensions.get_extension_for_class(x509.NameConstraints)
+        self.assertTrue(nc.critical)
+        now = datetime.now(timezone.utc)
+        for name in (x509.DNSName('www.bank.com'), x509.IPAddress(ipaddress.ip_address('8.8.8.8'))):
+            key = ec.generate_private_key(ec.SECP256R1())
+            forged = (x509.CertificateBuilder().subject_name(x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, 'x')]))
+                      .issuer_name(ca.subject).public_key(key.public_key()).serial_number(x509.random_serial_number())
+                      .not_valid_before(now - timedelta(minutes=1)).not_valid_after(now + timedelta(days=30))
+                      .add_extension(x509.SubjectAlternativeName([name]), critical=False)
+                      .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_key.public_key()),
+                                     critical=False)
+                      .sign(ca_key, hashes.SHA256()))
+            from cryptography.x509.verification import VerificationError
+            with self.subTest(name=str(name.value)), self.assertRaises(VerificationError):
+                self.verify(forged, name)
+
+    def test_only_home_addresses_are_listed(self):
+        """A VPN or public address would break the name constraints, so it's left out of the certificate."""
+        self.patches.pop().stop()   # use the real names() here
+        with patch.object(https.ports, 'network_addresses', return_value=[('Wi-Fi', '192.168.1.20'),
+                                                                         ('VPN', '100.64.3.4'), ('Lab', '10.1.2.3')]):
+            addresses, hosts = https.names()
+        self.assertEqual(addresses, ['10.1.2.3', '127.0.0.1', '192.168.1.20'])
+        self.assertIn('localhost', hosts)
 
 
 class RunAllTests(unittest.TestCase):

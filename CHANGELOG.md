@@ -6,6 +6,21 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Download certificate** (Settings), so other devices can trust BEYOND's secure address and skip the browser
+  warning for good (owner's request).
+  - `app/https.py` now makes BEYOND's own small certificate authority (EC P-256, 10 years, CA with path length 0,
+    critical name constraints: home-network ranges and this PC's name) and signs the server certificate with it.
+    The server certificate is still renewed automatically (new addresses, near expiry, or a new authority); the
+    authority stays, so devices that installed it keep trusting BEYOND. Only home-network addresses go in the
+    server certificate (a VPN address would break the constraints). The old self-signed certificate is replaced
+    automatically.
+  - `GET /api/https/certificate` serves the authority's public certificate as `BEYOND-certificate.crt` (only while
+    the secure address is on). Settings shows **⬇ Download certificate** with install steps for Windows, Android,
+    iPhone/iPad and Mac; the 🎤 message on plain-http pages points to it.
+  - Tested: the download from another address over http and https; trusting only the downloaded file (OpenSSL,
+    strict), BEYOND's secure address is accepted by IP, by the PC's name and on 127.0.0.1, and a wrong name is
+    rejected; 7 HTTPS tests, including the authority outliving a server renewal and a forged certificate for a real
+    website (and for a public address) being rejected by the name constraints.
 - **Phase 27: games menu and dice** (version 0.27.0).
   - Added /games, /games stats and a Games header button that preserves message drafts and attached photos.
     The menu offers quick dice/coin rolls and marks later games with their planned phases.

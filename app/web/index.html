@@ -1145,7 +1145,9 @@
           why = h.https_port
             ? `To speak on this device, open BEYOND's secure address: https://${location.hostname}:${h.https_port}/` +
               location.hash + '\nThe first time, your browser warns that the connection isn\'t private, because ' +
-              "BEYOND made its own certificate: choose Advanced, then Continue. It's still only your own network."
+              "BEYOND made its own certificate: choose Advanced, then Continue. It's still only your own network. " +
+              'To skip that warning for good, install BEYOND\'s certificate on this device: Settings → Download ' +
+              'certificate.'
             : 'The microphone only works when BEYOND is opened on its own PC (http://127.0.0.1), because browsers ' +
               'block it on other plain http:// addresses.';
           mic.title = mic.ariaLabel = h.https_port ? 'Open the secure address to use the microphone' : why;

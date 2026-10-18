@@ -265,11 +265,18 @@ If an answer is still being written, the words wait in the box for you to send.
   `http://…:7770` address the 🎤 button is greyed out and offers that link.
 
 **The secure address for other devices.** With *Allow other devices on my network* on, BEYOND also serves itself
-over HTTPS on the next port (7771 by default), listed in Settings and in `data\beyond.log`. It uses a certificate
-BEYOND makes for itself (stored in `data\https`, made again automatically when this PC's network addresses change
-or it nears expiry). No company vouches for it, so the first time each device's browser warns that the connection
-isn't private: choose **Advanced → Continue**. It's still only your own network. If port 7771 is busy, BEYOND keeps
-running on 7770 only and says so.
+over HTTPS on the next port (7771 by default), listed in Settings and in `data\beyond.log`. No company vouches for
+BEYOND's certificate, so the first time each device's browser warns that the connection isn't private: choose
+**Advanced → Continue**. It's still only your own network. If port 7771 is busy, BEYOND keeps running on 7770 only
+and says so.
+
+**Skip the warning for good:** in Settings (under the network addresses) choose **⬇ Download certificate** on the
+other device and install it once; **How to install it** has the steps for Windows, Android, iPhone/iPad and Mac.
+That file is BEYOND's own small *certificate authority* ("BEYOND on <your PC>", valid 10 years). BEYOND signs its
+server certificate with it and renews that automatically (new network address, yearly), so a device that installed
+the authority keeps trusting BEYOND without reinstalling. For safety it is limited by *name constraints* to
+home-network addresses (10.x, 172.16–31.x, 192.168.x, 127.x) and this PC's name: even if its key were copied, it
+could never vouch for real websites. Everything lives in `data\https` (the downloadable file holds no secrets).
 
 ## Personality
 

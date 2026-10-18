@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
-                 memory, notes, notify, ports, reminders, rules, settings)
+                 https, memory, notes, notify, ports, reminders, rules, settings)
 
 from app import photo_jobs, image_jobs, speech_jobs, games
 from app.tools import scan, speech, speech_to_text
@@ -213,6 +213,24 @@ def health():
     """Quick "is BEYOND running?" check, used by the page now and by the self-test later."""
     return {'status': 'ok', 'name': 'BEYOND', 'version': config.VERSION, 'phase': config.PHASE,
             'https_port': app.state.running.get('https_port')}   # the secure address for other devices, if on
+
+
+@app.get('/api/https/certificate')
+def download_certificate():
+    """Settings → Download certificate: BEYOND's certificate authority (public; no secrets in it), for installing
+    on other devices so their browsers trust BEYOND's secure address without a warning (app/https.py). Only
+    while the secure address is on."""
+    if not app.state.running.get('https_port'):
+        return JSONResponse({'error': 'The secure address is off. Turn on "Allow other devices on my network" '
+                                      'and restart BEYOND.'}, status_code=404)
+    try:
+        path = https.authority_file()
+    except (ImportError, OSError, ValueError):
+        logging.exception('Could not prepare the certificate for download')
+        return JSONResponse({'error': 'The certificate could not be prepared.'}, status_code=503)
+    return Response(path.read_bytes(), media_type='application/x-x509-ca-cert',
+                    headers={'Content-Disposition': 'attachment; filename="BEYOND-certificate.crt"',
+                             'Cache-Control': 'no-store'})
 
 
 @app.get('/api/ai-status')
