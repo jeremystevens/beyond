@@ -22,7 +22,7 @@ from app import briefing, chats, checklists, expenses, learning, memory, notes, 
 from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewrite, weather, web_search, wikipedia
 from app.tools.calculator import calculate
 from app.tools.dice import roll_result
-from app import blackjack, engine, games, hangman, study_quiz, tictactoe, trivia
+from app import blackjack, engine, followups, games, hangman, study_quiz, tictactoe, trivia
 from app.tools.units import convert
 from app.tools.imagine import HELP as IMAGINE_HELP
 from app.tools import speech
@@ -44,6 +44,7 @@ class Reply:
     game: dict | None = None  # menu or dice result, saved and rendered by the browser
     speech_text: str | None = None  # empty string = read the last AI answer; None = no speech request
     on_saved: Callable = None  # called with the chat's id once the reply is saved (e.g. where a reminder goes off)
+    lookup_context: dict | None = None  # real lookup data for short follow-ups in this chat only
 
 
 def button(label, action):
@@ -1064,7 +1065,7 @@ COMMANDS = [
             '/searchhistory last Thursday', _history, aliases=('searches',), group='Look things up'),
     Command('web', 'Search the web (DuckDuckGo)', '/web best hiking trails near Denver',
             _online(web_search.search_web, 'DuckDuckGo'), aliases=('search',), group='Look things up'),
-    Command('weather', 'Weather now, the next hours and 3 days', '/weather San Jose, CA',
+    Command('weather', 'Weather now, the next hours and 3 days; follow up with What about Paris?', '/weather San Jose, CA',
             _online(weather.get_weather, 'the weather service (Open-Meteo)'), group='Look things up'),
     Command('news', 'Headlines: top, world, us, tech, science, sports… or any topic', '/news tech',
             _online(news.get_news, 'the news feeds'), group='Look things up'),
@@ -1072,7 +1073,7 @@ COMMANDS = [
             group='Look things up'),
     Command('define', 'Dictionary: meaning, pronunciation and examples', '/define serendipity',
             _online(dictionary.define_word, 'the dictionary'), group='Look things up'),
-    Command('movie', 'A film: year, director, cast, ratings and summary', '/movie Dune 1984',
+    Command('movie', 'A film: year, director, cast, ratings and summary; follow up with Who directed it?', '/movie Dune 1984',
             _online(lambda title: movies.get_movie(title, 'movie'), 'the movie services'), aliases=('film',),
             group='Look things up'),
     Command('tv', 'A TV show: years, network, cast, rating and summary', '/tv Breaking Bad',
@@ -1143,6 +1144,7 @@ def run(text):
     reply = _as_reply(command.run(arguments))
     if command.name in search_history.TOOLS and (arguments or command.name == 'news'):
         identifier = search_history.record(command.name, arguments or 'top', reply.text)
+        reply.lookup_context = followups.snapshot(command.name, arguments or 'top', reply.text)
         if identifier:
             reply.buttons.append([send_button('Search again', f'/searchhistory repeat {identifier}')])
     return reply

@@ -20,7 +20,7 @@ things up, keeps you organised, reads photos, listens, talks back and plays game
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.143-d96326?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=0d1117)
 ![License](https://img.shields.io/badge/License-MIT-d96326?style=for-the-badge&labelColor=0d1117)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-d96326?style=for-the-badge&logo=windows&logoColor=white&labelColor=0d1117)
-![Version](https://img.shields.io/badge/Version-0.34.2-d96326?style=for-the-badge&labelColor=0d1117)
+![Version](https://img.shields.io/badge/Version-0.34.3-d96326?style=for-the-badge&labelColor=0d1117)
 
 ![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local-d96326?style=for-the-badge&logo=shield&logoColor=white&labelColor=0d1117)
 ![AI](https://img.shields.io/badge/AI-OpenAI--compatible%20%C2%B7%20llama.cpp-d96326?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117)
@@ -106,6 +106,7 @@ still arrive), and lets your other devices use it over a **secure address on you
 ◆  Saved, searchable conversations in a side panel; rename, delete, pick up later
 ◆  Looks up the weather, news and the web by itself, and shows you exactly what it found
 ◆  Dated search history survives deleted chats, with Search again and bulk deletion
+◆  Follow up on a lookup naturally: “What about Paris?” or “Who directed it?”
 
 ━━ MEMORY & LEARNING ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ◆  Remembers facts about you in every chat, ones you tell it and ones it notices
@@ -361,6 +362,47 @@ best when they're close to the question.
 
 **Phones and tablets.** On a phone the chat list slides in from **☰**, the header and message box stay on screen (also
 with the keyboard open), buttons are thumb-sized, and the layout leaves room for the notch and home bar.
+
+</details>
+
+<details>
+<summary><b>↪ Natural follow-ups after a lookup</b></summary>
+
+<br>
+
+You can continue a lookup without repeating the slash command or its subject. Context belongs to the **current
+chat**, works on phones and computers, and stays saved across a page refresh or app restart.
+
+| Start with | Follow up with | What happens |
+|---|---|---|
+| `/weather London` | “What about Paris?” | Runs a fresh weather lookup for Paris. |
+| `/weather London` | “Will it rain there tomorrow?” | Runs a fresh London forecast and shows tomorrow's line. |
+| `/weather London` | “What about Paris tomorrow?” | Looks up Paris and shows tomorrow's forecast. |
+| `/movie Alien` | “Who directed it?” | Reads the director from that lookup and names its source. |
+| `/movie Alien` | “Who stars in it?” or “How long is it?” | Reads available cast/runtime information for the resolved film. |
+| `/wiki Apollo 11` | “What about Apollo 13?” | Looks up Apollo 13 on Wikipedia. |
+| `/define elated` | “What about jubilant?” | Looks up the new word. |
+| `/news tech` | “What about science?” | Fetches the new news topic. |
+| A web or Stack Overflow search | “Search again” | Repeats the original lookup with fresh results. |
+
+Clear “What about…”, “How about…” and “And…” comparisons reuse weather, news, Wikipedia, dictionary, movie or TV
+tools. A web/Stack Overflow comparison offers a choice: search the new topic alone, or include the previous
+query. It does not guess which interpretation you intended.
+
+Film/TV fact follow-ups include director, cast, runtime, release/start year, ratings and plot when those fields
+are available. Answers identify the resolved title and label their information as coming from the previous
+lookup. Missing details are not invented: Refresh lookup and Search the web are offered. For a TV-series
+director question, BEYOND asks whether you mean its creators or a particular episode.
+
+Other short references, such as “Is it scary?”, can pass bounded source data and the resolved subject to the
+chat AI. They require a loaded model, whereas direct field answers and tool comparisons do not. Cached results
+are not labelled as a new search. “Search again” explicitly refreshes the source.
+
+A clear new conversation topic or an unrelated slash command ends the old lookup context. A short “Thanks”
+does not. New chats never borrow another chat's subject, and a failed new lookup clears the old context.
+Chat deletion removes its context. **Search history** remains independent: fresh lookups are recorded once,
+while reading a fact already in the result does not add another history record. Repeats opened from the
+Search history page also establish context in their new chat.
 
 </details>
 
@@ -787,6 +829,7 @@ beyond/
 │   ├── rules.py             ← House rules
 │   ├── lookups.py           ← Automatic weather, news and web lookups
 │   ├── search_history.py    ← Independent dated lookup records, filtering, recall and selected deletion
+│   ├── followups.py         ← Chat-local lookup subjects, comparisons, sourced field answers and clarifications
 │   ├── notes.py · checklists.py · expenses.py · reminders.py · briefing.py
 │   ├── notify.py            ← Windows popups (quiet hours, "not while you're looking")
 │   ├── autostart.py         ← Start BEYOND with Windows
@@ -894,7 +937,8 @@ BEYOND is being built in **43 small phases**, each one tested before the next. T
 | | | ✅ 33 · Built-in engine |
 | | | 34 · Models page (tested; mobile navigation revised) |
 | | | 34a · Persona selector |
-| | | 34b · Search history (ready to try) |
+| | | 34b · Search history |
+| | | ✅ 34c · Natural lookup follow-ups |
 
 </details>
 

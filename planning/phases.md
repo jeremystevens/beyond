@@ -335,6 +335,18 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - **Done when:** a lookup remains recallable after its chat is deleted, a date query finds it, Search again runs
   fresh results, and bulk deletion removes just the selected records. Jeremy will playtest.
 
+### Phase 34c: Natural lookup follow-ups (completed and playtested 2026-10-18)
+- Save the latest successful lookup subject and bounded real result per chat. Comparisons reuse weather, news,
+  wiki, define, movie and TV tools; web/Stack Overflow comparisons clarify replacement versus added context.
+- Weather place/day follow-ups run fresh lookups. Movie/TV field questions use sourced result data, resolve
+  the actual title and do not invent missing facts. Other short references can provide grounded AI notes.
+- Persist context across reloads/restarts, isolate chats, clear new topics/failures, and preserve brief thanks.
+  Fresh lookups are recorded once in search history; cached field answers are not new searches.
+- **Done when:** /weather London → “What about Paris?” runs Paris weather, /movie Alien → “Who directed it?”
+  answers for the resolved film, and different chats do not share subjects.
+- **Verified:** three focused routing/context checks passed. Jeremy completed the playtest and approved the feature
+  on 2026-10-18.
+
 ### Phase 35: Model downloads
 - Download models from Hugging Face inside the app, with **fingerprint checks**, resume after a broken download,
   a free-disk-space check, and license links for models that need the maker's terms accepted.

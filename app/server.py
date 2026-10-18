@@ -16,12 +16,13 @@ from pydantic import BaseModel, Field, StrictInt
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
                  https, memory, models, notes, notify, personas, ports, reminders, rules, search_history, settings)
 
-from app import builtin_engine, photo_jobs, image_jobs, speech_jobs, blackjack, games, hangman, study_quiz, tictactoe, trivia
+from app import builtin_engine, photo_jobs, image_jobs, speech_jobs, blackjack, followups, games, hangman, study_quiz, tictactoe, trivia
 from app.tools import scan, speech, speech_to_text
 
 models.initialize()
 chats.initialize()
 search_history.initialize()
+followups.initialize()
 games.initialize()
 tictactoe.initialize()
 trivia.initialize()
@@ -324,7 +325,8 @@ async def repeat_search(identifier: int):
     reply = await asyncio.to_thread(commands.run,entry['command'])
     chat_id = chats.create('Search again: '+entry['query'])
     chats.add_message(chat_id,'user',entry['command'],kind='command')
-    chats.add_message(chat_id,'assistant',reply.text,kind='command',buttons=reply.buttons)
+    message_id = chats.add_message(chat_id,'assistant',reply.text,kind='command',buttons=reply.buttons)
+    followups.save(chat_id,message_id,reply.lookup_context)
     return {'chat_id':chat_id}
 
 
@@ -393,6 +395,12 @@ async def chat_stream(body: SendRequest):
     recalled = search_history.recall_request(content)
     if recalled is not None:
         return _command_reply(body.chat_id, content, run_as='/searchhistory ' + recalled)
+    followup = await asyncio.to_thread(followups.resolve, body.chat_id, content)
+    if followup and followup['kind'] in ('command','weather_day'):
+        return _command_reply(body.chat_id, content, run_as=followup['command'], follow_action=followup)
+    if followup and followup['kind'] in ('fact','clarify','clarify_search'):
+        reply = await asyncio.to_thread(followups.answer,followup)
+        return _command_reply(body.chat_id, content, prepared=reply)
     chat_id = chats.create(content) if new_chat else body.chat_id
     question_id = chats.add_message(chat_id, 'user', content)
     values = settings.load()
@@ -405,8 +413,10 @@ async def chat_stream(body: SendRequest):
             chats.delete(chat_id)
 
     opening = {'type': 'chat', 'id': chat_id, 'new': new_chat, 'title': chats.title_from(content)}
-    return _answer(chat_id, history, _background(content, sent_ids, values), opening, undo, question=content,
-                   pickup=content if values['auto_facts'] else None)
+    extra = followup.get('notes','') if followup else ''
+    return _answer(chat_id, history, _background(content, sent_ids, values,extra), opening, undo, question=content,
+                   pickup=content if values['auto_facts'] else None,
+                   prior_context=followup['state'] if followup else None, suppress_auto=bool(followup))
 
 
 def _background(question, sent_ids, values, extra=''):
@@ -418,12 +428,12 @@ def _background(question, sent_ids, values, extra=''):
 
 
 def _answer(chat_id, history, background, opening, undo, question=None, pickup=None, retry_of=None,
-            temperature=None):
+            temperature=None, prior_context=None, suppress_auto=False):
     """Stream an AI answer to the end of `history` and save it with 👍 👎 🔄 under it. If the page disconnects
     (Stop), what was written so far is saved, marked as stopped; if nothing was written at all, undo() runs.
     `question`: checked for an automatic lookup (weather, news, web) first, whose results go in the notes."""
     budget = learning.max_tokens()
-    wanted = lookups.detect(question) if question else None
+    wanted = lookups.detect(question) if question and not suppress_auto else None
     found = wanted if wanted and settings.load()['auto_lookup'] else None
     if wanted and not found:   # needs current information, but automatic lookups are off
         background = '\n\n'.join(part for part in (background, lookups.NOT_CHECKED) if part)
@@ -431,6 +441,7 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
     async def events():
         global ANSWERS_IN_PROGRESS
         answer, finished, saved, lookup = [], False, False, None
+        active_context = prior_context
         ANSWERS_IN_PROGRESS += 1
         writing = True
         try:
@@ -440,6 +451,7 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 yield json.dumps({'type': 'status', 'text': lookups.status(*found)}) + '\n'
                 result = await asyncio.to_thread(lookups.run, question, *found)
                 lookup = lookups.saved(result)
+                active_context = followups.snapshot(result['kind'],result['argument'],result['raw']) if result['ok'] else None
                 notes = '\n\n'.join(part for part in (background, lookups.notes(result)) if part)
                 # Written by BEYOND, so "Looked up" only ever appears when a lookup really ran.
                 yield json.dumps({'type': 'lookup', **lookup}) + '\n'
@@ -468,6 +480,8 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
             if finished and text:
                 answer_id = chats.add_message(chat_id, 'assistant', text, retry_of=retry_of, lookup=lookup,
                                               stats=stats)
+                if found or prior_context:
+                    followups.save(chat_id,answer_id,active_context,for_retry=True)
                 previous = chats.previous_answer(chat_id, answer_id)
                 buttons = learning.rating_buttons(answer_id)
                 chats.set_buttons(answer_id, buttons)
@@ -495,7 +509,9 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
             if not saved:
                 text = lookups.without_fake_mark(''.join(answer))
                 if text:
-                    chats.add_message(chat_id, 'assistant', text, stopped=True, retry_of=retry_of, lookup=lookup)
+                    partial_id = chats.add_message(chat_id, 'assistant', text, stopped=True, retry_of=retry_of, lookup=lookup)
+                    if found or prior_context:
+                        followups.save(chat_id,partial_id,active_context)
                 else:
                     undo()
 
@@ -530,10 +546,14 @@ async def try_again(message_id: int):
         chats.set_buttons(message_id, old['buttons'], kind='chat')
         learning.set_rating(message_id, old['rating'], old['reason'])
 
-    background = _background(history[-1]['content'], sent_ids, settings.load(), learning.retry_note(old['content']))
+    context = followups.for_message(message_id)
+    grounded = followups.context_notes(context,history[-1]['content']) if context and followups.REFERENCE.search(history[-1]['content']) else ''
+    extra = '\n\n'.join(part for part in (learning.retry_note(old['content']),grounded) if part)
+    background = _background(history[-1]['content'], sent_ids, settings.load(), extra)
     return _answer(chat_id, history, background, {'type': 'retry', 'id': message_id}, undo,
                    question=history[-1]['content'], retry_of=message_id,
-                   temperature=min(1.1, config.TEMPERATURE + 0.3))
+                   temperature=min(1.1, config.TEMPERATURE + 0.3),
+                   prior_context=context if grounded else None, suppress_auto=bool(grounded))
 
 ANSWERS_IN_PROGRESS = 0     # chat answers being written right now
 PICKUP_LOCK = asyncio.Lock()
@@ -571,16 +591,22 @@ def _start_speech(message_id, text=None):
         return {'state': 'error', 'error': str(exc), 'engine': '', 'truncated': False, 'url': ''}
 
 
-def _command_reply(chat_id, content, run_as=None):
+def _command_reply(chat_id, content, run_as=None, prepared=None, follow_action=None):
     """A /command: BEYOND answers it itself. Both are saved in the chat (so they're there when you come back) but
     marked as commands, so they're never sent to the AI. Same event stream as an AI answer, so the page needs no
     special handling. A new chat is created after the command runs, so it's named from the safe version of the
     command (a /qr wifi password never ends up in the chat list)."""
     async def events():
+        if follow_action:
+            tool, _, argument = follow_action['command'].lstrip('/').partition(' ')
+            label = search_history.TOOLS.get(tool,tool)
+            yield json.dumps({'type':'status','text':f'Checking {label}: {argument}…'}) + '\n'
         if content.split()[0].lower() == '/trivia':
             yield json.dumps({'type': 'status', 'text': 'Getting trivia ready…'}) + '\n'
         try:
-            reply = await asyncio.to_thread(commands.run, run_as or content)   # some commands look things up online
+            reply = prepared if prepared is not None else await asyncio.to_thread(commands.run, run_as or content)
+            if follow_action and follow_action['kind']=='weather_day':
+                reply = followups.weather_answer(reply,follow_action['day'])
         except Exception:   # a bug in one command shouldn't break the chat
             logging.exception('Command failed: %s', content.split()[0])
             reply = commands.Reply(f'Sorry, {content.split()[0]} ran into a problem. Please try again.')
@@ -601,6 +627,7 @@ def _command_reply(chat_id, content, run_as=None):
         message_id = (reply.save_message(current) if reply.save_message else
                       chats.add_message(current, 'assistant', reply.text, kind='command', buttons=reply.buttons,
                                         image=reply.image, game=reply.game))
+        followups.save(current,message_id,reply.lookup_context)
         if reply.on_saved:   # e.g. /remind: the reminder goes off in this chat
             reply.on_saved(current)
         spoken = _start_speech(message_id, reply.speech_text) if reply.speech_text is not None else None

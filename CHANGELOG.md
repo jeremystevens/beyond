@@ -6,6 +6,24 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Natural lookup follow-ups** (version 0.34.3), added before Phase 35.
+  - Successful manual and automatic lookups retain bounded source data and the subject in the current chat.
+    “What about Paris?” after /weather London runs a new Paris forecast. Today/tomorrow questions refresh the
+    current place, including a new place/day comparison. Clear comparisons also reuse news, wiki, define, movie
+    and TV lookups; web/Stack Overflow comparisons ask whether to replace or extend the previous query.
+  - Movie/TV follow-ups read available director, cast, runtime, year, ratings and plot from the lookup, naming
+    the resolved title and source. Wikipedia lead director credits are supported. Missing facts are not guessed,
+    and series-director questions ask about creators versus a specific episode.
+  - Other short references can carry bounded, explicitly sourced context to the chat AI. They do not trigger an
+    unresolved pronoun web search. Try again retains that context. Cached field answers need no model.
+  - Context is isolated per chat, survives reload/restart, and is deleted with its chat. A new topic, unrelated
+    command or failed lookup clears it; brief acknowledgments preserve it. History-page repeats establish
+    context in their new chat. New network lookups enter search history once; cached facts do not.
+  - Weather/movie command help and the styled README, personality and phase plan updated. Three focused checks
+    passed using temporary databases and stand-in lookup results, covering routing, cached facts, chat isolation,
+    retry context and deletion. Python/browser syntax, HTML IDs and whitespace checked; version 0.34.3 is serving
+    over HTTP/HTTPS and the model loaded after restart. Jeremy completed the playtest and approved the feature
+    on 2026-10-18.
 - **Search history** (version 0.34.2), added before Phase 35.
   - Records web, Wikipedia, weather, news, Stack Overflow, dictionary, movie and TV lookup attempts, including
     command aliases and automatic web/weather/news lookups. Excludes jokes, quotes, cat facts, games and usage-only
