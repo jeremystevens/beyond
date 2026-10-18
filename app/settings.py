@@ -14,7 +14,7 @@ from functools import wraps
 from pathlib import Path
 from urllib.parse import urlparse
 
-from app import config
+from app import config, personas
 
 FILE = config.DATA_DIR / 'settings.json'
 PROFILE_KEYS = ('engine_threads', 'engine_context', 'engine_cache', 'engine_thinking')
@@ -63,7 +63,10 @@ def validate(changes):
     for key, value in changes.items():
         if key not in config.DEFAULTS:
             raise SettingsError(f'Unknown setting: {key}')
-        if key == 'ai_server_url':
+        if key == 'persona':
+            if not isinstance(value, str) or value not in personas.PERSONAS:
+                raise SettingsError('Choose Normal, Professional, Sarcastic, Evil or Funny.')
+        elif key == 'ai_server_url':
             value = str(value or '').strip().rstrip('/')
             if value:
                 if '://' not in value:

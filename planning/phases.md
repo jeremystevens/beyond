@@ -315,6 +315,16 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
   keeping Settings in the header; the revised mobile layout is ready for the owner to review.
 - **Done when:** switching models from the page works, and the chat uses the new one.
 
+### Phase 34a: Personas (implemented 2026-10-18; playtest pending)
+- A small addition before downloads: Settings → Persona offers Normal, Professional, Sarcastic, Evil and Funny.
+- Normal keeps the existing personality. Other presets add chat role instructions without replacing house rules,
+  memories, accuracy or tool limitations; one-off AI jobs keep their own prompts.
+- Save persona changes only the speaking style. It applies to the next reply, persists locally, and needs no
+  app restart or model reload. Reset to defaults restores Normal.
+- Persona can be selected from phones as well as the host PC, like house rules. General settings stay local.
+- **Done when:** the saved style affects the next chat reply, switching back restores Normal, and the control
+  works on phone and desktop. Jeremy will playtest; inspect logs if anything fails.
+
 ### Phase 35: Model downloads
 - Download models from Hugging Face inside the app, with **fingerprint checks**, resume after a broken download,
   a free-disk-space check, and license links for models that need the maker's terms accepted.

@@ -20,7 +20,7 @@ things up, keeps you organised, reads photos, listens, talks back and plays game
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.143-d96326?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=0d1117)
 ![License](https://img.shields.io/badge/License-MIT-d96326?style=for-the-badge&labelColor=0d1117)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-d96326?style=for-the-badge&logo=windows&logoColor=white&labelColor=0d1117)
-![Version](https://img.shields.io/badge/Version-0.34.0-d96326?style=for-the-badge&labelColor=0d1117)
+![Version](https://img.shields.io/badge/Version-0.34.1-d96326?style=for-the-badge&labelColor=0d1117)
 
 ![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local-d96326?style=for-the-badge&logo=shield&logoColor=white&labelColor=0d1117)
 ![AI](https://img.shields.io/badge/AI-OpenAI--compatible%20%C2%B7%20llama.cpp-d96326?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117)
@@ -102,7 +102,7 @@ still arrive), and lets your other devices use it over a **secure address on you
 ◆  A phone-friendly Models page: sizes, load/unload/switch and settings saved for each model
 ◆  Answers stream in as they're written, with Stop, Try again and 👍 👎 ratings
 ◆  A stats line under each answer: model, tokens, time and speed (t/s)
-◆  Its own personality, plus house rules it follows in every chat
+◆  Choose Normal, Professional, Sarcastic, Evil or Funny in Settings, alongside your house rules
 ◆  Saved, searchable conversations in a side panel; rename, delete, pick up later
 ◆  Looks up the weather, news and the web by itself, and shows you exactly what it found
 
@@ -539,12 +539,14 @@ your user's startup programs.
 <a id="settings"></a>
 ## `▸ SETTINGS`
 
-Click **Settings** at the top of the chat page (or open `http://127.0.0.1:7770/settings`). Settings can only be changed
-from the PC BEYOND runs on; other devices see them read-only. The Models page below lets your home-network
-devices select and tune models already added on the PC.
+Click **Settings** at the top of the chat page (or open `http://127.0.0.1:7770/settings`). Engine paths, network and
+other general settings can only be changed on the PC BEYOND runs on. **Persona** and **House rules** can also be
+changed from your phone or another home-network device. The Models page lets those devices select and tune
+models already added on the PC.
 
 | Setting | What it does |
 |---|---|
+| **Persona** | [Normal, Professional, Sarcastic, Evil or Funny](#persona); applies to the next chat reply without restarting. |
 | **AI engine** | BEYOND's built-in engine (`llama-server.exe` + a `.gguf` model, threads, context, cache, thinking) or an AI server you already run. |
 | **Models** | [Load, unload or switch models](#models), with CPU threads, context, cache and thinking saved per model. |
 | **AI server** | The address of your OpenAI-compatible AI server, with **Test connection**. Takes effect at once. |
@@ -555,6 +557,38 @@ devices select and tune models already added on the PC.
 | **Popups & tray** | Popups per kind, quiet hours, a test popup, **Start BEYOND with Windows**. |
 | **Port** | 7770 by default; ports other AI apps rely on, and ports already in use, are refused. |
 | **Allow other devices** | Off by default. When on, BEYOND lists its addresses and offers its certificate. |
+
+<a id="persona"></a>
+### Persona
+
+<details>
+<summary><b>Choose BEYOND's speaking style</b></summary>
+
+<br>
+
+Open **Settings → Persona**, choose a style and press **Save persona**. That button saves just the persona,
+so it does not apply unfinished edits elsewhere on the page. The main **Save** button also includes it when
+saving all settings from the host PC.
+
+| Persona | Style |
+|---|---|
+| **Normal** | BEYOND's usual friendly, witty and helpful personality; the default. |
+| **Professional** | Clear, polished, calm and businesslike. |
+| **Sarcastic** | Dry wit and affectionate, playful sarcasm. |
+| **Evil** | Fictional supervillain flair: dramatic, mischievous and playfully ominous. |
+| **Funny** | More jokes, amusing comparisons and lighthearted observations. |
+
+The choice adds a short role instruction to the chat system prompt. House rules, saved memories, factual
+accuracy and BEYOND's actual capabilities still apply. Normal uses the existing personality without an extra
+role block. The selected persona applies to the **next AI reply** in existing and new chats, across devices.
+An answer already being written keeps its current instructions.
+
+The choice is saved locally in `data/settings.json` and survives app restarts. Switching persona does not restart
+BEYOND, reload the model or rewrite old answers. One-off jobs such as memory extraction, the study quiz and
+picture-prompt improvement keep their own task instructions. **Reset to defaults** returns the persona to Normal.
+Persona changes are available on phones as well as on the PC running BEYOND.
+
+</details>
 
 <a id="models"></a>
 ### Models
@@ -628,6 +662,7 @@ BEYOND's page talks to a small JSON API, which you can use from scripts too.
 | `POST` | `/api/settings/test` · `/api/settings/reset` | Test an AI server address · reset to defaults |
 | `POST` | `/api/restart` | Restart BEYOND after a port or network change |
 | `POST` | `/api/engine/restart` | Restart the built-in AI engine |
+| `POST` | `/api/persona` | Save a persona preset (`{"persona":"sarcastic"}`); available to home-network devices |
 | `GET` | `/api/models` | Model list, file sizes, saved settings and live engine state |
 | `POST` | `/api/models/load` · `/api/models/unload` | Load a listed model by ID · unload it |
 | `POST` | `/api/models/profile` | Save settings for a listed model by ID |
@@ -694,7 +729,8 @@ beyond/
 │   ├── engine.py            ← The only place BEYOND talks to the AI
 │   ├── builtin_engine.py    ← Starts, watches and stops the built-in llama.cpp engine
 │   ├── models.py            ← Local model list, file sizes, switching and per-model profiles
-│   ├── personality.md       ← BEYOND's personality (the system prompt)
+│   ├── personality.md       ← BEYOND's base personality (the system prompt)
+│   ├── personas.py          ← Normal, Professional, Sarcastic, Evil and Funny chat styles
 │   ├── commands.py          ← Every slash command, its help and its buttons
 │   ├── chats.py             ← Saved conversations (SQLite)
 │   ├── memory.py            ← Saved facts, automatic pickup, conversation recall
@@ -746,8 +782,9 @@ beyond/
    other devices reach the AI only through BEYOND's own page.
 
 ⛨  Other devices are off by default. When you allow them, they can chat but can't
-   change general settings or add file paths. They can load and tune models already listed
-   on the Models page. There's no login yet (Phase 38), so keep it off on shared networks.
+   change general settings or add file paths. They can choose a persona, edit house rules,
+   and load or tune models already listed on the Models page. There's no login yet
+   (Phase 38), so keep it off on shared networks.
 
 ⛨  The secure address (https://…:7771) uses BEYOND's own certificate authority. It's
    name-constrained to home-network addresses and this PC's name, so even if its key
@@ -806,6 +843,7 @@ BEYOND is being built in **43 small phases**, each one tested before the next. T
 | ✅ 11 · Automatic memory | ✅ 21 · Photos and `/scan` | ✅ 32 · Hangman |
 | | | ✅ 33 · Built-in engine |
 | | | 34 · Models page (tested; mobile navigation revised) |
+| | | 34a · Persona selector (ready to try) |
 
 </details>
 

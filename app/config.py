@@ -6,7 +6,7 @@ which is never committed and only holds what differs from these defaults, so a n
 """
 from pathlib import Path
 
-VERSION = '0.34.0'
+VERSION = '0.34.1'
 PHASE = 34
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -34,6 +34,7 @@ NETWORK_HOST = '0.0.0.0'        # other devices on the network can too ("Allow o
 
 # Settings a person can change. These are the fresh-install values; changes go in data/settings.json.
 DEFAULTS = {
+    'persona': 'normal',          # chat speaking style; applies to the next reply
     # Where BEYOND's AI comes from: 'builtin' = BEYOND starts llama.cpp itself (app/builtin_engine.py),
     # 'server' = an AI server you already run (Local AI Studio's engine, LM Studio, Ollama…).
     'ai_mode': 'builtin',

@@ -10,7 +10,7 @@ from pathlib import PureWindowsPath
 
 import httpx
 
-from app import builtin_engine, config, memory, rules, settings
+from app import builtin_engine, config, memory, personas, rules, settings
 
 FALLBACK_PROMPT = ("You are BEYOND, a friendly and helpful assistant that runs entirely on the user's own computer. "
                    "Answer clearly and get to the point.")
@@ -56,13 +56,13 @@ def _one_off(payload):
 
 
 def system_prompt():
-    """BEYOND's personality (app/personality.md), then the house rules, then the saved facts. Read on every message,
-    so changes to any of them apply straight away. All three rarely change, so the AI server can keep reusing them."""
+    """Base personality, selected persona, house rules and saved facts. Read for every chat reply so changing
+    persona takes effect without restarting. One-off jobs keep their own task-specific instructions."""
     try:
         personality = config.PERSONALITY_FILE.read_text(encoding='utf-8').strip() or FALLBACK_PROMPT
     except OSError:
         personality = FALLBACK_PROMPT
-    return personality + rules.prompt_block() + memory.prompt_block()
+    return personality + personas.prompt_block(settings.load()['persona']) + rules.prompt_block() + memory.prompt_block()
 
 
 def history_window(total):

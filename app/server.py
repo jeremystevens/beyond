@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
-                 https, memory, models, notes, notify, ports, reminders, rules, settings)
+                 https, memory, models, notes, notify, personas, ports, reminders, rules, settings)
 
 from app import builtin_engine, photo_jobs, image_jobs, speech_jobs, blackjack, games, hangman, study_quiz, tictactoe, trivia
 from app.tools import scan, speech, speech_to_text
@@ -200,7 +200,7 @@ class ConnectionTest(BaseModel):
 
 
 def is_this_pc(request: Request):
-    """Settings can only be changed from the PC BEYOND runs on (until there's a login, Phase 38)."""
+    """General settings and host paths are local-PC-only; persona and house rules have narrow endpoints."""
     return bool(request.client) and request.client.host in ('127.0.0.1', '::1', 'localhost')
 
 
@@ -790,6 +790,7 @@ def _settings_view(request, values=None):
     return {
         'values': values,
         'defaults': config.DEFAULTS,
+        'personas': personas.options(),
         'running': running,
         'restart_needed': [key for key in config.RESTART_SETTINGS if values[key] != running[key.replace('web_', '')]],
         'network_addresses': [{'adapter': a, 'address': ip} for a, ip in ports.network_addresses()],
@@ -800,6 +801,23 @@ def _settings_view(request, values=None):
 @app.get('/api/settings')
 def get_settings(request: Request):
     return _settings_view(request)
+
+
+class PersonaChoice(BaseModel):
+    model_config = {'extra': 'forbid'}
+    persona: str = Field(min_length=1, max_length=30)
+
+
+@app.post('/api/persona')
+def save_persona(body: PersonaChoice):
+    """A speaking-style preference, editable from other devices like the existing house rules.
+    Only the preset name can be changed here, never engine paths or general settings."""
+    try:
+        values = settings.save({'persona': body.persona})
+    except settings.SettingsError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=400)
+    logging.info('Persona changed to %s', values['persona'])
+    return {'persona': values['persona']}
 
 
 @app.post('/api/settings')

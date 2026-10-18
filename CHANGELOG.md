@@ -6,6 +6,19 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Personas** (version 0.34.1), a small addition before Phase 35.
+  - Settings → Persona offers Normal, Professional, Sarcastic, Evil and Funny, with a description for each style.
+    Save persona applies just that choice; the main Settings Save includes it too. Normal is the default.
+  - A selected preset adds role instructions to the chat system prompt. House rules, saved memories, honesty and
+    task accuracy remain in place. One-off AI jobs retain their own instructions.
+  - Applies to the next reply in existing and new chats without restarting BEYOND or reloading a model. The saved
+    choice survives restarts; Reset to defaults returns to Normal. Answers already being written keep their prompt.
+  - The responsive control works on phones and computers. Like house rules, persona can be changed from a
+    home-network device through a narrow preset-only endpoint; general settings and host paths stay local-PC-only.
+  - README styling retained; settings guide, API list, project tree, personality and phase plan updated.
+    Python/browser syntax, HTML IDs, documentation formatting and whitespace checked; version 0.34.1 and all
+    five preset choices are served over HTTP/HTTPS. Persona playtest pending; no automated chat/persona
+    playthrough was run.
 - **Phase 34: Models page** (version 0.34.0).
   - Models links from chat and Settings open a responsive page with file sizes, live loading status,
     load/unload/switch controls and a settings panel for each model. Cards stack on phones; names and paths wrap,

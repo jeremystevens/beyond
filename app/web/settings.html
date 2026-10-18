@@ -33,6 +33,10 @@
     .quiet { margin-top: 14px; } .quiet input[type=time] { width: auto; }
     .row input[type=text] { flex: 1; min-width: 200px; }
     input[type=number] { width: 130px; }
+    #persona { width: 100%; min-height: 44px; padding: 10px 12px; border-radius: 12px; font: inherit;
+               font-size: 16px; color: var(--text); background: var(--bg); border: 1px solid var(--border); }
+    #personaSave { min-height: 44px; }
+    #personaResult { overflow-wrap: anywhere; }
     .small { font-size: 0.82rem; color: var(--muted); }
     .result { font-size: 0.88rem; margin-top: 8px; display: flex; gap: 8px; align-items: center; min-height: 1.2em; }
     .switch { display: flex; gap: 12px; align-items: flex-start; margin-top: 14px; cursor: pointer; }
@@ -68,14 +72,25 @@
     <h1>Settings</h1>
 
     <div class="banner warn" id="viewOnly" hidden>
-      You're on another device, so you can look but not change anything. Settings can only be changed on the PC
-      BEYOND runs on.
+      You're on another device. Persona and house rules can be changed here; engine, network and other general
+      settings can only be changed on the PC BEYOND runs on.
     </div>
     <div class="banner warn" id="restartBanner" hidden>
       <span id="restartText">Restart BEYOND for the new port or network setting to take effect.</span>
       <button type="button" id="restart">Restart BEYOND now</button>
     </div>
     <div class="banner" id="message" hidden></div>
+
+    <section aria-labelledby="personaHeading">
+      <h2 id="personaHeading">Persona</h2>
+      <p class="hint">Choose how BEYOND speaks in chat. Your choice applies to the next AI reply, across chats and
+        devices. It stays saved without restarting the app or reloading your model.</p>
+      <label for="persona">Speaking style</label>
+      <select id="persona" aria-describedby="personaDescription" disabled><option value="normal">Normal</option></select>
+      <p class="hint" id="personaDescription" style="margin-top:10px"></p>
+      <div class="row"><button type="button" id="personaSave" disabled>Save persona</button></div>
+      <div class="result" id="personaResult" role="status" aria-live="polite"></div>
+    </section>
 
     <section>
       <h2>AI engine</h2>
@@ -290,8 +305,8 @@
         <input type="checkbox" id="allow_network">
         <span><b>Allow other devices on my network</b>
           <span class="small">Lets your phone or another computer at home open BEYOND. Leave it off on shared
-            networks (work, school, shared Wi-Fi): there's no login yet. Other devices can chat, but only this PC can
-            change settings.</span></span>
+            networks (work, school, shared Wi-Fi): there's no login yet. Other devices can chat, choose a persona,
+            edit house rules and manage listed models; engine paths and general settings stay on this PC.</span></span>
       </label>
       <div class="addresses" id="addresses" hidden></div>
     </section>
@@ -306,7 +321,7 @@
     const $ = id => document.getElementById(id);
     const checkboxes = ['engine_enabled', 'engine_thinking', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
                         'popup_errors', 'start_with_windows', 'vision_enabled', 'image_enabled', 'speech_enabled', 'speech_auto'];
-    const fields = ['ai_mode', 'engine_executable', 'engine_model', 'engine_threads', 'engine_context', 'engine_cache',
+    const fields = ['persona', 'ai_mode', 'engine_executable', 'engine_model', 'engine_threads', 'engine_context', 'engine_cache',
                     'ai_server_url', 'ai_model', 'web_port', 'quiet_start', 'quiet_end',
                     'vision_executable', 'vision_model', 'vision_mmproj', 'vision_threads', 'vision_timeout',
                     'image_executable', 'image_model', 'image_threads', 'image_timeout',
@@ -323,15 +338,24 @@
 
     function fill(v) {
       view = v;
+      $('persona').replaceChildren();
+      for (const preset of v.personas) {
+        const option = document.createElement('option');
+        option.value = preset.id; option.textContent = preset.name;
+        $('persona').appendChild(option);
+      }
       for (const f of fields) {
         if (checkboxes.includes(f)) $(f).checked = v.values[f];
         else $(f).value = v.values[f];
       }
+      $('persona').disabled = $('personaSave').disabled = false;
+      describePersona();
+      $('personaResult').textContent = '';
       showMode();
       $('portDefault').textContent = `(default ${v.defaults.web_port})`;
       $('portShown').textContent = v.running.port;
-      // House rules stay editable from any device, like /rule in a chat; the rest is this-PC-only.
-      document.querySelectorAll('input:not(#newRule), select, #save, #reset, #test, #popupTest, #engineRestart').forEach(el => el.disabled = !v.can_change);
+      // Persona and house rules stay editable from other devices; general settings remain this-PC-only.
+      document.querySelectorAll('input:not(#newRule), select:not(#persona), #save, #reset, #test, #popupTest, #engineRestart').forEach(el => el.disabled = !v.can_change);
       $('viewOnly').hidden = v.can_change;
       $('restartBanner').hidden = !(v.can_change && v.restart_needed.length);
       const list = $('addresses');
@@ -406,6 +430,7 @@
 
     function current() {
       return {
+        ...($('persona').value !== view.values.persona ? { persona: $('persona').value } : {}),
         ai_mode: $('ai_mode').value, engine_executable: $('engine_executable').value,
         engine_model: $('engine_model').value, engine_threads: Number($('engine_threads').value),
         engine_context: Number($('engine_context').value), engine_cache: $('engine_cache').value,
@@ -425,6 +450,30 @@
         ...Object.fromEntries(checkboxes.map(f => [f, $(f).checked])),
       };
     }
+
+    // ---------- persona ----------
+    function describePersona() {
+      const preset = view?.personas.find(p => p.id === $('persona').value);
+      $('personaDescription').textContent = preset?.description || '';
+    }
+    $('persona').onchange = () => {
+      describePersona();
+      $('personaResult').textContent = $('persona').value === view?.values.persona
+        ? '' : 'Press Save persona to use this style.';
+    };
+    $('personaSave').onclick = async () => {
+      const select = $('persona'), button = $('personaSave'), out = $('personaResult');
+      const choice = select.value;
+      select.disabled = button.disabled = true;
+      out.textContent = 'Saving…';
+      try {
+        const data = await call('/api/persona', { persona: choice });
+        view.values.persona = data.persona;
+        const preset = view.personas.find(p => p.id === data.persona);
+        out.textContent = (preset?.name || 'Persona') + ' saved. It applies to your next AI reply.';
+      } catch (error) { out.textContent = error.message; }
+      finally { select.disabled = button.disabled = false; }
+    };
 
     // ---------- the AI engine ----------
     function showMode() {
