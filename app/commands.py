@@ -20,7 +20,8 @@ import httpx
 from app import briefing, chats, checklists, expenses, learning, memory, notes, reminders, rules, settings
 from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewrite, weather, web_search, wikipedia
 from app.tools.calculator import calculate
-from app.tools.dice import roll_dice
+from app.tools.dice import roll_result
+from app import games
 from app.tools.units import convert
 from app.tools.imagine import HELP as IMAGINE_HELP
 from app.tools import speech
@@ -38,6 +39,7 @@ class Reply:
     toast: str = ''
     image: str = ''            # a picture under the text, as a data: URL (e.g. /qr's code)
     saved_command: str = ''    # how to save the typed command instead (e.g. /qr wifi with the password hidden)
+    game: dict | None = None  # menu or dice result, saved and rendered by the browser
     speech_text: str | None = None  # empty string = read the last AI answer; None = no speech request
     on_saved: Callable = None  # called with the chat's id once the reply is saved (e.g. where a reminder goes off)
 
@@ -754,17 +756,38 @@ def _qr(args):
 
 # ---------- dice ----------
 
+def _games(args=''):
+    if args.strip().lower() == 'stats':
+        return Reply(games.stats_text(), [[button('Back to games', 'games:menu:')]])
+    if args.strip().lower() not in ('', 'help', '?'):
+        return Reply(games.HELP)
+    return Reply('Games\nRoll dice or flip a coin. Pick a quick roll below, or type /roll with your own dice.',
+                 [[button('Roll d6', 'roll:again:d6'), button('Roll d20', 'roll:again:d20'),
+                   button('Flip a coin', 'roll:again:coin')],
+                  [button('Game stats', 'games:stats:')]], game=games.menu())
+
+
+def _games_button(what, detail):
+    if what == 'menu':
+        return _games()
+    if what == 'stats':
+        return _games('stats')
+    return None
+
+
 def _roll(args):
-    text = roll_dice(args)
-    expression = ' '.join(args.split())[:100]
-    rolled = text.startswith('🪙') or (' = ' in text and 'Usage' not in text)   # a coin, or a result with a total
-    if not rolled:
-        return Reply(text)   # usage or an error: nothing to roll again
-    return Reply(text, [[button('🎲 Roll again', f'roll:again:{expression}')]])
+    text, result = roll_result(args)
+    if result is None:
+        return Reply(text)
+    expression = ' '.join(args.split())[:80]
+    games.record('coin' if result['type'] == 'coin' else 'dice',
+                 score=int(result['total']) if result['type'] == 'dice' else None)
+    return Reply(text, [[button('🎲 Roll again', f'roll:again:{expression}'),
+                         button('Games', 'games:menu:'), button('Game stats', 'games:stats:')]], game=result)
 
 
 def _roll_button(what, expression):
-    """🎲 Roll again: a new roll of the same dice, replacing the old result."""
+    """A fresh roll of the same dice, replacing the old result."""
     if what == 'again':
         return _roll(expression)
     return None
@@ -820,6 +843,7 @@ def _help(args=''):
 
 
 COMMANDS = [
+    Command('games', 'Open the games menu or see shared game stats (/games stats)', '/games', _games, group='Games'),
     Command('speak', 'Read the last AI answer, or supplied text (up to 1800 characters), with local Kokoro/Piper audio; enable Spoken replies in Settings',
             '/speak Hello from BEYOND', _speak, group='Voice'),
     Command('imagine', 'Make a local picture with presets, an optional prompt helper, and automatic defect avoidance',
@@ -835,7 +859,7 @@ COMMANDS = [
             convert),
     Command('time', 'The time in a city, several cities, or convert a time between places',
             '/time 3pm London to Tokyo', world_time),
-    Command('roll', 'Roll dice or flip a coin', '/roll 2d20+3', _roll),
+    Command('roll', 'Roll visual dice or flip a coin; keep/drop, repeats and saved stats', '/roll 2d20+3', _roll, group='Games'),
     Command('web', 'Search the web (DuckDuckGo)', '/web best hiking trails near Denver',
             _online(web_search.search_web, 'DuckDuckGo'), aliases=('search',), group='Look things up'),
     Command('weather', 'Weather now, the next hours and 3 days', '/weather San Jose, CA',
@@ -918,6 +942,7 @@ def run(text):
 
 # Button handlers: the first part of a button's action picks the handler; the rest is passed to it.
 ACTIONS = {
+    'games': _games_button,
     'rules': _rules_button,
     'roll': _roll_button,
     'mem': _memory_button,

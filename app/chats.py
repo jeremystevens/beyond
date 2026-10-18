@@ -55,7 +55,7 @@ def initialize():
         # image (Phase 15): a picture under a message, as a data: URL (e.g. a /qr code).
         for column in ('rating INTEGER', 'reason TEXT', 'retry_of INTEGER', 'lookup TEXT', 'image TEXT', 'replaces INTEGER',
                        'audio BLOB', 'speech_state TEXT', 'speech_error TEXT', 'speech_engine TEXT',
-                       'speech_truncated INTEGER NOT NULL DEFAULT 0'):
+                       'speech_truncated INTEGER NOT NULL DEFAULT 0', 'game TEXT'):
             if column.split()[0] not in columns:
                 db.execute('ALTER TABLE messages ADD COLUMN ' + column)
 
@@ -90,15 +90,15 @@ def _buttons(raw):
 
 
 def add_message(chat_id, role, content, stopped=False, kind='chat', buttons=None, retry_of=None, lookup=None,
-                image=None, replaces=None):
+                image=None, replaces=None, game=None):
     """Save a message. `buttons`: rows of {'label', 'action'} to show under it (see app/commands.py)."""
     now = _now()
     with connect() as db:
         message_id = db.execute('INSERT INTO messages (chat_id, role, content, stopped, created_at, kind, buttons, '
-                                'retry_of, lookup, image, replaces) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                                'retry_of, lookup, image, replaces, game) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                                 (chat_id, role, content, int(stopped), now, kind, _buttons_json(buttons),
                                  retry_of, json.dumps(lookup, ensure_ascii=False) if lookup else None,
-                                 image or None, replaces)).lastrowid
+                                 image or None, replaces, json.dumps(game, ensure_ascii=False) if game else None)).lastrowid
         db.execute('UPDATE chats SET updated_at = ? WHERE id = ?', (now, chat_id))
     return message_id
 
@@ -106,16 +106,16 @@ def add_message(chat_id, role, content, stopped=False, kind='chat', buttons=None
 def get_message(message_id):
     """One message with its buttons, or None."""
     with connect() as db:
-        row = db.execute('SELECT id, chat_id, role, content, kind, buttons, rating, reason, speech_state, speech_error, speech_engine, speech_truncated FROM messages WHERE id = ?',
+        row = db.execute('SELECT id, chat_id, role, content, kind, buttons, rating, reason, speech_state, speech_error, speech_engine, speech_truncated, game FROM messages WHERE id = ?',
                          (message_id,)).fetchone()
-    return {**dict(row), 'buttons': _buttons(row['buttons'])} if row else None
+    return {**dict(row), 'buttons': _buttons(row['buttons']), 'game': _lookup(row['game'])} if row else None
 
 
-def update_message(message_id, content, buttons):
+def update_message(message_id, content, buttons, game=None):
     """Change a message in place (what pressing one of its buttons does)."""
     with connect() as db:
-        db.execute('UPDATE messages SET content = ?, buttons = ? WHERE id = ?',
-                   (content, _buttons_json(buttons), message_id))
+        db.execute('UPDATE messages SET content = ?, buttons = ?, game = ? WHERE id = ?',
+                   (content, _buttons_json(buttons), json.dumps(game, ensure_ascii=False) if game else None, message_id))
 
 
 def set_buttons(message_id, buttons, kind=None):
@@ -207,10 +207,10 @@ def get(chat_id):
         if chat is None:
             return None
         messages = db.execute('SELECT id, role, content, stopped, created_at, kind, buttons, lookup, image, speech_state, speech_error, '
-                              'speech_engine, speech_truncated FROM messages '
+                              'speech_engine, speech_truncated, game FROM messages '
                               'WHERE chat_id = ? ORDER BY id', (chat_id,)).fetchall()
     return {**dict(chat), 'messages': [{**dict(m), 'stopped': bool(m['stopped']), 'buttons': _buttons(m['buttons']),
-                                        'lookup': _lookup(m['lookup']), 'speech': speech_info(m)} for m in messages]}
+                                        'lookup': _lookup(m['lookup']), 'speech': speech_info(m), 'game': _lookup(m['game'])} for m in messages]}
 
 
 def _lookup(raw):

@@ -6,6 +6,24 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 27: games menu and dice** (version 0.27.0).
+  - Added /games, /games stats and a Games header button that preserves message drafts and attached photos.
+    The menu offers quick dice/coin rolls and marks later games with their planned phases.
+  - /roll now supplies saved visual dice/coin results from the same secure server roll as the original text,
+    including keep/drop markings, repeats and totals. Roll again creates a new result; reloads reuse the saved one.
+  - Added shared local score/stat storage for completed plays, exact integer scores, best scores and win/loss/draw
+    outcomes. Dice/coin stats work across chats and survive chat deletion; concurrent updates are transactional.
+  - Preserved the existing dice notation and limits. Large modifiers keep exact totals; visual results cap at
+    60 dice while retaining the full text. Games stay outside the AI's conversation context.
+  - Updated shared /help and command discovery, README, personality and phase plan.
+  - Verification: all 80 tests passed (13 games/dice tests plus 67 existing regressions), including one-roll
+    display accuracy, notation/limits, saved rerolls, stats after chat deletion, concurrent score updates and
+    exact large totals. Chrome checked quick rolls, coin flips, keep/drop visuals, saved reloads, stats,
+    draft preservation, visible play controls, the 60-die display cap, and mobile/desktop layouts.
+    Live HTTP/HTTPS and restart persistence passed; Python/browser syntax, dependencies and whitespace checked.
+    Owner play check pending.
+
+
 - **A secure address for other devices** (Phase 26 follow-up, owner's report: 🎤 didn't work from another PC).
   Browsers only allow the microphone on https:// pages or on the PC itself. With network access on, `beyond.py`
   now also serves BEYOND over HTTPS on the next port (7771), next to the usual http://…:7770.

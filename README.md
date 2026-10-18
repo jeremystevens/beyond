@@ -4,13 +4,32 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 26 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> **Status: early development (Phase 27 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
 > browser, by typing or by speaking (🎤): it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
 > slash commands (/calc, /convert, /time, /roll, /weather, /news, /web, /wiki, /define, /movie, /joke, /qr,
-> /note, /list, /spent, /remind, /morning, /scan, /look, /imagine, /speak, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
+> /note, /list, /spent, /remind, /morning, /scan, /look, /imagine, /speak, /games, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
 > arrives in Phase 33.
+
+## Games and dice
+
+Open **Games** in the header or type **/games**. Dice and coins are available now; the menu shows the planned
+phases for tic-tac-toe, trivia, study quiz, blackjack and hangman. Quick buttons roll a d6 or d20, flip a coin,
+or show **Game stats**. Opening Games keeps any message draft or photo attachment in place.
+
+- **/roll** rolls a d6. **/roll 2d20+3**, **/roll 4d6kh3**, **/roll 4d6dl1**, **/roll adv+5**,
+  **/roll dis**, **/roll d%**, **/roll 6x 4d6kh3** and **/roll coin** keep the bot's existing rules.
+- Results show dice faces or values, dropped dice, repeated-roll totals and an overall total. The plain text
+  and the visual use the same server-generated roll; reopening a saved chat never rolls again.
+  Large rolls show at most 60 visual dice, with every result still in the text above.
+- **Roll again** makes a fresh roll and updates that result. **Games** returns to the menu.
+- **/games stats** shows totals shared across chats and devices on this BEYOND installation. Each successful
+  /roll or Roll again counts as one play, including any repeats requested together. Coin flips have a separate
+  play count; dice track cumulative totals and the highest total. Invalid input and opening menus do not count.
+- Shared stats survive restarting BEYOND and deleting a chat. The local, gitignored SQLite database stores
+  these totals in `game_stats`; `app/games.py` also supports scores and win/loss/draw records for later games.
+  No Telegram accounts, imported bot scores or AI calls are needed.
 
 ## Spoken replies
 

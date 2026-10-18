@@ -258,8 +258,12 @@ Studio's engine on 10086 for most of development; that must never become the def
 
 The game **rules** come from the bot unchanged; only the **screens** are new (see the brainstorm file).
 
-### Phase 27: Games menu and dice
+### Phase 27: Games menu and dice (implemented 2026-10-18; all 80 tests passed; browser verified; owner play check pending)
 - A games menu, `/roll` with a nicer dice display, and shared score / stats storage.
+- Games header button and /games open quick dice/coin choices; later games show their planned phases.
+- Saved visuals use the actual server roll, including kept/dropped dice, repeats and totals. /games stats
+  shows shared local totals, independent of chat deletion; score/outcome storage is ready for later games.
+- Shared /help, command menu, README, personality and changelog updated.
 - **Done when:** the menu opens and dice rolls show.
 
 ### Phase 28: Tic-tac-toe

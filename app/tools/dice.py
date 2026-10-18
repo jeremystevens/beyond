@@ -38,7 +38,7 @@ def _keep(rolls, mode, n):
     return set(order[:len(rolls) - n])                                   # dh
 
 
-def roll_expression(expression):
+def roll_expression(expression, structured=False):
     """Return (total, detail text, natural d20 value or None)."""
     text = expression.lower().replace(' ', '')
     text = re.sub(r'^adv', '2d20kh1', text)
@@ -46,6 +46,7 @@ def roll_expression(expression):
     if not text:
         raise DiceError('Nothing to roll.')
     position, total, parts, terms, natural = 0, 0, [], 0, None
+    groups = []
     for match in TERM.finditer(text):
         if match.start() != position or (position and not match.group(1)):
             raise DiceError(f'I could not read "{expression}".')
@@ -68,6 +69,7 @@ def roll_expression(expression):
             raise DiceError(f'Dice need between 2 and {MAX_SIDES} sides.')
         rolls = _roll(count, sides)
         kept = _keep(rolls, match.group(4).lower(), int(match.group(5))) if match.group(4) else set(range(count))
+        groups.append({'sides': sides, 'values': rolls, 'kept': sorted(kept), 'sign': sign})
         subtotal = sum(rolls[i] for i in kept)
         total += sign * subtotal
         shown = ', '.join(str(r) if i in kept else f'({r})' for i, r in enumerate(rolls))
@@ -76,39 +78,51 @@ def roll_expression(expression):
             natural = rolls[next(iter(kept))]
     if position != len(text):
         raise DiceError(f'I could not read "{expression}".')
-    return total, ' '.join(parts), natural
+    result = (total, ' '.join(parts), natural)
+    return (*result, groups) if structured else result
 
 
-def roll_dice(expression: str = '') -> str:
+def roll_result(expression=''):
+    """Return the original text plus the same roll's structured display; never roll twice."""
     expression = re.sub(r'\s+', ' ', (expression or '').strip())
     lowered = expression.lower()
     if lowered in ('help', '?'):
-        return USAGE
+        return USAGE, None
     if lowered in ('coin', 'a coin', 'flip', 'coin flip'):
-        return f"🪙 {'Heads' if secrets.randbelow(2) else 'Tails'}!"
+        face = 'Heads' if secrets.randbelow(2) else 'Tails'
+        return f"🪙 {face}!", {'type': 'coin', 'face': face}
     if len(expression) > 80:
-        return '🎲 Please keep dice rolls under 80 characters.'
+        return '🎲 Please keep dice rolls under 80 characters.', None
     repeats, notation = 1, expression or '1d6'
     match = re.match(r'^(\d+)\s*[x×]\s*(.+)$', notation, re.I)
     if match:
         repeats, notation = int(match.group(1)), match.group(2)
         if not 1 <= repeats <= MAX_REPEATS:
-            return f'🎲 Repeat a roll at most {MAX_REPEATS} times.'
+            return f'🎲 Repeat a roll at most {MAX_REPEATS} times.', None
     if notation.isdigit():
-        notation = f'1d{notation}'  # "/roll 20" means one twenty-sided die
+        notation = f'1d{notation}'
     try:
-        results = [roll_expression(notation) for _ in range(repeats)]
+        results = [roll_expression(notation, structured=True) for _ in range(repeats)]
     except DiceError as exc:
-        return f'🎲 {exc}\n\n{USAGE}'
+        return f'🎲 {exc}\n\n{USAGE}', None
+    data = {'type': 'dice', 'notation': notation,
+            'rolls': [{'total': str(total), 'detail': detail, 'natural': natural, 'groups': groups}
+                      for total, detail, natural, groups in results],
+            'total': str(sum(row[0] for row in results))}
     if repeats == 1:
-        total, detail, natural = results[0]
+        total, detail, natural, _ = results[0]
         line = f'🎲 {notation}: {detail} = {total}'
         if natural == 20:
             line += '\n✨ Natural 20!'
         elif natural == 1:
             line += '\n💀 Natural 1!'
-        return line
+        return line, data
     lines = [f'🎲 {repeats}× {notation}:']
-    lines += [f'{i}. {detail} = {total}' for i, (total, detail, _) in enumerate(results, 1)]
-    lines.append(f'Total of all rolls: {sum(total for total, _, _ in results)}')
-    return '\n'.join(lines)
+    lines += [f'{i}. {detail} = {total}' for i, (total, detail, _, _) in enumerate(results, 1)]
+    lines.append(f'Total of all rolls: {data["total"]}')
+    return '\n'.join(lines), data
+
+
+def roll_dice(expression=''):
+    """Plain-text API kept for existing callers."""
+    return roll_result(expression)[0]

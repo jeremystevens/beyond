@@ -16,10 +16,11 @@ from pydantic import BaseModel, Field
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
                  memory, notes, notify, ports, reminders, rules, settings)
 
-from app import photo_jobs, image_jobs, speech_jobs
+from app import photo_jobs, image_jobs, speech_jobs, games
 from app.tools import scan, speech, speech_to_text
 
 chats.initialize()
+games.initialize()
 rules.initialize()
 memory.initialize()
 learning.initialize()
@@ -443,14 +444,14 @@ def _command_reply(chat_id, content):
                 reply.text = 'There is no AI answer to read in this chat yet.\n\n' + speech.HELP
                 reply.speech_text = None
         message_id = chats.add_message(current, 'assistant', reply.text, kind='command', buttons=reply.buttons,
-                                       image=reply.image)
+                                       image=reply.image, game=reply.game)
         if reply.on_saved:   # e.g. /remind: the reminder goes off in this chat
             reply.on_saved(current)
         spoken = _start_speech(message_id, reply.speech_text) if reply.speech_text is not None else None
         yield json.dumps({'type': 'token', 'text': reply.text, 'kind': 'command'}) + '\n'
         # The saved message's id, buttons and picture, so the page can show them and send presses back.
         yield json.dumps({'type': 'message', 'id': message_id, 'buttons': reply.buttons,
-                          'image': reply.image, 'speech': spoken,
+                          'image': reply.image, 'game': reply.game, 'speech': spoken,
                           'speakable': reply.speech_text is not None, 'speak_requested': spoken is not None}) + '\n'
         yield json.dumps({'type': 'done'}) + '\n'
 
@@ -475,7 +476,7 @@ def _press(message_id, action):
         return
     reply = commands.press(action, message)
     if reply is not None:
-        chats.update_message(message_id, reply.text, reply.buttons)
+        chats.update_message(message_id, reply.text, reply.buttons, game=reply.game)
 
 
 class Presence(BaseModel):
@@ -525,8 +526,8 @@ async def press_button(message_id: int, body: ButtonPress):
         return JSONResponse({'error': 'That button ran into a problem. Please try again.'}, status_code=500)
     if reply is None:
         return JSONResponse({'error': 'That button is no longer available.'}, status_code=409)
-    chats.update_message(message_id, reply.text, reply.buttons)
-    return {'id': message_id, 'text': reply.text, 'buttons': reply.buttons, 'toast': reply.toast}
+    chats.update_message(message_id, reply.text, reply.buttons, game=reply.game)
+    return {'id': message_id, 'text': reply.text, 'buttons': reply.buttons, 'toast': reply.toast, 'game': reply.game}
 
 
 @app.get('/api/expenses.csv')

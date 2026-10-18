@@ -132,6 +132,26 @@
       .item { padding: 10px 10px; }
       #cmdmenu li { padding: 11px 10px; }
     }
+
+    .game-view { white-space: normal; margin: 14px 0 6px; }
+    .game-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+    .game-card { border: 1px solid var(--line, #e6ded8); border-radius: 12px; padding: 12px; min-width: 0; background: #fff; }
+    .game-card strong, .game-card small { display: block; }
+    .game-card small { margin-top: 5px; color: #716961; font-size: .8rem; }
+    .game-card.ready { border-color: #d96326; background: #fff5eb; }
+    .game-card.later { background: #f5f3f1; color: #716961; }
+    .dice-heading { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; flex-wrap: wrap; }
+    .dice-total { color: #b64813; font-size: 1.6rem; font-weight: 750; overflow-wrap: anywhere; }
+    .dice-tray { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 9px; }
+    .die { width: 55px; min-height: 62px; border: 1px solid #dbcbbf; border-radius: 12px; display: flex;
+           flex-direction: column; align-items: center; justify-content: center; background: white; color: #392b23; }
+    .die-face { font-size: 1.65rem; line-height: 1.2; font-weight: 700; }
+    .die small { font-size: .7rem; color: #776c64; }
+    .die.dropped { opacity: .48; border-style: dashed; text-decoration: line-through; }
+    .dice-note { font-size: .8rem; color: #716961; margin-top: 8px; }
+    .coin-face { border: 3px solid #c78e37; background: #fbe5ad; color: #664010; border-radius: 50%; width: 76px;
+                 height: 76px; display: grid; place-items: center; font-size: 1.4rem; font-weight: 700; margin-top: 10px; }
+    @media (max-width: 420px) { .game-grid { grid-template-columns: 1fr; } #games-open { padding: 7px 10px; } }
   </style>
 </head>
 <body>
@@ -142,6 +162,7 @@
     </div>
     <div class="right">
       <div class="status" title="AI server status"><span class="dot" id="dot"></span><span id="status">Checking the AI…</span></div>
+      <button type="button" class="ghost" id="games-open">Games</button>
       <a class="ghost button" href="/settings">Settings</a>
     </div>
   </header>
@@ -263,10 +284,11 @@
         }
         box.appendChild(line);
       }
-      el.appendChild(box);
+      (el.querySelector('.game-grid .ready') || el).appendChild(box);
     }
 
     async function press(el, messageId, action) {
+      const follow = nearBottom();
       el.querySelectorAll('.chip').forEach(c => c.disabled = true);
       try {
         const r = await fetch(`/api/messages/${messageId}/press`, {
@@ -276,10 +298,15 @@
         if (!r.ok) throw new Error(data.error || 'Something went wrong.');
         const spoken = el.querySelector('.speech-box');
         fill(el, data.text);   // the message changes in place (plain text, as always)
+        showGame(el, data.game);
         showButtons(el, messageId, data.buttons);
         if (spoken) {
           spoken.querySelectorAll('button').forEach(button => { button.disabled = false; });
           el.append(spoken);   // ratings keep the audio player and Read aloud button
+        }
+        if (follow) {
+          if (data.game?.type === 'menu') el.scrollIntoView({ block: 'start' });
+          else scrollDown(true);
         }
         if (data.toast) {
           const toast = document.createElement('span');
@@ -341,6 +368,7 @@
       send.classList.toggle('stop', busy);
       send.type = busy ? 'button' : 'submit';
       send.title = busy ? 'Stop the answer (Esc)' : '';
+      $('games-open').disabled = busy;
     }
 
     function stop() { if (current) { current.stopped = true; current.controller.abort(); } }
@@ -439,6 +467,7 @@
         if (m.kind === 'scan' || m.kind === 'vision') showCopy(el, m.content);
         if (m.kind === 'vision_pending' || m.kind === 'image_pending') el.classList.add('thinking');
         if (m.kind === 'image') el.querySelector('.picture')?.classList.add('generated-picture');
+        showGame(el, m.game);
         showButtons(el, m.id, m.buttons);
         showSpeech(el, m.id, m.speech, m.role === 'assistant' && m.kind === 'chat');
       }
@@ -663,7 +692,9 @@
             } else if (event.type === 'question') {
               if (anchor.classList.contains('user')) fill(anchor, event.text);   // e.g. the Wi-Fi password hidden
             } else if (event.type === 'message') {
+              const follow = nearBottom();
               reply.dataset.messageId = String(event.id);
+              showGame(reply, event.game);
               if (event.speak_requested) manualSpeech.add(event.id);
               showSpeech(reply, event.id, event.speech, event.speakable);
               showLookup(reply, lookup);
@@ -672,6 +703,10 @@
               if (event.buttons.some(row => row.some(b => (b.action || '').startsWith('rate:retry:'))))
                 list.querySelectorAll('.chip[data-retry]').forEach(c => c.remove());
               showButtons(reply, event.id, event.buttons);
+              if (follow) {
+                if (event.game?.type === 'menu') reply.scrollIntoView({ block: 'start' });
+                else scrollDown(true);
+              }
             } else if (event.type === 'error') {
               problem = event.message;
             } else if (event.type === 'done') {
@@ -691,6 +726,71 @@
       }
     }
 
+
+    // ---------- games: the server's actual rolls, never a second roll in the browser ----------
+    $('games-open').onclick = () => {
+      if (current || scanning) return;
+      menu.hidden = true;
+      const question = bubble('user', '/games');
+      streamAnswer('/api/chat/stream', { chat_id: chatId, content: '/games' }, question, () => question.remove());
+    };
+    function showGame(el, game) {
+      el.querySelector('.game-view')?.remove();
+      if (!game) return;
+      const box = document.createElement('div'); box.className = 'game-view';
+      if (game.type === 'menu') {
+        box.classList.add('game-grid');
+        for (const item of game.items) {
+          const card = document.createElement('article');
+          card.className = 'game-card ' + (item.available ? 'ready' : 'later');
+          const name = document.createElement('strong'); name.textContent = item.name;
+          const status = document.createElement('small'); status.textContent = item.status;
+          card.append(name, status); box.append(card);
+        }
+      } else if (game.type === 'coin') {
+        const coin = document.createElement('div'); coin.className = 'coin-face'; coin.textContent = game.face;
+        coin.setAttribute('role', 'img');
+        coin.setAttribute('aria-label', 'Coin landed on ' + game.face); box.append(coin);
+      } else if (game.type === 'dice') {
+        const heading = document.createElement('div'); heading.className = 'dice-heading';
+        const name = document.createElement('strong'); name.textContent = game.notation;
+        const total = document.createElement('span'); total.className = 'dice-total';
+        total.textContent = 'Total ' + game.total; heading.append(name, total); box.append(heading);
+        let shown = 0, omitted = 0;
+        for (const [round, roll] of game.rolls.entries()) {
+          if (game.rolls.length > 1) {
+            const label = document.createElement('div'); label.className = 'dice-note';
+            label.textContent = 'Roll ' + (round + 1) + ': ' + roll.total; box.append(label);
+          }
+          const tray = document.createElement('div'); tray.className = 'dice-tray';
+          for (const group of roll.groups) {
+            for (const [i, value] of group.values.entries()) {
+              if (shown >= 60) { omitted++; continue; }
+              shown++;
+              const kept = group.kept.includes(i);
+              const die = document.createElement('div'); die.className = 'die' + (kept ? '' : ' dropped');
+              const description = 'd' + group.sides + ' rolled ' + value + (kept ? '' : ', dropped') +
+                                  (group.sign < 0 ? ', subtracted' : '');
+              die.setAttribute('role', 'img');
+              die.setAttribute('aria-label', description); die.title = description;
+              const face = document.createElement('span'); face.className = 'die-face';
+              face.textContent = group.sides === 6 ? ['⚀','⚁','⚂','⚃','⚄','⚅'][value-1] : String(value);
+              face.setAttribute('aria-hidden', 'true');
+              const label = document.createElement('small');
+              label.textContent = (group.sign < 0 ? '−' : '') + 'd' + group.sides + ' · ' + value;
+              die.append(face, label); tray.append(die);
+            }
+          }
+          box.append(tray);
+        }
+        if (omitted) {
+          const note = document.createElement('div'); note.className = 'dice-note';
+          note.textContent = 'Showing 60 dice; ' + omitted + ' more are listed in the roll details above.';
+          box.append(note);
+        }
+      } else return;
+      el.append(box);
+    }
 
     // ---------- saved spoken replies ----------
     const pendingSpeech = new Set(), manualSpeech = new Set();
