@@ -20,7 +20,7 @@ things up, keeps you organised, reads photos, listens, talks back and plays game
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.143-d96326?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=0d1117)
 ![License](https://img.shields.io/badge/License-MIT-d96326?style=for-the-badge&labelColor=0d1117)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-d96326?style=for-the-badge&logo=windows&logoColor=white&labelColor=0d1117)
-![Version](https://img.shields.io/badge/Version-0.34.1-d96326?style=for-the-badge&labelColor=0d1117)
+![Version](https://img.shields.io/badge/Version-0.34.2-d96326?style=for-the-badge&labelColor=0d1117)
 
 ![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local-d96326?style=for-the-badge&logo=shield&logoColor=white&labelColor=0d1117)
 ![AI](https://img.shields.io/badge/AI-OpenAI--compatible%20%C2%B7%20llama.cpp-d96326?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117)
@@ -105,6 +105,7 @@ still arrive), and lets your other devices use it over a **secure address on you
 ◆  Choose Normal, Professional, Sarcastic, Evil or Funny in Settings, alongside your house rules
 ◆  Saved, searchable conversations in a side panel; rename, delete, pick up later
 ◆  Looks up the weather, news and the web by itself, and shows you exactly what it found
+◆  Dated search history survives deleted chats, with Search again and bulk deletion
 
 ━━ MEMORY & LEARNING ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ◆  Remembers facts about you in every chat, ones you tell it and ones it notices
@@ -263,6 +264,7 @@ the chat but never sent to the AI.
 | `/define <word>` | Meanings, pronunciation and examples | Wiktionary (Datamuse backup) |
 | `/movie <title> [year]` · `/tv <title>` | Cast, ratings and a summary | Wikidata, Wikipedia, TVmaze |
 | `/so <question>` | Search Stack Overflow | Stack Exchange |
+| `/searchhistory [date, tool or words]` | Recall saved searches; alias `/searches` | Your local lookup history |
 
 ### Organiser
 
@@ -359,6 +361,49 @@ best when they're close to the question.
 
 **Phones and tablets.** On a phone the chat list slides in from **☰**, the header and message box stay on screen (also
 with the keyboard open), buttons are thumb-sized, and the layout leaves room for the notch and home bar.
+
+</details>
+
+<details>
+<summary><b>🔎 Search history: find and repeat old lookups</b></summary>
+
+<br>
+
+Open **Settings → Search history** on your phone or computer. History starts with version **0.34.2**; old deleted
+chats cannot be reconstructed. Each new lookup keeps its canonical tool and query, UTC timestamp, local time
+and timezone, manual/automatic label, result status, a short saved snapshot and source links.
+
+**Included:** `/web` (`/search`), `/wiki`, `/weather`, `/news`, `/so` (`/stackoverflow`), `/define`,
+`/movie` (`/film`) and `/tv`, plus automatic web/weather/news lookups. Failed and empty-result attempts are
+labelled so they can be retried. Bare commands that only show usage are not saved. Jokes, quotes, cat facts,
+games and other generated content are excluded.
+
+In chat, use:
+
+- `/searchhistory` or `/searches` for recent lookups.
+- `/searchhistory last Thursday` or `/searchhistory web Oct 18` to filter by date and tool.
+- `/searchhistory python` to find words in the saved query or snapshot.
+- “What did I search for last Thursday?” or “What was the web search I did on Oct 18?” for direct recall.
+
+Supported dates include today, yesterday, weekdays, last/this week, last/this month, `Oct 18, 2026` and
+`2026-10-18`. An omitted year uses the most recent occurrence of that date. Date filters use the PC's timezone;
+records retain the timezone and offset used when they ran. Chat shows five matching records at a time, with
+**More searches** when needed. Lookup history is read by Python, not invented by the AI, and recalling it works
+without a model loaded or an internet connection.
+
+**Search again** performs the same tool/query lookup against the live service and saves a new, dated entry.
+From chat it runs in the current conversation; from the history page it opens the new result in a new chat.
+Saved snapshots are historical results, not current facts.
+
+The history page has text, tool, date-range and manual/automatic filters. Tick individual entries or **Select
+all shown** (up to 25 on a page), uncheck anything to keep, then **Delete selected** and confirm. Only those IDs
+are deleted. Deleting a chat does not remove history; deleting history does not remove saved chats or copies
+of results already in them. The page works on phones, including wrapping queries, large controls and stacked
+filters on narrow screens.
+
+Records live in the `lookup_history` table in local, git-ignored `data/beyond.sqlite3`, with no chat-delete
+relationship. Snapshots are limited to 1,800 characters and eight source links. History is not appended to
+every AI prompt and has no automatic expiration; remove unwanted records from the history page.
 
 </details>
 
@@ -551,6 +596,7 @@ models already added on the PC.
 | **Models** | [Load, unload or switch models](#models), with CPU threads, context, cache and thinking saved per model. |
 | **AI server** | The address of your OpenAI-compatible AI server, with **Test connection**. Takes effect at once. |
 | **House rules** | Add and remove the rules BEYOND follows in every chat. |
+| **Search history** | Browse dated lookup snapshots, filter them, search again or bulk-delete selected records; also available on phones. |
 | **Memory** | Notice facts automatically · search older conversations. |
 | **Looking things up** | Automatic weather, news and web lookups. |
 | **Photos, pictures & speech** | Paths and options for `/look`, `/imagine` and spoken replies. |
@@ -651,6 +697,9 @@ BEYOND's page talks to a small JSON API, which you can use from scripts too.
 | `POST` | `/api/messages/{id}/press` | Press a button under a message |
 | `POST` | `/api/messages/{id}/retry` | 🔄 Try again on the newest answer |
 | `GET` | `/api/commands` | The command list behind the **/** menu |
+| `GET` | `/api/search-history` | Saved lookups; query, tool, start/end dates, origin and pagination filters |
+| `POST` | `/api/search-history/delete` | Delete only supplied history IDs (`{"ids":[1,2]}`); 1–100 per request |
+| `POST` | `/api/search-history/{id}/repeat` | Run a saved lookup again and open the result in a new chat |
 
 **Status, settings & rules**
 
@@ -737,6 +786,7 @@ beyond/
 │   ├── learning.py          ← Ratings and what BEYOND learns from them
 │   ├── rules.py             ← House rules
 │   ├── lookups.py           ← Automatic weather, news and web lookups
+│   ├── search_history.py    ← Independent dated lookup records, filtering, recall and selected deletion
 │   ├── notes.py · checklists.py · expenses.py · reminders.py · briefing.py
 │   ├── notify.py            ← Windows popups (quiet hours, "not while you're looking")
 │   ├── autostart.py         ← Start BEYOND with Windows
@@ -752,7 +802,7 @@ beyond/
 │   │   └── tictactoe · trivia · blackjack · hangman · hangman_words
 │   │
 │   └── web/                 ← index.html (chat) · settings.html · models.html · models.js
-│                            · style.css · app-height.js
+│                            · search-history.html · search-history.js · style.css · app-height.js
 │
 ├── tests/                   ← python -m unittest discover -s tests
 ├── screenshots/             ← Images for this README
@@ -783,8 +833,8 @@ beyond/
 
 ⛨  Other devices are off by default. When you allow them, they can chat but can't
    change general settings or add file paths. They can choose a persona, edit house rules,
-   and load or tune models already listed on the Models page. There's no login yet
-   (Phase 38), so keep it off on shared networks.
+   load or tune models already listed on the Models page, and browse/delete lookup history.
+   There's no login yet (Phase 38), so keep it off on shared networks.
 
 ⛨  The secure address (https://…:7771) uses BEYOND's own certificate authority. It's
    name-constrained to home-network addresses and this PC's name, so even if its key
@@ -843,7 +893,8 @@ BEYOND is being built in **43 small phases**, each one tested before the next. T
 | ✅ 11 · Automatic memory | ✅ 21 · Photos and `/scan` | ✅ 32 · Hangman |
 | | | ✅ 33 · Built-in engine |
 | | | 34 · Models page (tested; mobile navigation revised) |
-| | | 34a · Persona selector (ready to try) |
+| | | 34a · Persona selector |
+| | | 34b · Search history (ready to try) |
 
 </details>
 

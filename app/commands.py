@@ -11,13 +11,14 @@ message's own buttons.
 """
 import contextvars
 import difflib
+import re
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from typing import Callable
 
 import httpx
 
-from app import briefing, chats, checklists, expenses, learning, memory, notes, reminders, rules, settings
+from app import briefing, chats, checklists, expenses, learning, memory, notes, reminders, rules, search_history, settings
 from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewrite, weather, web_search, wikipedia
 from app.tools.calculator import calculate
 from app.tools.dice import roll_result
@@ -969,6 +970,47 @@ def _speak(args):
     return Reply(args or 'Preparing audio for the last answer…', speech_text=args)
 
 
+# ---------- saved search history ----------
+
+def _history(args=''):
+    if args.strip().lower() in ('help','?'):
+        return Reply(search_history.HELP, [[{'label':'Open search history', 'page':'/search-history'}]])
+    repeat = re.fullmatch(r'repeat (\d+)', args.strip(), re.I)
+    if repeat:
+        entry = search_history.get(int(repeat[1]))
+        if not entry:
+            return Reply('That saved search was deleted or no longer exists.')
+        return run(entry['command'])
+    page = 1
+    match = re.match(r'page (\d+)(?:\s+|$)', args, re.I)
+    if match:
+        page = int(match[1])
+        if not 1 <= page <= 100000:
+            return Reply('Choose a history page between 1 and 100000.')
+        args = args[match.end():]
+    try:
+        data = search_history.browse(**search_history.filters(args), offset=(page-1)*5, limit=5)
+    except (ValueError, OverflowError) as exc:
+        return Reply('That history date could not be read. Use Oct 18, 2026 or 2026-10-18.\n' + str(exc))
+    if not data['items']:
+        return Reply('No saved searches match that date or those words. History starts with this update; deleting a '
+                     'chat will not delete these records.\n\n' + search_history.HELP,
+                     [[{'label':'Open search history', 'page':'/search-history'}]])
+    lines = [f"Saved searches · dates use {data['time_zone']}\n"
+             f"Showing {(page-1)*5+1}–{(page-1)*5+len(data['items'])} of {data['total']} matches."]
+    buttons = []
+    for number,item in enumerate(data['items'],(page-1)*5+1):
+        lines.append(f"{number}. {item['when']}\n{item['command']}\n"
+                     f"{item['origin'].title()} · {item['status'].replace('_',' ')}\n{item['summary'][:250]}")
+        if item['sources']:
+            lines.append('Sources: ' + ' · '.join(item['sources'][:2]))
+        buttons.append([send_button(f'Search again · {number}', f"/searchhistory repeat {item['id']}")])
+    if page*5 < data['total']:
+        buttons.append([send_button('More searches', f'/searchhistory page {page+1} {args}'.rstrip())])
+    buttons.append([{'label':'Open search history', 'page':'/search-history'}])
+    return Reply('\n\n'.join(lines) + '\n\nThese are saved snapshots. Search again fetches fresh results.',buttons)
+
+
 # ---------- help ----------
 
 def _help(args=''):
@@ -986,7 +1028,7 @@ def _help(args=''):
         for c in COMMANDS:
             if c.group == group:
                 lines.append(f'  /{c.name} — {c.summary}  (e.g. {c.example})')
-    lines += ['', 'Anything that doesn\'t start with / goes to the AI. /help <command> shows one command.']
+    lines += ['', 'Ask about a past search to recall saved history. Other messages without / go to the AI. /help <command> shows one command.']
     return '\n'.join(lines)
 
 
@@ -1018,6 +1060,8 @@ COMMANDS = [
     Command('time', 'The time in a city, several cities, or convert a time between places',
             '/time 3pm London to Tokyo', world_time),
     Command('roll', 'Roll visual dice or flip a coin; keep/drop, repeats and saved stats', '/roll 2d20+3', _roll, group='Games'),
+    Command('searchhistory', 'Recall saved lookups by date, tool or words; repeat them or manage them in Settings',
+            '/searchhistory last Thursday', _history, aliases=('searches',), group='Look things up'),
     Command('web', 'Search the web (DuckDuckGo)', '/web best hiking trails near Denver',
             _online(web_search.search_web, 'DuckDuckGo'), aliases=('search',), group='Look things up'),
     Command('weather', 'Weather now, the next hours and 3 days', '/weather San Jose, CA',
@@ -1095,7 +1139,13 @@ def run(text):
     command = find(name)
     if command is None:
         return Reply(f"I don't know the command /{name}. " + did_you_mean(name))
-    return _as_reply(command.run(args.strip()))
+    arguments = args.strip()
+    reply = _as_reply(command.run(arguments))
+    if command.name in search_history.TOOLS and (arguments or command.name == 'news'):
+        identifier = search_history.record(command.name, arguments or 'top', reply.text)
+        if identifier:
+            reply.buttons.append([send_button('Search again', f'/searchhistory repeat {identifier}')])
+    return reply
 
 
 # Button handlers: the first part of a button's action picks the handler; the rest is passed to it.

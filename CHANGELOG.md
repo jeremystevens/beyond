@@ -6,6 +6,24 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Search history** (version 0.34.2), added before Phase 35.
+  - Records web, Wikipedia, weather, news, Stack Overflow, dictionary, movie and TV lookup attempts, including
+    command aliases and automatic web/weather/news lookups. Excludes jokes, quotes, cat facts, games and usage-only
+    replies. Manual/automatic origin and success/no-results/error status stay with each entry.
+  - Independent SQLite records retain UTC and local timestamps, timezone, query/tool, a bounded saved snapshot
+    and source links. Deleting a chat leaves its history intact.
+  - New /searchhistory (alias /searches), included in /help and command discovery, filters by date, tool or words.
+    Explicit questions such as “What did I search for last Thursday?” route directly to real saved records, with
+    five entries at a time and repeat buttons; no LLM is needed to recall history.
+  - Settings → Search history opens a responsive page with date, query, tool and origin filters; Select all shown,
+    checkboxes, selected-only deletion with confirmation, source links and Search again. Repeating fetches fresh
+    results and creates a new history entry; page repeats open a new chat.
+  - History starts with this update, has no automatic expiration, and is not injected into every chat prompt.
+    Styled README, command help, phase plan and personality updated. Three focused temporary-database checks
+    passed for chat-deletion independence, selected-only deletion, aliases/repeats, automatic lookups, literal
+    filters and timezone/DST boundaries. Python/browser syntax, HTML IDs and documentation formatting checked;
+    version 0.34.2, history/Settings pages, command discovery and the history API are available over HTTP/HTTPS.
+    Owner playtest pending; no live searches or user-history deletions were performed.
 - **Personas** (version 0.34.1), a small addition before Phase 35.
   - Settings → Persona offers Normal, Professional, Sarcastic, Evil and Funny, with a description for each style.
     Save persona applies just that choice; the main Settings Save includes it too. Normal is the default.

@@ -9,7 +9,7 @@ the AI, so it only appears when a lookup really ran.
 import re
 from datetime import date
 
-from app import memory
+from app import memory, search_history
 from app.tools import news, weather, web_search
 
 _WEATHER = re.compile(r'\b(weather|forecast|temperature|temp|degrees|celsius|fahrenheit|rain(?:ing|y)?|snow(?:ing|y)?|'
@@ -117,8 +117,10 @@ def _run_one(kind, argument):
     try:
         text = tool(argument)
     except Exception:   # offline, a service down, or a bug: the answer says it couldn't check
+        search_history.record(kind, argument, 'The automatic lookup failed. Try the search again.', 'automatic', ok=False)
         return {'kind': kind, 'argument': argument, 'ok': False, 'source': SOURCES[kind], 'raw': ''}
     ok = bool(text) and not FAILED.match(text.strip())
+    search_history.record(kind, argument, text, 'automatic')
     if ok and kind == 'web':
         count = len(re.findall(r'^\d+\.\s', text, re.M))
         source = f'web search ({count} result{"s" if count != 1 else ""})'

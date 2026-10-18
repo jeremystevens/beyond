@@ -325,6 +325,16 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - **Done when:** the saved style affects the next chat reply, switching back restores Normal, and the control
   works on phone and desktop. Jeremy will playtest; inspect logs if anything fails.
 
+### Phase 34b: Search history (implemented 2026-10-18; playtest pending)
+- Independent, dated SQLite records for useful lookup commands and automatic web/weather/news lookups. Exclude
+  jokes, quotes, cat facts and games. Keep bounded result snapshots, sources, origin/status and UTC/local times.
+- /searchhistory (/searches) and explicit past-search questions retrieve actual matching records without an LLM.
+  Date/tool/word filters and Search again run a fresh lookup with a new dated history entry.
+- Settings → Search history works on phones and computers; browse filters, source links and selected-only bulk
+  deletion. Deleting a chat does not delete history; deleting history does not delete chats.
+- **Done when:** a lookup remains recallable after its chat is deleted, a date query finds it, Search again runs
+  fresh results, and bulk deletion removes just the selected records. Jeremy will playtest.
+
 ### Phase 35: Model downloads
 - Download models from Hugging Face inside the app, with **fingerprint checks**, resume after a broken download,
   a free-disk-space check, and license links for models that need the maker's terms accepted.

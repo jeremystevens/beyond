@@ -8,19 +8,20 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any, Literal
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Query, Request
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StrictInt
 
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
-                 https, memory, models, notes, notify, personas, ports, reminders, rules, settings)
+                 https, memory, models, notes, notify, personas, ports, reminders, rules, search_history, settings)
 
 from app import builtin_engine, photo_jobs, image_jobs, speech_jobs, blackjack, games, hangman, study_quiz, tictactoe, trivia
 from app.tools import scan, speech, speech_to_text
 
 models.initialize()
 chats.initialize()
+search_history.initialize()
 games.initialize()
 tictactoe.initialize()
 trivia.initialize()
@@ -285,6 +286,48 @@ def register_model(body: ModelPath, request: Request):
     return _model_action(models.register, body.path)
 
 
+@app.get('/search-history', include_in_schema=False)
+def search_history_page():
+    return FileResponse(config.WEB_DIR / 'search-history.html')
+
+
+@app.get('/api/search-history')
+def list_search_history(query: str = Query('', max_length=200), tool: str = Query('', max_length=16),
+                        start: str = Query('', max_length=10), end: str = Query('', max_length=10),
+                        origin: str = Query('', max_length=16), offset: int = Query(0, ge=0, le=1000000),
+                        limit: int = Query(25, ge=1, le=50)):
+    try:
+        return search_history.browse(query,tool,start,end,origin,offset,limit)
+    except (ValueError, OverflowError):
+        return JSONResponse({'error':'Use valid dates (YYYY-MM-DD), with the end on or after the start, and a listed tool.'},
+                            status_code=400)
+
+
+class DeleteSearches(BaseModel):
+    model_config = {'extra':'forbid'}
+    ids: list[StrictInt] = Field(min_length=1,max_length=100)
+
+
+@app.post('/api/search-history/delete')
+def delete_searches(body: DeleteSearches):
+    try:
+        return {'deleted':search_history.delete(body.ids)}
+    except ValueError as exc:
+        return JSONResponse({'error':str(exc)},status_code=400)
+
+
+@app.post('/api/search-history/{identifier}/repeat')
+async def repeat_search(identifier: int):
+    entry = await asyncio.to_thread(search_history.get,identifier)
+    if entry is None:
+        return JSONResponse({'error':'That search was deleted or no longer exists.'},status_code=404)
+    reply = await asyncio.to_thread(commands.run,entry['command'])
+    chat_id = chats.create('Search again: '+entry['query'])
+    chats.add_message(chat_id,'user',entry['command'],kind='command')
+    chats.add_message(chat_id,'assistant',reply.text,kind='command',buttons=reply.buttons)
+    return {'chat_id':chat_id}
+
+
 # ---------- status ----------
 
 @app.get('/api/health')
@@ -347,6 +390,9 @@ async def chat_stream(body: SendRequest):
         return JSONResponse({'error': 'That chat no longer exists. Start a new one.'}, status_code=404)
     if content.startswith('/'):
         return _command_reply(body.chat_id, content)
+    recalled = search_history.recall_request(content)
+    if recalled is not None:
+        return _command_reply(body.chat_id, content, run_as='/searchhistory ' + recalled)
     chat_id = chats.create(content) if new_chat else body.chat_id
     question_id = chats.add_message(chat_id, 'user', content)
     values = settings.load()
@@ -525,7 +571,7 @@ def _start_speech(message_id, text=None):
         return {'state': 'error', 'error': str(exc), 'engine': '', 'truncated': False, 'url': ''}
 
 
-def _command_reply(chat_id, content):
+def _command_reply(chat_id, content, run_as=None):
     """A /command: BEYOND answers it itself. Both are saved in the chat (so they're there when you come back) but
     marked as commands, so they're never sent to the AI. Same event stream as an AI answer, so the page needs no
     special handling. A new chat is created after the command runs, so it's named from the safe version of the
@@ -534,7 +580,7 @@ def _command_reply(chat_id, content):
         if content.split()[0].lower() == '/trivia':
             yield json.dumps({'type': 'status', 'text': 'Getting trivia ready…'}) + '\n'
         try:
-            reply = await asyncio.to_thread(commands.run, content)   # some commands look things up online
+            reply = await asyncio.to_thread(commands.run, run_as or content)   # some commands look things up online
         except Exception:   # a bug in one command shouldn't break the chat
             logging.exception('Command failed: %s', content.split()[0])
             reply = commands.Reply(f'Sorry, {content.split()[0]} ran into a problem. Please try again.')

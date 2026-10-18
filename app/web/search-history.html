@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#f6f4f1" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#141210" media="(prefers-color-scheme: dark)">
+  <title>BEYOND Search history</title>
+  <link rel="stylesheet" href="/static/style.css?v=4">
+  <script src="/static/app-height.js?v=3" defer></script>
+  <style>
+    html, body { overflow: hidden; overscroll-behavior: none; }
+    main { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+      padding: 24px max(16px,env(safe-area-inset-right)) max(40px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left)); }
+    .inner { max-width: 960px; margin: 0 auto; display: grid; gap: 16px; }
+    h1 { font-size: 1.5rem; margin: 0 0 6px; } h2 { font-size: 1rem; margin: 0; }
+    p { line-height: 1.5; margin: 0; } .muted { color: var(--muted); font-size: .88rem; }
+    section, article { padding: 18px; border: 1px solid var(--border); border-radius: 14px; background: var(--panel); min-width: 0; }
+    .filters { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+    label { display: grid; gap: 6px; font-weight: 600; font-size: .88rem; min-width: 0; }
+    input[type=text], input[type=date], select { width: 100%; min-width: 0; min-height: 44px; font-size: 16px; }
+    input[type=date], select { padding: 10px 12px; border-radius: 12px; font: inherit; font-size: 16px;
+      color: var(--text); background: var(--bg); border: 1px solid var(--border); }
+    .query { grid-column: span 2; }
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .filters .actions { align-self: end; }
+    button, .button { min-height: 44px; }
+    .select { display: inline-flex; flex-direction: row; align-items: center; gap: 10px; font-weight: 500; min-height: 44px; }
+    input[type=checkbox] { accent-color: var(--accent); width: 24px; height: 24px; flex: none; }
+    #records { display: grid; gap: 12px; }
+    article { display: flex; align-items: flex-start; gap: 12px; }
+    .record-copy { display: grid; gap: 10px; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    .record-check { margin-top: 4px; flex: none; }
+    .command { font-weight: 650; white-space: pre-wrap; }
+    details summary { cursor: pointer; padding: 10px 0; min-height: 44px; font-size: .9rem; }
+    .snapshot { white-space: pre-wrap; font-size: .9rem; line-height: 1.5; margin: 4px 0 10px; }
+    .sources { margin: 0; padding-left: 18px; font-size: .8rem; }
+    .sources a { color: var(--accent); overflow-wrap: anywhere; }
+    .badge { padding: 3px 7px; border-radius: 6px; background: var(--bg); font-size: .8rem; }
+    .notice { border-radius: 12px; padding: 12px 16px; background: var(--ok-bg); line-height: 1.5; overflow-wrap: anywhere; }
+    .notice.bad { background: var(--error-bg); color: var(--bad); }
+    #empty { text-align: center; padding: 32px 18px; }
+    .pagination { justify-content: space-between; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    [hidden] { display: none !important; }
+    @media (max-width: 760px) {
+      header { flex-wrap: wrap; gap: 8px; } header .right { gap: 8px; }
+      .filters { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      main { padding-top: 16px; }
+      section, article { padding: 16px; }
+    }
+    @media (max-width: 420px) {
+      .filters { grid-template-columns: minmax(0,1fr); } .query { grid-column: auto; }
+      header .brand { font-size: 1rem; } header .ghost { padding: 10px; font-size: .8rem; }
+      .pagination { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header><a class="brand" href="/">BEYOND</a><nav class="right" aria-label="Main">
+    <a class="ghost button" href="/settings">Settings</a><a class="ghost button" href="/">Back to chat</a>
+  </nav></header>
+  <main><div class="inner">
+    <div><h1>Search history</h1><p class="muted">Past lookups, kept even when their chats are deleted.</p></div>
+    <section>
+      <form class="filters" id="filters">
+        <label class="query" for="query">Words in the query or saved result<input type="text" id="query" maxlength="200" placeholder="e.g. hiking trails"></label>
+        <label for="tool">Tool<select id="tool"><option value="">All tools</option></select></label>
+        <label for="start">From<input type="date" id="start"></label>
+        <label for="end">Through<input type="date" id="end"></label>
+        <label for="origin">Triggered by<select id="origin"><option value="">Manual and automatic</option><option value="manual">Manual</option><option value="automatic">Automatic</option></select></label>
+        <div class="actions"><button type="submit">Filter</button><button type="button" class="ghost" id="reset">Reset filters</button></div>
+      </form>
+    </section>
+    <p class="muted" id="zone"></p>
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <div class="actions">
+      <label class="select"><input type="checkbox" id="selectAll">Select all shown</label>
+      <button type="button" class="ghost" id="delete" disabled>Delete selected</button>
+      <span class="muted" id="count"></span>
+    </div>
+    <section id="empty" hidden><h2>No saved searches match</h2><p class="muted">History starts with this update. Try a search in chat or change the filters.</p></section>
+    <div id="records" aria-busy="true"></div>
+    <div class="actions pagination"><button type="button" class="ghost" id="previous" disabled>Previous</button>
+      <span class="muted" id="page"></span><button type="button" class="ghost" id="next" disabled>Next</button></div>
+    <p class="muted">Saved results are dated snapshots, not current facts. Search again performs a fresh lookup and opens
+      it in a new chat. Jokes, quotes, cat facts and games are not saved here. Deleting history does not delete chats;
+      any copies already saved in a chat remain there.</p>
+    <p class="muted">In chat, try <strong>/searchhistory last Thursday</strong> or ask “What did I search for on Oct 18?”</p>
+  </div></main>
+  <script src="/static/search-history.js?v=1" defer></script>
+</body>
+</html>

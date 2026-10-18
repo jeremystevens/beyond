@@ -334,6 +334,12 @@
         const line = document.createElement('div');
         line.className = 'row';
         for (const b of row) {
+          if (b.page === '/search-history') {
+            const link = document.createElement('a');
+            link.className = 'chip'; link.href = b.page; link.textContent = b.label;
+            line.appendChild(link);
+            continue;
+          }
           if (b.url && b.url.startsWith('/api/')) {   // a download link (e.g. 📄 Download CSV), only to BEYOND itself
             const link = document.createElement('a');
             link.className = 'chip'; link.href = b.url; link.textContent = b.label; link.download = '';
