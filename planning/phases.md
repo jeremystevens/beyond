@@ -274,7 +274,7 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - Category and difficulty pickers, answer buttons, score.
 - **Done when:** a round of questions can be played with scores kept.
 
-### Phase 30: Study quiz (`/quizme`)
+### Phase 30: Study quiz (`/quizme`) (implemented 2026-10-18 on branch phase-30; all tests passed; browser verified; owner play check pending)
 - Topic quizzes that adapt to you, with Next / Stop and stats.
 - **Done when:** a quiz on any topic runs and the stats update.
 

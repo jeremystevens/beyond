@@ -16,12 +16,13 @@ from pydantic import BaseModel, Field
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
                  https, memory, notes, notify, ports, reminders, rules, settings)
 
-from app import photo_jobs, image_jobs, speech_jobs, games, tictactoe
+from app import photo_jobs, image_jobs, speech_jobs, games, study_quiz, tictactoe
 from app.tools import scan, speech, speech_to_text
 
 chats.initialize()
 games.initialize()
 tictactoe.initialize()
+study_quiz.initialize()
 rules.initialize()
 memory.initialize()
 learning.initialize()

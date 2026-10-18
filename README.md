@@ -9,13 +9,13 @@
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
 > slash commands (/calc, /convert, /time, /roll, /weather, /news, /web, /wiki, /define, /movie, /joke, /qr,
-> /note, /list, /spent, /remind, /morning, /scan, /look, /imagine, /speak, /games, /tictactoe, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
+> /note, /list, /spent, /remind, /morning, /scan, /look, /imagine, /speak, /games, /tictactoe, /quizme, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
 > arrives in Phase 33.
 
 ## Games and dice
 
-Open **Games** in the header or type **/games**. Dice, coins and tic-tac-toe are available now; the menu shows the planned
-phases for trivia, study quiz, blackjack and hangman. Quick buttons roll a d6 or d20, flip a coin,
+Open **Games** in the header or type **/games**. Dice, coins, tic-tac-toe and the study quiz are available now; the
+menu shows the planned phases for trivia, blackjack and hangman. Quick buttons roll a d6 or d20, flip a coin,
 or show **Game stats**. Opening Games keeps any message draft or photo attachment in place.
 
 - **/roll** rolls a d6. **/roll 2d20+3**, **/roll 4d6kh3**, **/roll 4d6dl1**, **/roll adv+5**,
@@ -53,6 +53,24 @@ You are **X**, BEYOND is **O**, and you move first on a real clickable 3×3 boar
 
 The rules live in `app/tools/tictactoe.py`; `app/tictactoe.py` handles saved boards and per-difficulty stats,
 using Phase 27's shared score store for the aggregate record.
+
+## Study quiz (/quizme)
+
+Choose **Start a quiz** in Games, or type **/quizme** for the topic buttons, or **/quizme <topic>** to start.
+
+- **Math topics are instant and offline:** addition, subtraction, multiplication, division, percentages, squares,
+  mixed math, or a times table (**/quizme 7 times table**). Answers are exact, and a wrong answer shows a worked
+  explanation.
+- **Any other topic** (*world capitals*, *spanish verbs*, *python*…) gets multiple-choice questions written by your
+  AI. They take a little while on a processor-only PC and may contain mistakes; each is marked as AI-written.
+- Every question has **four answer buttons** (for math, the wrong ones are typical slips: off by one or ten, a
+  neighbouring times-table answer), plus **Skip** and **Stop**. After answering, **Next question ▶** continues.
+- **It adapts:** each topic has levels 1–5. Three right in a row moves you up; two wrong in a row moves you down.
+- **/quizme stats** shows your level, score and best streak per topic; **/games stats** counts each answer.
+  Progress is saved and shared across your chats and devices. One quiz runs at a time; it ends after 15 idle
+  minutes, and **/quizme stop** ends it now.
+
+`app/study_quiz.py` holds the question makers (ported from PromptetheusBot) and the saved progress.
 
 ## Spoken replies
 
