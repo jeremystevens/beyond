@@ -91,7 +91,7 @@ class GameApiTests(unittest.IsolatedAsyncioTestCase):
         cid, message = await self.send('/games')
         self.assertEqual(message['game']['type'], 'menu')
         self.assertEqual(len(message['game']['items']), 6)
-        self.assertEqual(sum(item['available'] for item in message['game']['items']), 5)
+        self.assertEqual(sum(item['available'] for item in message['game']['items']), 6)
         self.assertTrue(next(item for item in message['game']['items'] if item['id'] == 'quiz')['available'])
         self.assertEqual(games.stats(), [])
         with patch.object(dice, '_roll', return_value=[5]):

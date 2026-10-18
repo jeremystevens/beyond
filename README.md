@@ -9,13 +9,13 @@
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
 > slash commands (/calc, /convert, /time, /roll, /weather, /news, /web, /wiki, /define, /movie, /joke, /qr,
-> /note, /list, /spent, /remind, /morning, /scan, /look, /imagine, /speak, /games, /tictactoe, /trivia, /quizme, /blackjack, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
+> /note, /list, /spent, /remind, /morning, /scan, /look, /imagine, /speak, /games, /tictactoe, /trivia, /quizme, /blackjack, /hangman, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
 > arrives in Phase 33.
 
 ## Games and dice
 
-Open **Games** in the header or type **/games**. Dice, coins, tic-tac-toe, trivia, the study quiz and blackjack are
-available now; the menu shows the planned phase for hangman. Quick buttons roll a d6 or d20, flip a coin,
+Open **Games** in the header or type **/games** for dice and coins, tic-tac-toe, trivia, the study quiz, blackjack
+and hangman. Quick buttons roll a d6 or d20, flip a coin,
 or show **Game stats**. Opening Games keeps any message draft or photo attachment in place.
 
 - **/roll** rolls a d6. **/roll 2d20+3**, **/roll 4d6kh3**, **/roll 4d6dl1**, **/roll adv+5**,
@@ -118,6 +118,22 @@ You stand automatically on 21, and an ace with a 10-value card on the deal is bl
 
 `app/tools/blackjack.py` holds the rules (ported unchanged from PromptetheusBot); `app/blackjack.py` saves hands and
 the record.
+
+## Hangman (/hangman)
+
+Choose **Play hangman** in Games, or type **/hangman** to pick a difficulty (Easy 4–6, Medium 7–9, Hard 10+ letters)
+and a category: animals, movies, technology, geography, or random. **/hangman animals medium** starts straight away.
+
+- Tap letters on the on-screen A–Z keyboard, or just type them. Letters in the word turn green, misses turn red and
+  add a body part to the gallows drawing; six misses and the drawing is complete. A letter you already tried never
+  costs a miss.
+- **💡 Free hint** shows a clue once per round. **Play again**, **Change category**, **Stats** and **Games** sit
+  under every round, and **/hangman stats** shows wins, losses, the win rate and streaks.
+- The secret word (and the hint until you ask for it) stays on the server, so it can't be read from the page.
+  Rounds are saved, survive reloads and stay in sync across devices.
+
+The word bank (about 260 words with hints) and the rules come from PromptetheusBot (`app/tools/hangman_words.py`,
+`app/tools/hangman.py`); `app/hangman.py` saves rounds and the record.
 
 ## Spoken replies
 

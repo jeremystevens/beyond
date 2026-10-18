@@ -21,7 +21,7 @@ from app import briefing, chats, checklists, expenses, learning, memory, notes, 
 from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewrite, weather, web_search, wikipedia
 from app.tools.calculator import calculate
 from app.tools.dice import roll_result
-from app import blackjack, engine, games, study_quiz, tictactoe, trivia
+from app import blackjack, engine, games, hangman, study_quiz, tictactoe, trivia
 from app.tools.units import convert
 from app.tools.imagine import HELP as IMAGINE_HELP
 from app.tools import speech
@@ -801,6 +801,25 @@ def _blackjack(args=''):
     return reply
 
 
+def _hangman(args=''):
+    words = args.strip().lower().split()
+    if words[:1] in (['stats'], ['score'], ['record'], ['me']):
+        return Reply(hangman.stats_text())
+    if words[:1] in (['help'], ['?'], ['rules']):
+        return Reply(hangman.HELP)
+    category = next((w for w in words if w in hangman.rules.CATEGORIES), None)
+    difficulty = next((w for w in words if w in hangman.rules.DIFFICULTIES), 'easy')
+    unknown = [w for w in words if w not in hangman.rules.CATEGORIES and w not in hangman.rules.DIFFICULTIES]
+    if unknown:
+        return Reply(f"I don't know “{' '.join(unknown)}”.\n\n" + hangman.HELP, game=hangman.picker(difficulty))
+    if category is None:   # just a difficulty, or nothing: show the choices
+        return Reply('Hangman\nGuess the secret word one letter at a time. Six misses and the drawing is complete!\n'
+                     'Pick a category to start.', game=hangman.picker(difficulty))
+    state = hangman.new(category, difficulty)
+    game = hangman.public(state)
+    return Reply(hangman.text(game), game=game, save_message=lambda cid: hangman.save_new(cid, state))
+
+
 def _tictactoe(args=''):
     requested = args.strip().lower()
     if requested == 'stats':
@@ -976,7 +995,9 @@ COMMANDS = [
             '/trivia science hard', _trivia, group='Games'),
     Command('tictactoe', 'Play Easy, Normal or Impossible (never loses); /tictactoe stats shows your record',
             '/tictactoe normal', _tictactoe, aliases=('ttt',), group='Games'),
-    Command('blackjack', 'Blackjack against the dealer: Hit or Stand; /blackjack stats, /blackjack rules',
+    Command('hangman', 'Hangman: pick a category and difficulty, then guess the word letter by letter; /hangman stats',
+            '/hangman animals', _hangman, group='Games'),
+    Command('blackjack','Blackjack against the dealer: Hit or Stand; /blackjack stats, /blackjack rules',
             '/blackjack', _blackjack, aliases=('bj',), group='Games'),
     Command('quizme','A study quiz that adapts to you: math (instant) or any topic (AI); /quizme stats, /quizme stop',
             '/quizme multiplication', _quizme, aliases=('quiz',), group='Games'),

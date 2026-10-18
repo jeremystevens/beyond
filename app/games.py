@@ -7,11 +7,11 @@ CATALOG = (
     ('trivia', 'Trivia', 'Ready to play', True),
     ('quiz', 'Study quiz', 'Ready to play', True),
     ('blackjack', 'Blackjack', 'Ready to play', True),
-    ('hangman', 'Hangman', 'Coming in Phase 32', False),
+    ('hangman', 'Hangman', 'Ready to play', True),
 )
 KEYS = {key for key, *_ in CATALOG} | {'coin'}
-HELP = ('/games opens the games menu. Dice, coin flips, tic-tac-toe, trivia, the study quiz (/quizme) and '
-        'blackjack are ready now; other games arrive in later phases. '
+HELP = ('/games opens the games menu: dice and coin flips, tic-tac-toe, trivia, the study quiz (/quizme), '
+        'blackjack and hangman. '
         '/games stats shows the saved totals for this BEYOND installation. '
         '/roll rolls a d6; try /roll 2d20+3, /roll 4d6kh3, /roll 6x 4d6kh3 or /roll coin. '
         'Roll again makes a fresh roll. Scores and stats are shared across your chats and devices.')

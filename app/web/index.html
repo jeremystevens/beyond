@@ -187,6 +187,22 @@
     .bj-card.back { background: repeating-linear-gradient(45deg, #d96326 0 6px, #e98a55 6px 12px);
                     border-color: #b64813; }
     .bj-status.won { color: #397c4e; } .bj-status.lost { color: #ba443b; } .bj-status.push { color: #716961; }
+    .hm-gallows { display: block; width: 150px; height: auto; margin: 6px 0; stroke: #5b4f47; stroke-width: 3;
+                  stroke-linecap: round; fill: none; }
+    .hm-gallows .hm-part { stroke: #d96326; }
+    .hm-gallows.lose .hm-part { stroke: #ba443b; } .hm-gallows.win .hm-part { stroke: #397c4e; }
+    .hm-word { font: 700 1.6rem/1.3 ui-monospace, Consolas, monospace; letter-spacing: .12em; margin: 6px 0;
+               overflow-wrap: anywhere; }
+    .hm-status.won { color: #397c4e; } .hm-status.lost { color: #ba443b; }
+    .hm-keys { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+    .hm-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .hm-key { width: 38px; height: 40px; padding: 0; border: 1px solid #d6c8bd; border-radius: 8px; background: #fff9f3;
+              color: #3b302a; font-weight: 700; }
+    .hm-key:not(:disabled):hover, .hm-key:focus-visible { outline: 2px solid #d96326; }
+    .hm-key.hit { background: #e9f6eb; border-color: #397c4e; color: #397c4e; }
+    .hm-key.miss { background: #ffedeb; border-color: #ba443b; color: #ba443b; text-decoration: line-through; }
+    .hm-key:disabled { cursor: default; opacity: 1; }
+    @media (max-width: 420px) { .hm-key { width: 34px; height: 38px; } }
     @media (max-width: 600px) { .trivia-answers { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -781,6 +797,7 @@
       el.tttState = game?.type === 'tictactoe' ? game : null;
       el.triviaState = game?.type === 'trivia' ? game : null;
       el.bjState = game?.type === 'blackjack' ? game : null;
+      el.hmState = game?.type === 'hangman' ? game : null;
       if (!game) return;
       const box = document.createElement('div'); box.className = 'game-view';
       if (game.type === 'menu') {
@@ -810,6 +827,11 @@
             const play = document.createElement('button'); play.type = 'button'; play.className = 'chip';
             play.textContent = 'Play blackjack'; play.style.marginTop = '10px';
             play.onclick = () => sendGameCommand('/blackjack'); card.append(play);
+          }
+          if (item.id === 'hangman' && item.available) {
+            const play = document.createElement('button'); play.type = 'button'; play.className = 'chip';
+            play.textContent = 'Play hangman'; play.style.marginTop = '10px';
+            play.onclick = () => sendGameCommand('/hangman'); card.append(play);
           }
           box.append(card);
         }
@@ -900,6 +922,73 @@
               ['Change difficulty', '/tictactoe'], ['Game stats', '/tictactoe stats'], ['Games', '/games']]) {
           const button = document.createElement('button'); button.type = 'button'; button.className = 'chip';
           button.textContent = label; button.onclick = () => sendGameCommand(command); controls.append(button);
+        }
+        box.append(controls);
+      } else if (game.type === 'hangman_picker') {
+        const hint = document.createElement('p'); hint.className = 'ttt-hint';
+        hint.textContent = 'Difficulty:';
+        const levels = document.createElement('div'); levels.className = 'ttt-controls';
+        for (const level of game.difficulties) {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'chip';
+          b.textContent = (level.id === game.difficulty ? '▶ ' : '') + level.label;
+          b.setAttribute('aria-pressed', level.id === game.difficulty);
+          b.onclick = () => sendGameCommand('/hangman ' + level.id); levels.append(b);
+        }
+        const pick = document.createElement('p'); pick.className = 'ttt-hint'; pick.textContent = 'Category:';
+        const categories = document.createElement('div'); categories.className = 'ttt-controls';
+        for (const category of game.categories) {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'chip';
+          b.textContent = category.label;
+          b.onclick = () => sendGameCommand(`/hangman ${category.id} ${game.difficulty}`); categories.append(b);
+        }
+        box.append(hint, levels, pick, categories);
+      } else if (game.type === 'hangman') {
+        // The word arrives with blanks only; BEYOND keeps the answer until the round is over.
+        box.append(gallows(game.misses.length, game.result));
+        const word = document.createElement('div'); word.className = 'hm-word';
+        word.setAttribute('aria-label', `Word: ${game.masked.replaceAll('_', 'blank')}`);
+        word.textContent = game.masked;
+        const status = document.createElement('span'); status.className = 'ttt-status hm-status';
+        status.setAttribute('role', 'status');
+        status.textContent = game.result === 'win' ? `You got it! The word was ${game.word}.`
+          : game.result === 'lose' ? `Game over! The word was ${game.word}.` : game.status;
+        if (game.result) status.classList.add(game.result === 'win' ? 'won' : 'lost');
+        const misses = document.createElement('p'); misses.className = 'ttt-hint';
+        misses.textContent = `Misses: ${game.misses.length}/${game.max_misses}  ${game.misses.join(' ') || '—'}` +
+          ` · ${game.category_label} · ${game.difficulty[0].toUpperCase() + game.difficulty.slice(1)}`;
+        box.append(word, status, misses);
+        if (game.hint) { const h = document.createElement('p'); h.className = 'ttt-hint'; h.textContent = '💡 ' + game.hint; box.append(h); }
+        const keys = document.createElement('div'); keys.className = 'hm-keys';
+        for (const row of ['ABCDEFG', 'HIJKLMN', 'OPQRSTU', 'VWXYZ']) {
+          const line = document.createElement('div'); line.className = 'hm-row';
+          for (const letter of row) {
+            const b = document.createElement('button'); b.type = 'button'; b.className = 'hm-key';
+            b.textContent = letter;
+            const tried = game.guessed.includes(letter);
+            if (tried) b.classList.add(game.misses.includes(letter) ? 'miss' : 'hit');
+            b.disabled = tried || !!game.result;
+            b.setAttribute('aria-label', letter + (tried ? (game.misses.includes(letter) ? ', not in the word' : ', in the word') : ''));
+            b.onclick = () => playHangman(el, 'guess', game.revision, letter);
+            line.append(b);
+          }
+          keys.append(line);
+        }
+        box.append(keys);
+        const controls = document.createElement('div'); controls.className = 'ttt-controls';
+        if (!game.result && !game.hint_used) {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'chip';
+          b.textContent = '💡 Free hint'; b.onclick = () => playHangman(el, 'hint', game.revision); controls.append(b);
+        }
+        if (game.result) {
+          const r = game.record;
+          const record = document.createElement('p'); record.className = 'ttt-hint';
+          record.textContent = `Record: ${r.wins} wins · ${r.losses} losses · streak ${r.streak} · best ${r.best_streak}`;
+          box.append(record);
+        }
+        for (const [label, command] of [[game.result ? 'Play again' : 'New word', `/hangman ${game.category} ${game.difficulty}`],
+                                         ['Change category', '/hangman ' + game.difficulty], ['Stats', '/hangman stats'], ['Games', '/games']]) {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'chip';
+          b.textContent = label; b.onclick = () => sendGameCommand(command); controls.append(b);
         }
         box.append(controls);
       } else if (game.type === 'blackjack') {
@@ -1106,6 +1195,89 @@
       }
     }
     setInterval(refreshBlackjack, 4000);
+
+    // ---------- hangman: the drawing, guesses and the hint (BEYOND keeps the word) ----------
+    function gallows(misses, result) {
+      const ns = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(ns, 'svg');
+      svg.setAttribute('viewBox', '0 0 120 130'); svg.setAttribute('class', 'hm-gallows' + (result ? ' ' + result : ''));
+      svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', `Hangman drawing: ${misses} of 6 misses`);
+      const parts = [   // the frame is always there; one body part appears for each miss
+        ['line', { x1: 10, y1: 122, x2: 80, y2: 122 }], ['line', { x1: 30, y1: 122, x2: 30, y2: 8 }],
+        ['line', { x1: 30, y1: 8, x2: 82, y2: 8 }], ['line', { x1: 82, y1: 8, x2: 82, y2: 22 }],
+        ['circle', { cx: 82, cy: 32, r: 10 }, 1], ['line', { x1: 82, y1: 42, x2: 82, y2: 76 }, 2],
+        ['line', { x1: 82, y1: 52, x2: 68, y2: 64 }, 3], ['line', { x1: 82, y1: 52, x2: 96, y2: 64 }, 4],
+        ['line', { x1: 82, y1: 76, x2: 70, y2: 96 }, 5], ['line', { x1: 82, y1: 76, x2: 94, y2: 96 }, 6]];
+      for (const [tag, attrs, miss] of parts) {
+        if (miss && miss > misses) continue;
+        const shape = document.createElementNS(ns, tag);
+        for (const [k, v] of Object.entries(attrs)) shape.setAttribute(k, v);
+        if (miss) shape.setAttribute('class', 'hm-part');
+        svg.append(shape);
+      }
+      return svg;
+    }
+    const hmBusy = new Set();
+    function applyHangman(el, data) {
+      if (!el.isConnected || (el.hmState && data.game.revision < el.hmState.revision)) return;
+      fill(el, data.text); showGame(el, data.game);
+    }
+    async function playHangman(el, action, revision, letter) {
+      const id = Number(el.dataset.messageId);
+      if (hmBusy.has(id)) return;
+      hmBusy.add(id);
+      el.querySelectorAll('.hm-key').forEach(button => { button.disabled = true; });
+      try {
+        const response = await fetch('/api/hangman/' + id + '/' + action, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(action === 'guess' ? { revision, letter } : { revision }),
+        });
+        const data = await response.json();
+        if (data.game) applyHangman(el, data);
+        if (response.status === 404 && el.isConnected) {
+          el.hmState = null;
+          el.querySelector('.hm-status').textContent = data.error;
+          return;
+        }
+        if (!response.ok) throw new Error(data.error || 'That guess could not be saved.');
+      } catch (error) {
+        if (el.isConnected && el.hmState) {
+          showGame(el, el.hmState);
+          el.querySelector('.hm-status').textContent = error.name === 'TypeError'
+            ? 'BEYOND is not responding. Try again.' : error.message;
+        }
+      } finally {
+        hmBusy.delete(id);
+      }
+    }
+    // Typing a letter guesses it in the newest open round, unless you're typing somewhere else.
+    document.addEventListener('keydown', e => {
+      if (e.ctrlKey || e.metaKey || e.altKey || !/^[a-z]$/i.test(e.key)) return;
+      if (e.target.closest?.('input, textarea, select, [contenteditable]')) return;
+      const open = [...list.querySelectorAll('.hm-keys')].map(k => k.closest('.msg')).filter(m => m.hmState && !m.hmState.result).pop();
+      if (!open || open.hmState.guessed.includes(e.key.toUpperCase())) return;
+      e.preventDefault();
+      playHangman(open, 'guess', open.hmState.revision, e.key.toUpperCase());
+    });
+    async function refreshHangman() {   // a round played on another device shows up here too
+      if (document.hidden) return;
+      for (const keys of list.querySelectorAll('.hm-keys')) {
+        const el = keys.closest('.msg'), state = el.hmState, id = Number(el.dataset.messageId);
+        const rect = keys.getBoundingClientRect(), bounds = log.getBoundingClientRect();
+        if (!state || state.result || hmBusy.has(id) || rect.bottom < bounds.top || rect.top > bounds.bottom) continue;
+        try {
+          const response = await fetch('/api/hangman/' + id);
+          const data = await response.json();
+          if (hmBusy.has(id) || !el.isConnected) continue;
+          if (response.status === 404) {
+            el.hmState = null;
+            el.querySelectorAll('.hm-key').forEach(button => { button.disabled = true; });
+            el.querySelector('.hm-status').textContent = data.error;
+          } else if (response.ok && data.game.revision > state.revision) applyHangman(el, data);
+        } catch { /* The saved round stays visible while disconnected. */ }
+      }
+    }
+    setInterval(refreshHangman, 4000);
 
     const triviaBusy = new Set();
     function triviaCommand(category, difficulty) {

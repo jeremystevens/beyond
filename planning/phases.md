@@ -287,7 +287,7 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - Playing cards on screen, Hit / Stand, dealer play, stats.
 - **Done when:** full hands can be played, including blackjack and bust.
 
-### Phase 32: Hangman
+### Phase 32: Hangman ✅ (done 2026-10-18)
 - The gallows drawing updating in place, an on-screen A–Z keyboard, categories, difficulty and hints.
 - **Done when:** a word can be guessed or lost, with the drawing advancing on each miss.
 

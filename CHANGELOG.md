@@ -6,6 +6,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 32: hangman** (version 0.32.0), ported from PromptetheusBot.
+  - `/hangman` opens a picker with difficulty (Easy 4–6, Medium 7–9, Hard 10+ letters) and five categories;
+    `/hangman animals medium` starts directly. The round shows a gallows drawing that gains a body part on each
+    miss, the word with blanks, and an A–Z keyboard (also usable by typing) that colours hits and misses. One free
+    hint per round; Play again, Change category, Stats and Games follow every round; `/hangman stats` shows wins,
+    losses, win rate and streaks. The Games menu now has every game ready.
+  - The bot's word bank (about 260 words with hints) and rules are unchanged. Rounds are saved like blackjack hands:
+    the word and an unused hint stay in `hangman_rounds` on the server, guesses carry a revision so stale or repeated
+    clicks can't count twice, and a finished round counts once in the record and the shared game stats.
 - **Phase 31: blackjack** (version 0.31.0), ported from PromptetheusBot.
   - `/blackjack` (alias `/bj`) deals a hand on a card table in the chat: real-looking cards, the dealer's hidden card
     as a card back, Hit and Stand, then the dealer plays to 17 (standing on soft 17). Naturals end the hand on the
