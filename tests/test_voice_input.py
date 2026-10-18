@@ -1,4 +1,4 @@
-"""Phase 26 checks: python -m unittest discover -s tests -v. Uses a temporary database; the real Whisper "base"
+"""Phase 26 (voice input) checks: python -m unittest discover -s tests -v. Uses a temporary database; the real Whisper "base"
 model (downloaded once) and a question spoken by Windows' built-in voice."""
 import subprocess
 import tempfile
