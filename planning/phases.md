@@ -270,7 +270,7 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - A real clickable 3×3 grid, three difficulty levels, stats.
 - **Done when:** a full game can be played and won, lost or drawn at each level.
 
-### Phase 29: Trivia (implemented 2026-10-18; all 111 tests passed; browser verified; owner play check pending)
+### Phase 29: Trivia (implemented 2026-10-18; all 111 tests passed; browser verified; owner test passed 2026-10-18)
 - Category and difficulty pickers, answer buttons, score.
 - /trivia and Games start rounds of up to five questions from the bot's sources, with source/license credits.
 - Bot scoring is unchanged: Easy/Medium/Hard earn 1/2/3 points; wrong answers reset the streak.

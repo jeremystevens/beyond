@@ -21,7 +21,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     4/5 scoring, Next, source credits, device refresh, reload, disconnect retry, saved filters, draft preservation
     and mobile/desktop layouts. HTTP/HTTPS and active-round/score persistence after restart passed.
     Declared Requests explicitly (already pinned in the lockfile). Python/browser syntax, dependencies and
-    whitespace checked. Owner play check pending.
+    whitespace checked. Owner tested Phase 29 and confirmed it works well on 2026-10-18.
 
 
 - **Phase 28: tic-tac-toe** (version 0.28.0).
