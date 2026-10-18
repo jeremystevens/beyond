@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 from typing import Literal
 
 from app import chats, config, notify
-from app.tools import imagine
+from app.tools import imagine, image_prompts
 
 router = APIRouter()
 _jobs = {}
@@ -52,10 +52,11 @@ async def shutdown():
         await asyncio.gather(*(task for task, _ in jobs), return_exceptions=True)
 
 
-async def _finish(chat_id, pending_id, prompt, preset, values, stop):
+async def _finish(chat_id, pending_id, prompt, preset, values, stop, seed=-1):
     try:
         try:
-            png = await asyncio.to_thread(imagine.generate, prompt, preset, values, stop)
+            options = {'seed': seed} if seed != -1 else {}
+            png = await asyncio.to_thread(imagine.generate, prompt, preset, values, stop, **options)
             answer = f"Your picture is ready · {imagine.PRESETS[preset]['label']}\n{prompt}"
             kind = 'image'
         except imagine.ImagineError as exc:
@@ -98,10 +99,27 @@ async def _finish(chat_id, pending_id, prompt, preset, values, stop):
         imagine.release()
 
 
+class PromptRequest(BaseModel):
+    prompt: str = Field(min_length=1, max_length=1200)
+
+
+@router.post('/api/imagine/prompt')
+async def improve_prompt(body: PromptRequest):
+    if not body.prompt.strip():
+        return JSONResponse({'error': 'Type a picture idea first.'}, status_code=400)
+    try:
+        prompt = await image_prompts.improve(body.prompt)
+        return {'prompt': prompt, 'negative_prompt': image_prompts.negative_prompt(prompt)}
+    except image_prompts.PromptError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=503)
+
+
 class PictureRequest(BaseModel):
     chat_id: int | None = None
     prompt: str = Field(min_length=1, max_length=1200)
     preset: Literal['quick', 'good', 'best'] = 'good'
+    # Optional API seed for reproducible comparisons; browser users still choose presets only.
+    seed: int = Field(default=-1, ge=-1, le=2147483647, strict=True)
 
 
 @router.get('/api/imagine/status')
@@ -132,11 +150,13 @@ async def start(body: PictureRequest):
     try:
         current = chats.create('/imagine ' + prompt) if body.chat_id is None else body.chat_id
         spec = imagine.PRESETS[body.preset]
-        chats.add_message(current, 'user', f"/imagine {prompt}\nPreset: {spec['label']}", kind='image_request')
+        avoid = image_prompts.negative_prompt(prompt)
+        chats.add_message(current, 'user', f"/imagine {prompt}\nPreset: {spec['label']}\nAvoid: {avoid}",
+                          kind='image_request')
         progress = f"Making your picture · {spec['label']} · {spec['estimate']}. You can keep chatting while I work."
         pending_id = chats.add_message(current, 'assistant', progress, kind='image_pending')
         stop = threading.Event()
-        task = asyncio.create_task(_finish(current, pending_id, prompt, body.preset, values, stop))
+        task = asyncio.create_task(_finish(current, pending_id, prompt, body.preset, values, stop, body.seed))
         _jobs[task] = stop
         task.add_done_callback(lambda done: _jobs.pop(done, None))
         started = True

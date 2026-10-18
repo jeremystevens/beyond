@@ -153,6 +153,12 @@
           <label for="imagine-prompt">Make a picture</label>
           <textarea id="imagine-prompt" rows="2" maxlength="1200" placeholder="Describe your picture idea"
                     aria-label="Picture idea"></textarea>
+          <div class="row" style="margin-bottom:8px">
+            <button type="button" class="ghost" id="imagine-improve">Improve prompt</button>
+            <button type="button" class="ghost" id="imagine-undo" hidden>Undo improvement</button>
+          </div>
+          <p class="note">Review and edit the improved idea before choosing a preset. Blur, watermarks and common
+            anatomy defects are avoided automatically.</p>
           <div class="row">
             <button type="button" class="ghost" id="imagine-quick">Quick · ~1–2 min</button>
             <button type="button" id="imagine-good">Good · ~3–5 min</button>
@@ -384,6 +390,8 @@
     function newChat() {
       stop();
       clearPhoto();
+      cancelPromptHelper();
+      originalPictureIdea = null; $('imagine-undo').hidden = true;
       $('imagine-panel').hidden = true;
       chatId = null;
       list.innerHTML = WELCOME;
@@ -396,6 +404,8 @@
     async function openChat(id) {
       stop();
       clearPhoto();
+      cancelPromptHelper();
+      originalPictureIdea = null; $('imagine-undo').hidden = true;
       $('imagine-panel').hidden = true;
       document.body.classList.remove('panel-open');
       let chat;
@@ -547,6 +557,8 @@
       const imagine = /^\/imagine(?:\s+([\s\S]*))?$/i.exec(text);
       if (imagine) {
         input.value = ''; autoGrow();
+        cancelPromptHelper();
+        originalPictureIdea = null; $('imagine-undo').hidden = true;
         $('imagine-prompt').value = imagine[1] || '';
         $('imagine-panel').hidden = false;
         $('imagine-status').textContent = 'Choose a preset. One picture at a time; chat stays available.';
@@ -664,8 +676,52 @@
 
 
     // ---------- background picture generation ----------
+    let promptHelper = null, originalPictureIdea = null;
+    function cancelPromptHelper() {
+      if (promptHelper) { promptHelper.abort(); promptHelper = null; }
+      $('imagine-improve').disabled = false;
+      $('imagine-improve').textContent = 'Improve prompt';
+      $('imagine-prompt').disabled = false;
+      for (const preset of ['quick', 'good', 'best']) $('imagine-' + preset).disabled = false;
+    }
+    async function improvePicturePrompt() {
+      if (promptHelper || scanning || current) return;
+      const original = $('imagine-prompt').value.trim();
+      if (!original || original.length > 1200) {
+        $('imagine-status').textContent = 'Type a picture idea of 1–1200 characters first.'; return;
+      }
+      const mine = new AbortController();
+      promptHelper = mine;
+      $('imagine-improve').disabled = true;
+      $('imagine-improve').textContent = 'Improving…';
+      $('imagine-prompt').disabled = true;
+      for (const preset of ['quick', 'good', 'best']) $('imagine-' + preset).disabled = true;
+      $('imagine-status').textContent = 'Improving with your chat AI… You can keep chatting. Nothing is generating yet.';
+      try {
+        const data = await api('/api/imagine/prompt', {
+          method: 'POST', body: JSON.stringify({ prompt: original }), signal: mine.signal,
+        });
+        if (promptHelper !== mine) return;
+        originalPictureIdea = original;
+        $('imagine-prompt').value = data.prompt;
+        $('imagine-undo').hidden = false;
+        $('imagine-status').textContent = 'Prompt improved. Review or edit it, then choose Quick, Good or Best.';
+      } catch (error) {
+        if (promptHelper === mine && error.name !== 'AbortError')
+          $('imagine-status').textContent = error.message + ' Your original idea is unchanged.';
+      } finally {
+        if (promptHelper === mine) cancelPromptHelper();
+      }
+    }
+    $('imagine-improve').onclick = improvePicturePrompt;
+    $('imagine-undo').onclick = () => {
+      cancelPromptHelper();
+      if (originalPictureIdea !== null) $('imagine-prompt').value = originalPictureIdea;
+      originalPictureIdea = null; $('imagine-undo').hidden = true;
+      $('imagine-status').textContent = 'Original idea restored. Choose a preset when ready.';
+    };
     async function makePicture(preset) {
-      if (current || scanning) return;
+      if (current || scanning || promptHelper) return;
       const prompt = $('imagine-prompt').value.trim();
       if (!prompt || prompt.length > 1200) {
         $('imagine-status').textContent = 'Type a picture idea of 1–1200 characters first.';
@@ -673,7 +729,7 @@
       }
       const originChat = chatId;
       scanning = true;  // only during the short submission, not during generation
-      const controls = ['imagine-quick', 'imagine-good', 'imagine-best', 'imagine-cancel', 'send'];
+      const controls = ['imagine-quick', 'imagine-good', 'imagine-best', 'imagine-cancel', 'imagine-improve', 'imagine-undo', 'send'];
       controls.forEach(id => $(id).disabled = true);
       $('imagine-status').textContent = 'Starting your picture…';
       const progress = bubble('assistant thinking', 'Starting your picture…');
@@ -695,7 +751,7 @@
       }
     }
     for (const preset of ['quick', 'good', 'best']) $('imagine-' + preset).onclick = () => makePicture(preset);
-    $('imagine-cancel').onclick = () => { $('imagine-panel').hidden = true; input.focus(); };
+    $('imagine-cancel').onclick = () => { cancelPromptHelper(); $('imagine-panel').hidden = true; input.focus(); };
 
     // ---------- photos and /scan ----------
     let pendingPhoto = null, previewUrl = null;

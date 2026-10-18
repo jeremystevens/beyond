@@ -4,7 +4,7 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 23 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> **Status: early development (Phase 24 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
 > browser: it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
@@ -92,7 +92,7 @@ Tab or Enter to pick one. BEYOND answers commands itself, instantly, without the
 |---|---|---|
 | `/help` | List every command, or explain one | `/help calc` |
 | `/scan` | Attach a photo, then extract its printed text locally; results have Copy text | Attach a photo, then `/scan` |
-| `/imagine <idea>` | Make a local picture with Quick / Good / Best, background progress, a popup and Download PNG | `/imagine a cartoon cat in space` |
+| `/imagine <idea>` | Make a local picture with a prompt helper, automatic defect avoidance, presets, background progress, a popup and Download PNG | `/imagine a cartoon cat in space` |
 | `/look` | Attach a photo, then ask the local vision AI; Describe it, Receipt / totals, or a custom question | Attach a photo, then `/look what is on the table?` |
 | `/calc` | Calculator: maths, percentages, tips, splitting a bill | `/calc tip 85.50 18% split 4` |
 | `/convert` | Units: temperature, distance, weight, cooking, speed and more | `/convert 72 f to c` |
@@ -161,7 +161,8 @@ details; use /scan for quick printed-text extraction.
 
 ## Picture generation (/imagine)
 
-Type **/imagine <picture idea>** in chat, then choose a preset. You can edit the idea before starting.
+Type **/imagine <picture idea>** in chat. Optionally choose **Improve prompt**, review or edit the result,
+then choose a preset. **Undo improvement** restores the idea from before the last improvement.
 
 | Preset | Picture size | Steps | Approximate CPU time on the development PC |
 |---|---|---|---|
@@ -187,7 +188,23 @@ and a **DreamShaper .safetensors model**, then Save. Default timeout is 20 minut
 threads and timeout are adjustable. Fresh installs have the feature off and empty file paths. Your paths stay
 in git-ignored local settings. No additional Python dependencies, Studio model switching, GPU calls, or image
 server are needed. Temporary generation files are removed after each job; small popup previews live in
-data/image-previews. Prompt enhancement and automatic negative prompts are planned for Phase 24.
+data/image-previews.
+
+**Better pictures (Phase 24).** Improve prompt asks your existing chat AI for a concise, more detailed image
+description. It is told to preserve the subject, count, colors, style and exclusions, including line drawings and
+coloring-book art. Nothing is generated until you choose a preset. Review the rewrite first; AI suggestions can
+still change a detail. Edit it or use Undo improvement if needed. Chat remains available while the helper works.
+The helper has a one-minute timeout; errors leave your original idea intact, and you can generate without it
+even if the chat AI is unavailable. Closing the panel or changing chats discards late helper results.
+
+Every picture automatically avoids common defects: blur, low quality/resolution, watermarks, signatures, extra
+fingers/limbs and distorted anatomy. Unwanted text is also avoided unless you request lettering or signage.
+Explicit monochrome/coloring-book requests also avoid color; coloring books and requests for no shading avoid
+shading, gradients and gray fill. The actual prompt and avoid words are saved with the request in its chat.
+These are guidance to DreamShaper, not guarantees. No extra model or dependency is required.
+
+For reproducible API comparisons, POST /api/imagine also accepts an optional integer seed (-1 for random, or
+0–2147483647). Browser users still choose presets only; ordinary generations remain random.
 
 ## Personality
 
@@ -324,6 +341,7 @@ app/tools/           The tools behind the commands (calculator, units, world_tim
 app/tools/scan.py    Offline photo text reader (RapidOCR, ported from the bot)
 app/tools/vision.py  One-off CPU photo analysis (Gemma 3, ported from the bot)
 app/photo_jobs.py    Background /look jobs, saved progress, completion and shutdown
+app/tools/image_prompts.py Reviewable AI prompt expansion and style-aware negative prompts
 app/tools/imagine.py CPU DreamShaper picture worker and Quick / Good / Best presets (ported from the bot)
 app/image_jobs.py    Background /imagine jobs, saved pictures, PNG downloads and popup previews
 app/ports.py         Port checks (free? who's using it?) and this PC's network addresses

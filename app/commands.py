@@ -812,7 +812,7 @@ def _help(args=''):
 
 
 COMMANDS = [
-    Command('imagine', 'Make a picture locally with Quick, Good or Best, while chat stays available',
+    Command('imagine', 'Make a local picture with presets, an optional prompt helper, and automatic defect avoidance',
             '/imagine a cartoon cat in space', lambda _args: IMAGINE_HELP, group='Photos'),
     Command('look', 'Ask the local vision AI about an attached photo; describe it, read a receipt, or ask a question',
             '/look what is in this photo?', lambda _args: LOOK_HELP, group='Photos'),

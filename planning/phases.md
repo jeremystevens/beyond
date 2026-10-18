@@ -232,9 +232,13 @@ Studio's engine on 10086 for most of development; that must never become the def
 - /help, /help imagine and the browser menu use the shared command registry; README, personality and changelog updated.
 - **Done when:** each preset produces a picture, chat keeps working meanwhile, and a popup says when it's ready.
 
-### Phase 24: Better pictures
+### Phase 24: Better pictures (implemented 2026-10-17; 41 checks passed; matched live comparison completed; owner quality/UI review pending)
 - A **prompt helper** (the chat AI turns a short idea into a detailed description), plus the usual "avoid this"
   words (blurry, extra fingers…) added automatically.
+- Improve prompt is optional and reviewable, with edit/undo, bounded requests and protection against late results
+  after navigation. Original prompts still work when the chat AI is unavailable.
+- Automatic negative prompts respect lettering and explicit monochrome/coloring-book styles. Prompt and avoid
+  words stay with the saved image request. /help imagine, browser menu, README and personality are updated.
 - **Done when:** a short idea like "a cat in space" gives a clearly better picture than the same words without help.
 
 ### Phase 25: Spoken replies

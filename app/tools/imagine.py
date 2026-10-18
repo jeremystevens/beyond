@@ -10,6 +10,7 @@ from pathlib import Path
 from PIL import Image, UnidentifiedImageError
 
 from app import settings
+from app.tools.image_prompts import negative_prompt as automatic_negative
 
 PRESETS = {
     'quick': {'label': 'Quick', 'size': 256, 'steps': 8, 'estimate': 'about 1–2 minutes'},
@@ -21,6 +22,9 @@ HELP = ('Type /imagine followed by a picture idea, then choose Quick, Good or Be
         'actual times vary. One picture is made at a time on the CPU. You can keep chatting or close '
         'the browser while it works. The finished picture stays in the chat with a Download PNG button. '
         'A popup with a preview tells you when it is ready, following your popup preferences. '
+        'Use Improve prompt to expand your idea with the chat AI, review it, and edit or undo before generating. '
+        'Common defects such as blur, watermarks and extra fingers are avoided automatically. '
+        'The helper preserves requested styles, including monochrome and coloring-book art. '
         'First enable Picture generation in Settings and select a CPU sd-cli.exe and DreamShaper model.')
 _lock = threading.Lock()
 
@@ -51,17 +55,19 @@ def release():
     _lock.release()
 
 
-def generate(prompt, preset, values, stop=None):
+def generate(prompt, preset, values, stop=None, *, negative_prompt=None, seed=-1):
     """Run our own bounded process; never switch or stop Studio's text model."""
     stop = stop or threading.Event()
     if stop.is_set():
         raise ImagineError('Picture generation was interrupted.')
     spec = PRESETS[preset]
+    negative_prompt = automatic_negative(prompt) if negative_prompt is None else negative_prompt
     with tempfile.TemporaryDirectory(prefix='beyond-image-') as folder:
         output = Path(folder) / 'image.png'
         args = [values['image_executable'], '--model', values['image_model'], '--prompt', prompt,
                 '--width', str(spec['size']), '--height', str(spec['size']), '--steps', str(spec['steps']),
-                '--threads', str(values['image_threads']), '--seed', '-1', '--output', str(output)]
+                '--threads', str(values['image_threads']), '--seed', str(seed),
+                '--negative-prompt', negative_prompt, '--output', str(output)]
         started = time.monotonic()
         try:
             process = subprocess.Popen(args, cwd=str(Path(values['image_executable']).parent),

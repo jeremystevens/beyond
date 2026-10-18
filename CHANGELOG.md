@@ -6,6 +6,26 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 24: better pictures** (version 0.24.0).
+  - Added Improve prompt to /imagine: the existing chat AI expands an idea while preserving requested subjects,
+    colors, styles and exclusions. Review/edit and Undo improvement keep the person in control before generating.
+  - The helper is asynchronous, bounded to one minute, leaves the original intact on error, and ignores late
+    results after cancellation/navigation. Generating directly still works when the chat AI is unavailable.
+  - Picture generation now always passes automatic negative prompts to the CPU worker: common quality/anatomy
+    defects, with explicit monochrome/coloring-book handling and lettering-aware text avoidance.
+  - Saved requests include the actual avoid words. Added a bounded optional API seed for controlled comparisons;
+    ordinary browser generations remain random and use Quick / Good / Best.
+  - Updated /help imagine, browser command discovery, README, settings guidance, personality and phase plan.
+  - Verification: all 41 checks passed, including the existing scan/vision/image regression suite, helper
+    validation, timeout cancellation, style/visibility guards, negative CLI arguments, saved requests and seeds.
+    Chrome mobile checks passed for review/undo, offline fallback, cancellation, stale replies, chat controls
+    and submitting the manually edited idea. Python/browser syntax, dependencies and whitespace checked.
+    Live AI preserved coloring-book/no-shading and red/blue cartoon requests. Original vs improved cat-in-space
+    pictures were saved/downloaded at 384px with Good and seed 42 in chat 86. The final
+    improved render took 222.6 seconds. Owner visual-quality/UI review remains pending.
+  - Live trials exposed unsolicited color bans and an underlit rewrite. Tightened instructions, rejected
+    unrequested monochrome changes, shortened suggestions, and kept the original idea first with readable
+    subject guidance. Outline art and explicitly dark requests keep their intended style.
 - **Phase 23: /imagine** (version 0.23.0).
   - Ported the bot's CPU DreamShaper worker into BEYOND. Quick / Good / Best presets use 256px/8, 384px/12
     and 512px/15, with honest approximate times of 1–2, 3–5 and 9–12 minutes.
