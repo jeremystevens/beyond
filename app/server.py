@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
                  memory, notes, notify, ports, reminders, rules, settings)
 
-from app import photo_jobs
+from app import photo_jobs, image_jobs
 from app.tools import scan
 
 chats.initialize()
@@ -75,7 +75,7 @@ async def _watch_ai():
         await asyncio.sleep(60)
 
 
-ARRIVALS = ('reminder', 'briefing', 'vision', 'vision_error')   # messages BEYOND posts by itself; the page asks for new ones every few seconds
+ARRIVALS = ('reminder', 'briefing', 'vision', 'vision_error', 'image', 'image_error')   # messages BEYOND posts by itself; the page asks for new ones every few seconds
 BRIEFING_CHAT = '☀️ Morning briefing'
 
 
@@ -118,17 +118,19 @@ async def _reminder_loop():
 @asynccontextmanager
 async def lifespan(_app):
     photo_jobs.recover()
+    image_jobs.recover()
     tasks = [asyncio.create_task(loop()) for loop in (_reminder_loop, _briefing_loop, _watch_ai)]
     try:
         yield
     finally:
-        await photo_jobs.shutdown()
+        await asyncio.gather(photo_jobs.shutdown(), image_jobs.shutdown())
         for task in tasks:
             task.cancel()
 
 
 app = FastAPI(title='BEYOND', version=config.VERSION, docs_url=None, redoc_url=None, lifespan=lifespan)
 app.include_router(photo_jobs.router)
+app.include_router(image_jobs.router)
 app.mount('/static', StaticFiles(directory=config.WEB_DIR), name='static')
 
 
@@ -567,6 +569,7 @@ def rename_chat(chat_id: int, body: Rename):
 
 @app.delete('/api/chats/{chat_id}')
 def delete_chat(chat_id: int):
+    image_jobs.remove_previews(chat_id)
     return {'ok': True} if chats.delete(chat_id) else JSONResponse({'error': 'That chat no longer exists.'},
                                                                    status_code=404)
 

@@ -154,11 +154,11 @@ def messages_after(kinds, after, limit=20):
     """Messages of these kinds newer than id `after`, oldest first, with their chat's name (for the page)."""
     marks = ', '.join('?' * len(kinds))
     with connect() as db:
-        rows = db.execute('SELECT m.id, m.chat_id, m.content, m.buttons, m.kind, m.replaces, c.title FROM messages m '
+        rows = db.execute('SELECT m.id, m.chat_id, m.content, m.buttons, m.kind, m.replaces, m.image, c.title FROM messages m '
                           f'JOIN chats c ON c.id = m.chat_id WHERE m.kind IN ({marks}) AND m.id > ? ORDER BY m.id '
                           'LIMIT ?', (*kinds, after, limit)).fetchall()
     return [{'id': r['id'], 'chat_id': r['chat_id'], 'content': r['content'], 'buttons': _buttons(r['buttons']),
-             'kind': r['kind'], 'replaces': r['replaces'], 'chat_title': r['title']} for r in rows]
+             'kind': r['kind'], 'replaces': r['replaces'], 'image': r['image'], 'chat_title': r['title']} for r in rows]
 
 
 def remove_message(message_id):

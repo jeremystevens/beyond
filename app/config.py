@@ -6,8 +6,8 @@ which is never committed and only holds what differs from these defaults, so a n
 """
 from pathlib import Path
 
-VERSION = '0.22.0'
-PHASE = 22
+VERSION = '0.23.0'
+PHASE = 23
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / 'data'                          # settings, chats, logs: created at runtime, git-ignored
@@ -42,6 +42,12 @@ DEFAULTS = {
     'vision_mmproj': '',
     'vision_threads': 12,
     'vision_timeout': 600,
+    # Separate CPU DreamShaper process; owner file paths stay in data/settings.json.
+    'image_enabled': False,
+    'image_executable': '',
+    'image_model': '',
+    'image_threads': 12,
+    'image_timeout': 1200,
     # The port BEYOND's page is on.
     'web_port': WEB_PORT,
     # Let phones and other computers on your network open BEYOND. Off by default: there's no login yet (Phase 38).
@@ -64,7 +70,7 @@ DEFAULTS = {
     # Start BEYOND (in the tray) when you sign in to Windows.
     'start_with_windows': False,
 }
-BOOLEAN_SETTINGS = ('vision_enabled', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
+BOOLEAN_SETTINGS = ('image_enabled', 'vision_enabled', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
                     'popup_errors', 'start_with_windows')
 TIME_SETTINGS = ('quiet_start', 'quiet_end')
 RESTART_SETTINGS = ('web_port', 'allow_network')   # these only take effect after BEYOND restarts

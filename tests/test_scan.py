@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 import httpx
 from PIL import Image, ImageDraw, ImageFont
-from app import chats, config
+from app import chats, config, settings
 from app.tools import scan
 
 
@@ -57,9 +57,10 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
     @classmethod
     def setUpClass(cls):
         cls.temp = tempfile.TemporaryDirectory()
-        cls.data_dir, cls.db_path = config.DATA_DIR, chats.DB_PATH
+        cls.data_dir, cls.db_path, cls.settings_file = config.DATA_DIR, chats.DB_PATH, settings.FILE
         config.DATA_DIR = Path(cls.temp.name)
         chats.DB_PATH = config.DATA_DIR / 'test.sqlite3'
+        settings.FILE = config.DATA_DIR / 'settings.json'
         from contextlib import contextmanager
         connect = chats.connect
         @contextmanager
@@ -73,11 +74,15 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         cls.connections = patch.object(chats, 'connect', closed_connection)
         cls.connections.start()
         from app.server import app
+        # The server may already be imported by another test class; initialize this new temporary database.
+        from app import memory, learning, notes, checklists, expenses, reminders, briefing, rules
+        for module in (chats, rules, memory, learning, notes, checklists, expenses, reminders, briefing):
+            module.initialize()
         cls.app = app
 
     @classmethod
     def tearDownClass(cls):
-        config.DATA_DIR, chats.DB_PATH = cls.data_dir, cls.db_path
+        config.DATA_DIR, chats.DB_PATH, settings.FILE = cls.data_dir, cls.db_path, cls.settings_file
         cls.connections.stop()
         cls.temp.cleanup()
 

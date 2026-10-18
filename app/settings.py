@@ -61,6 +61,17 @@ def validate(changes):
             suffix = '.exe' if key == 'vision_executable' else '.gguf'
             if value and (len(value) > 1024 or not value.lower().endswith(suffix)):
                 raise SettingsError(f'{key} must be a {suffix} file path.')
+        elif key in ('image_executable', 'image_model'):
+            if not isinstance(value, str):
+                raise SettingsError('Picture file paths must be text.')
+            value = value.strip().strip('"')
+            suffix = '.exe' if key == 'image_executable' else '.safetensors'
+            if value and (len(value) > 1024 or not value.lower().endswith(suffix)):
+                raise SettingsError(f'{key} must be a {suffix} file path.')
+        elif key in ('image_threads', 'image_timeout'):
+            low, high = (1, 64) if key == 'image_threads' else (60, 3600)
+            if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
+                raise SettingsError(f'{key} must be a whole number between {low} and {high}.')
         elif key in ('vision_threads', 'vision_timeout'):
             low, high = (1, 64) if key == 'vision_threads' else (30, 3600)
             if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:

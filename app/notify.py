@@ -104,7 +104,7 @@ def _get_toaster():
         return _toaster
 
 
-def show(kind, title, body, chat_id=None, buttons=(), on_button=None, force=False):
+def show(kind, title, body, chat_id=None, buttons=(), on_button=None, force=False, image_path=None):
     """Show a popup if it's wanted right now (or always, with force=True, for "Send a test popup").
     `buttons`: [(label, argument)]; pressing one calls on_button(argument). Clicking the popup itself opens the
     chat. Returns '' if it was shown, or why it wasn't."""
@@ -113,14 +113,20 @@ def show(kind, title, body, chat_id=None, buttons=(), on_button=None, force=Fals
         return reason
     if sys.platform != 'win32':
         return 'popups need Windows'
-    threading.Thread(target=_show, args=(title, body, chat_id, list(buttons), on_button), daemon=True).start()
+    threading.Thread(target=_show, args=(title, body, chat_id, list(buttons), on_button, image_path), daemon=True).start()
     return ''
 
 
-def _show(title, body, chat_id, buttons, on_button):
+def _show(title, body, chat_id, buttons, on_button, image_path=None):
     try:
         from windows_toasts import Toast, ToastButton
         toast = Toast(text_fields=[title[:120], body[:300]], launch_action=f'open:{chat_id or ""}')
+        if image_path:
+            try:
+                from windows_toasts import ToastDisplayImage
+                toast.AddImage(ToastDisplayImage.fromPath(image_path, altText='Your generated picture'))
+            except Exception:
+                logging.exception('Could not attach the popup preview; sending text only')
         for label, argument in buttons:
             toast.AddAction(ToastButton(label, argument))
         toast.on_activated = lambda event: _activated(getattr(event, 'arguments', '') or '', chat_id, on_button)

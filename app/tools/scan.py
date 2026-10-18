@@ -11,6 +11,11 @@ import warnings
 
 from PIL import Image, ImageOps, UnidentifiedImageError
 
+# Load ONNX's native DLLs before Windows Runtime's toast bindings. The opposite
+# order crashes this Windows/Python build during the first OCR import. Models
+# remain lazy; this only initializes the already-required runtime.
+import onnxruntime as _onnxruntime  # noqa: F401
+
 MAX_PHOTO_BYTES = 10 * 1024 * 1024
 MAX_PIXELS = 25_000_000
 MAX_SIDE = 2048

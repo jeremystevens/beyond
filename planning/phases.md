@@ -221,10 +221,15 @@ Studio's engine on 10086 for most of development; that must never become the def
 - **Done when:** a photo gets a correct description, chat keeps working while it's being looked at, and a popup
   says when it's done.
 
-### Phase 23: `/imagine`
+### Phase 23: `/imagine` (implemented 2026-10-17; 30 automated checks and all three live presets passed; owner UI/popup check pending)
 - Picture generation with **Quick / Good / Best** presets instead of raw settings, shown in the chat with a
   download button and a progress message ("about 3–5 minutes").
 - A **popup when the picture is finished**, showing a small preview where Windows allows it.
+- **Preset estimates on this CPU:** Quick ~1–2 minutes, Good ~3–5 minutes, Best ~9–12 minutes (256/8, 384/12,
+  512/15). These are estimates, not completion timers.
+- Ported the bot's standalone DreamShaper worker; own background CPU process, progress persisted in chat,
+  one image at a time, PNG download, preview popup, bounded timeout and shutdown/restart recovery.
+- /help, /help imagine and the browser menu use the shared command registry; README, personality and changelog updated.
 - **Done when:** each preset produces a picture, chat keeps working meanwhile, and a popup says when it's ready.
 
 ### Phase 24: Better pictures

@@ -4,12 +4,12 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 22 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> **Status: early development (Phase 23 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
 > browser: it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
 > slash commands (/calc, /convert, /time, /roll, /weather, /news, /web, /wiki, /define, /movie, /joke, /qr,
-> /note, /list, /spent, /remind, /morning, /scan, /look, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
+> /note, /list, /spent, /remind, /morning, /scan, /look, /imagine, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
 > arrives in Phase 33.
 
 ## Saved facts
@@ -92,6 +92,7 @@ Tab or Enter to pick one. BEYOND answers commands itself, instantly, without the
 |---|---|---|
 | `/help` | List every command, or explain one | `/help calc` |
 | `/scan` | Attach a photo, then extract its printed text locally; results have Copy text | Attach a photo, then `/scan` |
+| `/imagine <idea>` | Make a local picture with Quick / Good / Best, background progress, a popup and Download PNG | `/imagine a cartoon cat in space` |
 | `/look` | Attach a photo, then ask the local vision AI; Describe it, Receipt / totals, or a custom question | Attach a photo, then `/look what is on the table?` |
 | `/calc` | Calculator: maths, percentages, tips, splitting a bill | `/calc tip 85.50 18% split 4` |
 | `/convert` | Units: temperature, distance, weight, cooking, speed and more | `/convert 72 f to c` |
@@ -157,6 +158,36 @@ with empty paths and the feature off on a fresh download. Built-in model downloa
 The photo and answer stay on this PC. Temporary inference files are deleted after the process exits. This does
 not switch the model in Local AI Studio or send photos to the chat server. The vision answer can misread unclear
 details; use /scan for quick printed-text extraction.
+
+## Picture generation (/imagine)
+
+Type **/imagine <picture idea>** in chat, then choose a preset. You can edit the idea before starting.
+
+| Preset | Picture size | Steps | Approximate CPU time on the development PC |
+|---|---|---|---|
+| Quick | 256 × 256 | 8 | About 1–2 minutes |
+| Good | 384 × 384 | 12 | About 3–5 minutes |
+| Best | 512 × 512 | 15 | About 9–12 minutes |
+
+One picture runs at a time. BEYOND saves progress immediately and runs its own **CPU sd-cli.exe** at below-normal
+Windows priority. Keep chatting, switch chats or close the browser while it works. Actual times depend on the PC
+and other work. A second picture request gets a busy reply. The text model in Studio stays loaded.
+
+The result replaces its own progress message in the same chat, with a **Download PNG** button that also works
+when you return later or use another device on your network. Generated pictures and prompts stay in BEYOND's
+database and are excluded from text-chat history and recall. Deleting the chat removes its pictures and popup
+previews. Failed or interrupted jobs leave a retry message; shutdown stops and reaps the child process.
+
+A completion popup includes a small picture preview where Windows supports it; clicking opens the chat. It uses
+**When the AI has replied**, quiet hours, Pause popups and the existing rule to skip popups while you are looking
+at BEYOND. Errors use the error-popup preference. If a preview cannot be attached, the text popup still works.
+
+On the host PC, enable **Settings → Picture generation (/imagine)** and select **sd-cli.exe from its CPU folder**
+and a **DreamShaper .safetensors model**, then Save. Default timeout is 20 minutes so Best has room to finish;
+threads and timeout are adjustable. Fresh installs have the feature off and empty file paths. Your paths stay
+in git-ignored local settings. No additional Python dependencies, Studio model switching, GPU calls, or image
+server are needed. Temporary generation files are removed after each job; small popup previews live in
+data/image-previews. Prompt enhancement and automatic negative prompts are planned for Phase 24.
 
 ## Personality
 
@@ -293,6 +324,8 @@ app/tools/           The tools behind the commands (calculator, units, world_tim
 app/tools/scan.py    Offline photo text reader (RapidOCR, ported from the bot)
 app/tools/vision.py  One-off CPU photo analysis (Gemma 3, ported from the bot)
 app/photo_jobs.py    Background /look jobs, saved progress, completion and shutdown
+app/tools/imagine.py CPU DreamShaper picture worker and Quick / Good / Best presets (ported from the bot)
+app/image_jobs.py    Background /imagine jobs, saved pictures, PNG downloads and popup previews
 app/ports.py         Port checks (free? who's using it?) and this PC's network addresses
 app/server.py        The web server (FastAPI): pages, chat, settings and status endpoints
 app/web/             The pages: index.html (chat), settings.html, style.css (shared look), app-height.js

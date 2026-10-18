@@ -62,6 +62,11 @@
     .reminder-banner span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
     .note-msg { align-self: flex-start; background: transparent; color: var(--muted); font-size: 0.85rem;
                 padding: 4px 6px; margin-top: -4px; }
+    #imagine-panel { max-width:760px;margin:0 auto 10px; }
+    #imagine-panel[hidden] { display:none; }
+    #imagine-panel textarea { width:100%;margin:6px 0; }
+    #imagine-panel .row { display:flex;gap:8px;flex-wrap:wrap; }
+    .generated-picture { image-rendering:auto; }
     #photo-preview { max-width: 760px; margin: 0 auto 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     #photo-preview[hidden] { display: none; }
     #photo-thumb { max-width: 80px; max-height: 80px; object-fit: contain; border-radius: 8px; }
@@ -144,6 +149,18 @@
     <div class="chatcol">
       <main id="log"><div class="inner" id="messages"></div></main>
       <form id="form">
+        <div id="imagine-panel" hidden>
+          <label for="imagine-prompt">Make a picture</label>
+          <textarea id="imagine-prompt" rows="2" maxlength="1200" placeholder="Describe your picture idea"
+                    aria-label="Picture idea"></textarea>
+          <div class="row">
+            <button type="button" class="ghost" id="imagine-quick">Quick · ~1–2 min</button>
+            <button type="button" id="imagine-good">Good · ~3–5 min</button>
+            <button type="button" class="ghost" id="imagine-best">Best · ~9–12 min</button>
+            <button type="button" class="ghost" id="imagine-cancel">Cancel</button>
+          </div>
+          <span id="imagine-status" class="note" role="status">One picture at a time. Chat stays available.</span>
+        </div>
         <div id="photo-preview" hidden>
           <img id="photo-thumb" alt="Attached photo">
           <span id="photo-status" role="status"></span>
@@ -264,7 +281,7 @@
     function showImage(el, src) {
       if (!src || !src.startsWith('data:image/png;base64,') || el.querySelector('.picture')) return;
       const img = document.createElement('img');
-      img.className = 'picture'; img.src = src; img.alt = el.classList.contains('user') ? 'Uploaded photo' : 'QR code';
+      img.className = 'picture'; img.src = src; img.alt = el.classList.contains('user') ? 'Uploaded photo' : 'Picture attached to this message';
       el.insertBefore(img, el.querySelector('.lookup, .buttons'));
     }
 
@@ -367,6 +384,7 @@
     function newChat() {
       stop();
       clearPhoto();
+      $('imagine-panel').hidden = true;
       chatId = null;
       list.innerHTML = WELCOME;
       showChatInAddress();
@@ -378,6 +396,7 @@
     async function openChat(id) {
       stop();
       clearPhoto();
+      $('imagine-panel').hidden = true;
       document.body.classList.remove('panel-open');
       let chat;
       try { chat = await api('/api/chats/' + id); }
@@ -395,7 +414,8 @@
         showLookup(el, m.lookup);
         showImage(el, m.image);
         if (m.kind === 'scan' || m.kind === 'vision') showCopy(el, m.content);
-        if (m.kind === 'vision_pending') el.classList.add('vision-pending');
+        if (m.kind === 'vision_pending' || m.kind === 'image_pending') el.classList.add('thinking');
+        if (m.kind === 'image') el.querySelector('.picture')?.classList.add('generated-picture');
         showButtons(el, m.id, m.buttons);
       }
       scrollDown(true);
@@ -524,6 +544,14 @@
         $('photo-status').textContent = 'Choose an action, or send /look followed by your question.';
         return;
       }
+      const imagine = /^\/imagine(?:\s+([\s\S]*))?$/i.exec(text);
+      if (imagine) {
+        input.value = ''; autoGrow();
+        $('imagine-prompt').value = imagine[1] || '';
+        $('imagine-panel').hidden = false;
+        $('imagine-status').textContent = 'Choose a preset. One picture at a time; chat stays available.';
+        $('imagine-prompt').focus(); return;
+      }
       if (!text) return;
       input.value = ''; autoGrow();
       const question = bubble('user', text);
@@ -634,6 +662,40 @@
       }
     }
 
+
+    // ---------- background picture generation ----------
+    async function makePicture(preset) {
+      if (current || scanning) return;
+      const prompt = $('imagine-prompt').value.trim();
+      if (!prompt || prompt.length > 1200) {
+        $('imagine-status').textContent = 'Type a picture idea of 1–1200 characters first.';
+        $('imagine-prompt').focus(); return;
+      }
+      const originChat = chatId;
+      scanning = true;  // only during the short submission, not during generation
+      const controls = ['imagine-quick', 'imagine-good', 'imagine-best', 'imagine-cancel', 'send'];
+      controls.forEach(id => $(id).disabled = true);
+      $('imagine-status').textContent = 'Starting your picture…';
+      const progress = bubble('assistant thinking', 'Starting your picture…');
+      try {
+        const data = await api('/api/imagine', {
+          method: 'POST', body: JSON.stringify({ chat_id: originChat, prompt, preset }),
+        });
+        if (progress.isConnected && chatId === originChat) {
+          progress.remove();
+          await openChat(data.chat_id);
+        }
+        loadList();
+      } catch (error) {
+        if (progress.isConnected) { progress.remove(); bubble('error', error.message); }
+        $('imagine-status').textContent = error.message;
+      } finally {
+        progress.remove(); scanning = false;
+        controls.forEach(id => $(id).disabled = false);
+      }
+    }
+    for (const preset of ['quick', 'good', 'best']) $('imagine-' + preset).onclick = () => makePicture(preset);
+    $('imagine-cancel').onclick = () => { $('imagine-panel').hidden = true; input.focus(); };
 
     // ---------- photos and /scan ----------
     let pendingPhoto = null, previewUrl = null;
@@ -792,13 +854,18 @@
       reminderMark = data.latest;
     }
     function showReminder(r) {
-      if (r.kind === 'vision' || r.kind === 'vision_error') {
+      if (['vision', 'vision_error', 'image', 'image_error'].includes(r.kind)) {
         if (r.chat_id === chatId) {
           if (r.replaces) list.querySelector('[data-message-id="' + r.replaces + '"]')?.remove();
           if (list.querySelector('[data-message-id="' + r.id + '"]')) return;
-          const answer = bubble(r.kind === 'vision' ? 'assistant' : 'error', r.content);
+          const answer = bubble(r.kind.endsWith('_error') ? 'error' : 'assistant', r.content);
           answer.dataset.messageId = String(r.id);
           if (r.kind === 'vision') showCopy(answer, r.content);
+          if (r.kind === 'image') {
+            showImage(answer, r.image);
+            answer.querySelector('.picture')?.classList.add('generated-picture');
+            showButtons(answer, r.id, r.buttons);
+          }
           loadList(); return;
         }
       }

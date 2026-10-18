@@ -6,6 +6,29 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 23: /imagine** (version 0.23.0).
+  - Ported the bot's CPU DreamShaper worker into BEYOND. Quick / Good / Best presets use 256px/8, 384px/12
+    and 512px/15, with honest approximate times of 1–2, 3–5 and 9–12 minutes.
+  - Browser prompt editor and preset buttons start a background job; chat, navigation and browser closure remain
+    usable. One picture at a time, saved progress, independent CPU process at below-normal Windows priority.
+  - Finished pictures persist in their chat with Download PNG, including after reload and on network devices.
+    Picture prompts/results are excluded from text-model history and recall. Deleting the chat discards in-flight
+    results, removes saved pictures and clears popup preview files.
+  - Shared completion notifications support a small image preview with a text-only fallback, preserving all
+    existing popup preferences, quiet hours, pause and page-presence behavior.
+  - Added host-only picture settings with clean disabled defaults and empty owner paths; configurable threads
+    and a 20-minute timeout. Process cancellation/reaping, output validation, temporary cleanup and restart
+    recovery prevent abandoned progress. No new dependencies; Studio and the bot are unchanged.
+  - Updated /help, /help imagine, the browser menu, README, personality and phase plan.
+  - Verification: all 30 tests pass in one run, including real OCR. Live app: Quick 118.4s, Good 236.4s, Best 609.3s.
+    Every preset produced a PNG at its expected size; saved progress was replaced and downloads worked.
+    Text chat replied during generation, health stayed responsive, and concurrent pictures were rejected.
+    Desktop/mobile Chrome checks passed for presets, validation, busy handling, controls, saved images and
+    downloads. Windows accepted a real image-preview toast with no failure event; owner visual check pending.
+  - Fixed a Windows native import-order crash found during combined testing: load the existing ONNX runtime
+    before WinRT toast bindings, while keeping OCR models lazy. Also initialized each OCR test database
+    independently so the full suite works regardless of which feature tests run first. After the final restart,
+    a live notification followed by real OCR passed in the same running app process.
 - **Phase 22: /look photo understanding** (version 0.22.0).
   - Describe it, Receipt / totals and a custom question through the photo controls or /look with an attachment.
     The shared registry adds /look to /help, /help look and the / menu.

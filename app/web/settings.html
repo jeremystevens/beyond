@@ -107,6 +107,24 @@
     </section>
 
     <section>
+      <h2>Picture generation (/imagine)</h2>
+      <p class="hint">DreamShaper runs locally in a separate CPU process. Choose Quick (~1–2 minutes),
+        Good (~3–5 minutes), or Best (~9–12 minutes) in chat. Times vary; chat stays available.
+        Use sd-cli.exe from the CPU folder, not a GPU build.</p>
+      <label class="switch"><input type="checkbox" id="image_enabled"><span><b>Enable picture generation</b></span></label>
+      <label for="image_executable">CPU picture executable (.exe)</label>
+      <input type="text" id="image_executable" spellcheck="false" style="width:100%">
+      <label for="image_model">DreamShaper model (.safetensors)</label>
+      <input type="text" id="image_model" spellcheck="false" style="width:100%">
+      <div class="row">
+        <label for="image_threads">CPU threads <input type="number" id="image_threads" min="1" max="64"></label>
+        <label for="image_timeout">Timeout (seconds) <input type="number" id="image_timeout" min="60" max="3600"></label>
+      </div>
+      <p class="small">Press Save. Changes apply to the next picture. Finished-picture popups use
+        "When the AI has replied" and include a preview where Windows supports it.</p>
+    </section>
+
+    <section>
       <h2>House rules</h2>
       <p class="hint">Instructions BEYOND follows in every chat, for example "Always answer in under 3 sentences" or
         "Use metric units". You can also type <b>/rule &lt;text&gt;</b> and <b>/rules</b> in a chat. They're saved straight
@@ -209,9 +227,10 @@
   <script>
     const $ = id => document.getElementById(id);
     const checkboxes = ['allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
-                        'popup_errors', 'start_with_windows', 'vision_enabled'];
+                        'popup_errors', 'start_with_windows', 'vision_enabled', 'image_enabled'];
     const fields = ['ai_server_url', 'ai_model', 'web_port', 'quiet_start', 'quiet_end',
-                    'vision_executable', 'vision_model', 'vision_mmproj', 'vision_threads', 'vision_timeout', ...checkboxes];
+                    'vision_executable', 'vision_model', 'vision_mmproj', 'vision_threads', 'vision_timeout',
+                    'image_executable', 'image_model', 'image_threads', 'image_timeout', ...checkboxes];
     let view = null;
 
     function show(kind, text) {
@@ -264,6 +283,8 @@
         vision_executable: $('vision_executable').value, vision_model: $('vision_model').value,
         vision_mmproj: $('vision_mmproj').value, vision_threads: Number($('vision_threads').value),
         vision_timeout: Number($('vision_timeout').value),
+        image_executable: $('image_executable').value, image_model: $('image_model').value,
+        image_threads: Number($('image_threads').value), image_timeout: Number($('image_timeout').value),
         ...Object.fromEntries(checkboxes.map(f => [f, $(f).checked])),
       };
     }
