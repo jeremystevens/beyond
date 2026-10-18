@@ -4,18 +4,18 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 27 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> **Status: early development (Phase 28 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
 > browser, by typing or by speaking (🎤): it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
 > slash commands (/calc, /convert, /time, /roll, /weather, /news, /web, /wiki, /define, /movie, /joke, /qr,
-> /note, /list, /spent, /remind, /morning, /scan, /look, /imagine, /speak, /games, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
+> /note, /list, /spent, /remind, /morning, /scan, /look, /imagine, /speak, /games, /tictactoe, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
 > arrives in Phase 33.
 
 ## Games and dice
 
-Open **Games** in the header or type **/games**. Dice and coins are available now; the menu shows the planned
-phases for tic-tac-toe, trivia, study quiz, blackjack and hangman. Quick buttons roll a d6 or d20, flip a coin,
+Open **Games** in the header or type **/games**. Dice, coins and tic-tac-toe are available now; the menu shows the planned
+phases for trivia, study quiz, blackjack and hangman. Quick buttons roll a d6 or d20, flip a coin,
 or show **Game stats**. Opening Games keeps any message draft or photo attachment in place.
 
 - **/roll** rolls a d6. **/roll 2d20+3**, **/roll 4d6kh3**, **/roll 4d6dl1**, **/roll adv+5**,
@@ -30,6 +30,29 @@ or show **Game stats**. Opening Games keeps any message draft or photo attachmen
 - Shared stats survive restarting BEYOND and deleting a chat. The local, gitignored SQLite database stores
   these totals in `game_stats`; `app/games.py` also supports scores and win/loss/draw records for later games.
   No Telegram accounts, imported bot scores or AI calls are needed.
+
+## Tic-tac-toe
+
+Choose **Play tic-tac-toe** in Games, or type **/tictactoe** (**/ttt** is an alias), then choose a difficulty.
+You are **X**, BEYOND is **O**, and you move first on a real clickable 3×3 board.
+
+- **Easy** picks a random empty square. **Normal** takes a win or blocks yours, prefers the centre/corners,
+  and sometimes makes a loose move. **Impossible** uses the bot's unchanged minimax rules and never loses:
+  your best result against it is a draw.
+- **/tictactoe easy**, **/tictactoe normal** and **/tictactoe impossible** start directly at that difficulty.
+  Each move includes BEYOND's reply. Winning lines are highlighted and finished boards cannot be played again.
+- **New game** starts another board at the same difficulty. **Change difficulty** returns to the picker.
+  Earlier boards stay in the chat; unfinished ones remain playable after reloading or restarting BEYOND.
+- **/tictactoe stats** shows wins, losses and draws for each difficulty. **/games stats** includes the combined
+  tic-tac-toe record. Stats are shared across chats/devices and remain when a chat is deleted.
+- Moves, board state and completed-game stats save in one SQLite transaction. Stale or duplicate clicks are
+  rejected and refresh the board, so the same result counts once. Visible unfinished boards refresh when
+  played from another device. Deleted boards cannot be resurrected.
+- Game logic is local and does not call the chat AI. Boards are attached to their saved chat messages;
+  there is no Telegram user/session dependency or 15-minute expiry.
+
+The rules live in `app/tools/tictactoe.py`; `app/tictactoe.py` handles saved boards and per-difficulty stats,
+using Phase 27's shared score store for the aggregate record.
 
 ## Spoken replies
 

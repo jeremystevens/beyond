@@ -21,7 +21,7 @@ from app import briefing, chats, checklists, expenses, learning, memory, notes, 
 from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewrite, weather, web_search, wikipedia
 from app.tools.calculator import calculate
 from app.tools.dice import roll_result
-from app import games
+from app import games, tictactoe
 from app.tools.units import convert
 from app.tools.imagine import HELP as IMAGINE_HELP
 from app.tools import speech
@@ -756,6 +756,19 @@ def _qr(args):
 
 # ---------- dice ----------
 
+def _tictactoe(args=''):
+    requested = args.strip().lower()
+    if requested == 'stats':
+        return Reply(tictactoe.stats_text())
+    if requested in ('', 'help', '?'):
+        return Reply('Tic-tac-toe\nChoose a difficulty. You are X and go first. Impossible never loses.',
+                     game=tictactoe.picker())
+    if requested not in tictactoe.rules.DIFFICULTIES:
+        return Reply(tictactoe.HELP)
+    game = tictactoe.new(requested)
+    return Reply(tictactoe.text(game), game=game)
+
+
 def _games(args=''):
     if args.strip().lower() == 'stats':
         return Reply(games.stats_text(), [[button('Back to games', 'games:menu:')]])
@@ -843,6 +856,8 @@ def _help(args=''):
 
 
 COMMANDS = [
+    Command('tictactoe', 'Play Easy, Normal or Impossible (never loses); /tictactoe stats shows your record',
+            '/tictactoe normal', _tictactoe, aliases=('ttt',), group='Games'),
     Command('games', 'Open the games menu or see shared game stats (/games stats)', '/games', _games, group='Games'),
     Command('speak', 'Read the last AI answer, or supplied text (up to 1800 characters), with local Kokoro/Piper audio; enable Spoken replies in Settings',
             '/speak Hello from BEYOND', _speak, group='Voice'),

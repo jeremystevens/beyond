@@ -152,6 +152,17 @@
     .coin-face { border: 3px solid #c78e37; background: #fbe5ad; color: #664010; border-radius: 50%; width: 76px;
                  height: 76px; display: grid; place-items: center; font-size: 1.4rem; font-weight: 700; margin-top: 10px; }
     @media (max-width: 420px) { .game-grid { grid-template-columns: 1fr; } #games-open { padding: 7px 10px; } }
+
+    .ttt-board { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; width: min(100%,300px); margin: 14px 0; }
+    .ttt-cell { aspect-ratio: 1; border: 1px solid #d6c8bd; border-radius: 12px; background: #fff9f3;
+                color: #b64813; font-size: 2.4rem; font-weight: 750; padding: 0; min-width: 0; }
+    .ttt-cell:not(:disabled):hover, .ttt-cell:focus-visible { background: #ffeadb; outline: 2px solid #d96326; }
+    .ttt-cell:disabled { cursor: default; opacity: 1; }
+    .ttt-cell.o { color: #48665f; background: #f4f8f6; }
+    .ttt-cell.winner { border: 3px solid #d96326; background: #ffdfc5; }
+    .ttt-status { display: block; margin: 8px 0; font-weight: 650; }
+    .ttt-controls { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+    .ttt-hint { font-size: .85rem; color: #716961; margin: 8px 0; }
   </style>
 </head>
 <body>
@@ -728,14 +739,16 @@
 
 
     // ---------- games: the server's actual rolls, never a second roll in the browser ----------
-    $('games-open').onclick = () => {
+    function sendGameCommand(command) {
       if (current || scanning) return;
       menu.hidden = true;
-      const question = bubble('user', '/games');
-      streamAnswer('/api/chat/stream', { chat_id: chatId, content: '/games' }, question, () => question.remove());
-    };
+      const question = bubble('user', command);
+      streamAnswer('/api/chat/stream', { chat_id: chatId, content: command }, question, () => question.remove());
+    }
+    $('games-open').onclick = () => sendGameCommand('/games');
     function showGame(el, game) {
       el.querySelector('.game-view')?.remove();
+      el.tttState = game?.type === 'tictactoe' ? game : null;
       if (!game) return;
       const box = document.createElement('div'); box.className = 'game-view';
       if (game.type === 'menu') {
@@ -745,8 +758,52 @@
           card.className = 'game-card ' + (item.available ? 'ready' : 'later');
           const name = document.createElement('strong'); name.textContent = item.name;
           const status = document.createElement('small'); status.textContent = item.status;
-          card.append(name, status); box.append(card);
+          card.append(name, status);
+          if (item.id === 'tictactoe' && item.available) {
+            const play = document.createElement('button'); play.type = 'button'; play.className = 'chip';
+            play.textContent = 'Play tic-tac-toe'; play.style.marginTop = '10px';
+            play.onclick = () => sendGameCommand('/tictactoe'); card.append(play);
+          }
+          box.append(card);
         }
+      } else if (game.type === 'tictactoe_picker') {
+        const hint = document.createElement('p'); hint.className = 'ttt-hint';
+        hint.textContent = 'Easy plays randomly. Normal takes wins and blocks, with occasional loose moves. Impossible never loses.';
+        box.append(hint);
+        const controls = document.createElement('div'); controls.className = 'ttt-controls';
+        for (const difficulty of ['easy', 'normal', 'impossible']) {
+          const button = document.createElement('button'); button.type = 'button'; button.className = 'chip';
+          button.textContent = difficulty[0].toUpperCase() + difficulty.slice(1);
+          button.onclick = () => sendGameCommand('/tictactoe ' + difficulty); controls.append(button);
+        }
+        box.append(controls);
+      } else if (game.type === 'tictactoe') {
+        const status = document.createElement('span'); status.className = 'ttt-status';
+        status.setAttribute('role', 'status');
+        status.textContent = game.result === 'X' ? 'You win!' : game.result === 'O' ? 'BEYOND wins.' :
+                             game.result === 'draw' ? 'Draw — well played.' : 'Your turn · X';
+        box.append(status);
+        const board = document.createElement('div'); board.className = 'ttt-board';
+        board.setAttribute('role', 'group'); board.setAttribute('aria-label', 'Tic-tac-toe board');
+        for (let cell = 0; cell < 9; cell++) {
+          const mark = game.board[cell];
+          const button = document.createElement('button'); button.type = 'button';
+          button.className = 'ttt-cell' + (mark === 'O' ? ' o' : '') + (game.winning.includes(cell) ? ' winner' : '');
+          button.textContent = mark === ' ' ? '' : mark; button.dataset.cell = String(cell);
+          button.disabled = mark !== ' ' || !!game.result;
+          button.setAttribute('aria-label', 'Row ' + (Math.floor(cell/3)+1) + ', column ' + (cell%3+1) +
+                                           ': ' + (mark === ' ' ? 'empty' : mark));
+          button.onclick = () => playTictactoe(el, game.revision, cell);
+          board.append(button);
+        }
+        box.append(board);
+        const controls = document.createElement('div'); controls.className = 'ttt-controls';
+        for (const [label, command] of [['New game', '/tictactoe ' + game.difficulty],
+              ['Change difficulty', '/tictactoe'], ['Game stats', '/tictactoe stats'], ['Games', '/games']]) {
+          const button = document.createElement('button'); button.type = 'button'; button.className = 'chip';
+          button.textContent = label; button.onclick = () => sendGameCommand(command); controls.append(button);
+        }
+        box.append(controls);
       } else if (game.type === 'coin') {
         const coin = document.createElement('div'); coin.className = 'coin-face'; coin.textContent = game.face;
         coin.setAttribute('role', 'img');
@@ -791,6 +848,63 @@
       } else return;
       el.append(box);
     }
+
+    const tttBusy = new Set();
+    function applyTictactoe(el, data) {
+      if (!el.isConnected || (el.tttState && data.game.revision < el.tttState.revision)) return;
+      const focused = el.contains(document.activeElement);
+      fill(el, data.text); showGame(el, data.game);
+      if (focused) el.querySelector('.ttt-cell:not(:disabled)')?.focus();
+    }
+    async function playTictactoe(el, revision, cell) {
+      const id = Number(el.dataset.messageId);
+      if (tttBusy.has(id)) return;
+      tttBusy.add(id);
+      el.querySelectorAll('.ttt-cell').forEach(button => { button.disabled = true; });
+      el.querySelector('.ttt-board').setAttribute('aria-busy', 'true');
+      try {
+        const response = await fetch('/api/tictactoe/' + id + '/move', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ revision, cell }),
+        });
+        const data = await response.json();
+        if (data.game) applyTictactoe(el, data);
+        if (response.status === 404 && el.isConnected) {
+          el.tttState = null;
+          el.querySelector('.ttt-status').textContent = data.error;
+          return;
+        }
+        if (!response.ok) throw new Error(data.error || 'The move could not be saved.');
+      } catch (error) {
+        if (el.isConnected && el.tttState) {
+          showGame(el, el.tttState);
+          const status = el.querySelector('.ttt-status');
+          status.textContent = error.name === 'TypeError' ? 'BEYOND is not responding. Try the move again.' : error.message;
+        }
+      } finally {
+        tttBusy.delete(id);
+        el.querySelector('.ttt-board')?.removeAttribute('aria-busy');
+      }
+    }
+    async function refreshTictactoe() {
+      if (document.hidden) return;
+      for (const board of list.querySelectorAll('.ttt-board')) {
+        const el = board.closest('.msg'), state = el.tttState, id = Number(el.dataset.messageId);
+        const rect = board.getBoundingClientRect(), bounds = log.getBoundingClientRect();
+        if (!state || state.result || tttBusy.has(id) || rect.bottom < bounds.top || rect.top > bounds.bottom) continue;
+        try {
+          const response = await fetch('/api/tictactoe/' + id);
+          const data = await response.json();
+          if (tttBusy.has(id) || !el.isConnected) continue;
+          if (response.status === 404) {
+            el.tttState = null;
+            el.querySelectorAll('.ttt-cell').forEach(button => { button.disabled = true; });
+            el.querySelector('.ttt-status').textContent = data.error;
+          } else if (response.ok && data.game.revision > el.tttState.revision) applyTictactoe(el, data);
+        } catch { /* The saved board stays visible while disconnected. */ }
+      }
+    }
+    setInterval(refreshTictactoe, 4000);
 
     // ---------- saved spoken replies ----------
     const pendingSpeech = new Set(), manualSpeech = new Set();

@@ -6,6 +6,24 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 28: tic-tac-toe** (version 0.28.0).
+  - Added /tictactoe (/ttt), a difficulty picker and a real clickable 3×3 board accessible from Games.
+  - Ported the bot's Easy, Normal and Impossible move rules unchanged. Winning lines, clear results,
+    occupied/finished cells, New game, Change difficulty and game records are rendered for the browser.
+  - Boards stay in chat and resume after reload/restart. Visible boards refresh across devices; revision
+    checks reject stale or duplicate clicks. A board and both per-difficulty/aggregate stats commit together.
+  - Completed games count exactly once; wins/losses/draws are shared across chats and retained after deletion.
+    Existing saved Games menus reflect newly available games.
+  - Updated shared /help and browser discovery, README, personality and phase plan. Phase 27 owner test passed.
+  - Verification: all 96 tests passed, including 13 new tic-tac-toe checks. Full Easy/Normal games cover
+    wins, losses and draws; Impossible covers BEYOND wins/draws and exhaustive play confirms it never loses.
+    Duplicate final moves, stale/occupied cells, request validation, atomic rollback, deletion and saved boards passed.
+    The five rule functions match the bot source exactly. Chrome completed Easy/Normal wins and an Impossible
+    draw, checking winning lines, second-device refresh, reload, disconnect retry, new games, chat availability,
+    draft preservation and phone/desktop layout. Live HTTP/HTTPS and board/stats persistence after restart passed.
+    Python/browser syntax, dependency consistency and whitespace checks passed. Owner play check pending.
+
+
 - **Download certificate** (Settings), so other devices can trust BEYOND's secure address and skip the browser
   warning for good (owner's request).
   - `app/https.py` now makes BEYOND's own small certificate authority (EC P-256, 10 years, CA with path length 0,

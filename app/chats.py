@@ -108,7 +108,7 @@ def get_message(message_id):
     with connect() as db:
         row = db.execute('SELECT id, chat_id, role, content, kind, buttons, rating, reason, speech_state, speech_error, speech_engine, speech_truncated, game FROM messages WHERE id = ?',
                          (message_id,)).fetchone()
-    return {**dict(row), 'buttons': _buttons(row['buttons']), 'game': _lookup(row['game'])} if row else None
+    return {**dict(row), 'buttons': _buttons(row['buttons']), 'game': _game(row['game'])} if row else None
 
 
 def update_message(message_id, content, buttons, game=None):
@@ -210,7 +210,15 @@ def get(chat_id):
                               'speech_engine, speech_truncated, game FROM messages '
                               'WHERE chat_id = ? ORDER BY id', (chat_id,)).fetchall()
     return {**dict(chat), 'messages': [{**dict(m), 'stopped': bool(m['stopped']), 'buttons': _buttons(m['buttons']),
-                                        'lookup': _lookup(m['lookup']), 'speech': speech_info(m), 'game': _lookup(m['game'])} for m in messages]}
+                                        'lookup': _lookup(m['lookup']), 'speech': speech_info(m), 'game': _game(m['game'])} for m in messages]}
+
+
+def _game(raw):
+    result = _lookup(raw)
+    if result and result.get('type') == 'menu':
+        from app import games
+        return games.menu()  # saved menus reflect games that have arrived since they were opened
+    return result
 
 
 def _lookup(raw):

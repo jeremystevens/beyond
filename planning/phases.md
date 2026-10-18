@@ -258,7 +258,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 
 The game **rules** come from the bot unchanged; only the **screens** are new (see the brainstorm file).
 
-### Phase 27: Games menu and dice (implemented 2026-10-18; all 80 tests passed; browser verified; owner play check pending)
+### Phase 27: Games menu and dice (implemented 2026-10-18; all 80 tests passed; browser verified; owner play check passed)
 - A games menu, `/roll` with a nicer dice display, and shared score / stats storage.
 - Games header button and /games open quick dice/coin choices; later games show their planned phases.
 - Saved visuals use the actual server roll, including kept/dropped dice, repeats and totals. /games stats
@@ -266,7 +266,7 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - Shared /help, command menu, README, personality and changelog updated.
 - **Done when:** the menu opens and dice rolls show.
 
-### Phase 28: Tic-tac-toe
+### Phase 28: Tic-tac-toe (implemented 2026-10-18; all 96 tests passed; browser verified; owner play check pending)
 - A real clickable 3×3 grid, three difficulty levels, stats.
 - **Done when:** a full game can be played and won, lost or drawn at each level.
 

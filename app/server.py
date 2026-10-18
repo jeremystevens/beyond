@@ -16,11 +16,12 @@ from pydantic import BaseModel, Field
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
                  https, memory, notes, notify, ports, reminders, rules, settings)
 
-from app import photo_jobs, image_jobs, speech_jobs, games
+from app import photo_jobs, image_jobs, speech_jobs, games, tictactoe
 from app.tools import scan, speech, speech_to_text
 
 chats.initialize()
 games.initialize()
+tictactoe.initialize()
 rules.initialize()
 memory.initialize()
 learning.initialize()
@@ -134,6 +135,7 @@ app = FastAPI(title='BEYOND', version=config.VERSION, docs_url=None, redoc_url=N
 app.include_router(photo_jobs.router)
 app.include_router(image_jobs.router)
 app.include_router(speech_jobs.router)
+app.include_router(tictactoe.router)
 app.mount('/static', StaticFiles(directory=config.WEB_DIR), name='static')
 
 

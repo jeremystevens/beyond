@@ -91,7 +91,7 @@ class GameApiTests(unittest.IsolatedAsyncioTestCase):
         cid, message = await self.send('/games')
         self.assertEqual(message['game']['type'], 'menu')
         self.assertEqual(len(message['game']['items']), 6)
-        self.assertEqual(sum(item['available'] for item in message['game']['items']), 1)
+        self.assertEqual(sum(item['available'] for item in message['game']['items']), 2)
         self.assertEqual(games.stats(), [])
         with patch.object(dice, '_roll', return_value=[5]):
             r = await self.client.post(f"/api/messages/{message['id']}/press", json={'action': 'roll:again:d6'})
