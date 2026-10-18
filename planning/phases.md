@@ -245,7 +245,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 - `/speak` and an optional "read answers aloud" setting, with an audio player in the chat (Kokoro, Piper fallback).
 - **Done when:** an answer can be played aloud in the browser.
 
-### Phase 26: Voice input
+### Phase 26: Voice input ✅ (done 2026-10-17; a spoken question got a normal answer)
 - A microphone button: speak, and your words are turned into text and sent.
 - **Done when:** a spoken question gets a normal answer.
 

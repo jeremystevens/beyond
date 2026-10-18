@@ -94,6 +94,8 @@
            padding: 12px max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom))
                     max(16px, env(safe-area-inset-left)); }
     #backdrop { display: none; }
+    #mic.recording { background: #c0392b; border-color: #c0392b; color: #fff; animation: pulse 1.2s infinite; }
+    #mic.unavailable { opacity: 0.45; }
     .composer { max-width: 760px; margin: 0 auto; display: flex; gap: 8px; align-items: flex-end; position: relative; }
     #cmdmenu { position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); max-height: 320px; overflow-y: auto;
                margin: 0; padding: 6px; list-style: none; background: var(--panel); border: 1px solid var(--border);
@@ -181,6 +183,7 @@
         <input id="photo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
         <div class="composer">
           <button type="button" class="ghost" id="attach-photo" aria-label="Attach a photo" title="Attach a photo to read its text">📷</button>
+          <button type="button" class="ghost" id="mic" aria-label="Speak your message" title="Speak your message">🎤</button>
           <ul id="cmdmenu" role="listbox" aria-label="Commands" hidden></ul>
           <textarea id="input" rows="1" placeholder="Message BEYOND…  (type / for commands)" aria-label="Message"
                     title="Enter sends · Shift+Enter starts a new line · / shows the commands"
@@ -875,6 +878,82 @@
 
 
     $('attach-photo').onclick = () => { if (!current && !scanning) $('photo-file').click(); };
+
+    // ---------- voice input (🎤) ----------
+    // Tap 🎤, speak, tap ⏹: the recording goes to BEYOND, which turns it into text on this PC (Whisper, offline),
+    // and the words are sent like a typed message. Nothing is saved but the words.
+    const mic = $('mic');
+    const MAX_RECORDING_MS = 120000;
+    let recorder = null, micChunks = [], micTimer = null, micBusy = false;
+
+    function micState(state) {   // 'idle' | 'recording' | 'working'
+      mic.textContent = state === 'recording' ? '⏹' : state === 'working' ? '⏳' : '🎤';
+      mic.classList.toggle('recording', state === 'recording');
+      mic.title = mic.ariaLabel = state === 'recording' ? 'Stop recording and send'
+        : state === 'working' ? 'Turning your words into text…' : 'Speak your message';
+      mic.disabled = state === 'working';
+    }
+
+    async function toggleRecording() {
+      if (recorder) { recorder.stop(); return; }
+      if (micBusy) return;
+      let stream;
+      try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+      catch (e) {
+        bubble('error', e.name === 'NotAllowedError'
+          ? 'BEYOND needs permission to use the microphone. Allow it in the browser (the icon by the address bar) and try again.'
+          : 'No microphone was found. Check that one is connected and switched on.');
+        return;
+      }
+      micChunks = [];
+      recorder = new MediaRecorder(stream);
+      recorder.ondataavailable = e => { if (e.data.size) micChunks.push(e.data); };
+      recorder.onstop = () => {
+        clearTimeout(micTimer);
+        stream.getTracks().forEach(t => t.stop());   // the browser's "recording" light goes off
+        const type = (recorder.mimeType || 'audio/webm').split(';')[0];
+        recorder = null;
+        sendRecording(new Blob(micChunks, { type }), type);
+      };
+      recorder.start();
+      micState('recording');
+      micTimer = setTimeout(() => recorder?.stop(), MAX_RECORDING_MS);   // at most two minutes
+    }
+
+    async function sendRecording(blob, type) {
+      micBusy = true;
+      micState('working');
+      const placeholder = input.placeholder;
+      input.placeholder = 'Turning your words into text…';
+      try {
+        const r = await fetch('/api/transcribe', { method: 'POST', headers: { 'Content-Type': type }, body: blob });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || 'Voice input failed.');
+        const typed = input.value.trim();
+        input.value = (typed ? typed + ' ' : '') + data.text;
+        autoGrow();
+        if (!current && !scanning) $('form').requestSubmit();   // sent like a typed message
+        else input.focus();                                      // an answer is still being written: send it yourself
+      } catch (e) {
+        bubble('error', e.message && e.name !== 'TypeError' ? e.message : 'BEYOND is not responding. Is it still running?');
+      } finally {
+        micBusy = false;
+        micState('idle');
+        input.placeholder = placeholder;
+      }
+    }
+
+    if (navigator.mediaDevices?.getUserMedia && window.MediaRecorder) {
+      mic.onclick = toggleRecording;
+    } else {
+      // Browsers only allow the microphone on secure pages: http://127.0.0.1 on this PC, or HTTPS.
+      const why = window.isSecureContext ? "This browser can't record audio. Try Chrome, Edge or Firefox."
+        : 'The microphone only works when BEYOND is opened on this PC (http://127.0.0.1:' + location.port +
+          '). Browsers block it on other addresses unless they use HTTPS.';
+      mic.title = mic.ariaLabel = why;
+      mic.classList.add('unavailable');
+      mic.onclick = () => bubble('error', why);
+    }
     $('photo-file').onchange = () => choosePhoto($('photo-file').files);
     $('remove-photo').onclick = clearPhoto;
     $('read-photo').onclick = readPhoto;

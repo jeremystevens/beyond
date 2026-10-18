@@ -6,6 +6,20 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 26: voice input** (version 0.26.0).
+  - A **🎤 button** beside the message box: tap, speak, tap ⏹. The browser records (WebM/Opus in Chrome and Edge,
+    MP4 in Safari), BEYOND turns it into text and the page sends it like a typed message. States: 🎤 → ⏹
+    (recording, red) → ⏳ (working). Stops by itself after two minutes; text already typed is kept in front.
+  - New `app/tools/speech_to_text.py`: faster-whisper "base" on the processor (int8, beam 5, voice-activity
+    filter), ported from PromptetheusBot's voice notes. One recording at a time; the recording is written to a
+    temporary file for the decoder and deleted at once. New endpoint `POST /api/transcribe` (raw audio, at most
+    10 MB) returns the words or a plain-words error (empty, too long, unreadable, no words heard, busy).
+  - Where the browser doesn't allow the microphone (plain http from another device, or no recording support) the
+    button is greyed out and explains why. Denied permission and a missing microphone have their own messages.
+  - New dependency: `faster-whisper` (with `ctranslate2` and `av`). The model is downloaded once (about 145 MB).
+  - Tested: a spoken question as WAV and as WebM/Opus ("What is the capital of France?", exact, in under 2
+    seconds each), an empty, an unreadable and an oversized upload, two recordings at once, and the whole page flow
+    in the browser (the recorded question went through 🎤 → ⏹ → ⏳ → sent, and got a normal answer).
 - **Phase 24: better pictures** (version 0.24.0).
   - Added Improve prompt to /imagine: the existing chat AI expands an idea while preserving requested subjects,
     colors, styles and exclusions. Review/edit and Undo improvement keep the person in control before generating.
