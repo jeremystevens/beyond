@@ -7,6 +7,7 @@ AI server takes effect at once; the port and network switch take effect after a 
 """
 import json
 import logging
+import re
 from urllib.parse import urlparse
 
 from app import config
@@ -65,6 +66,13 @@ def validate(changes):
         elif key in config.BOOLEAN_SETTINGS:
             if not isinstance(value, bool):
                 raise SettingsError(f'{key} must be on or off.')
+        elif key in config.TIME_SETTINGS:
+            value = str(value or '').strip()
+            if value:
+                match = re.fullmatch(r'(\d{1,2}):(\d{2})', value)
+                if not match or int(match.group(1)) > 23 or int(match.group(2)) > 59:
+                    raise SettingsError('Quiet hours are times like 22:00 and 07:30 (24-hour clock).')
+                value = f'{int(match.group(1)):02d}:{match.group(2)}'
         clean[key] = value
     return clean
 

@@ -28,6 +28,7 @@
     .hint { color: var(--muted); font-size: 0.88rem; line-height: 1.45; margin: 0 0 12px; }
     label { display: block; font-weight: 600; font-size: 0.9rem; margin: 14px 0 6px; }
     .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .quiet { margin-top: 14px; } .quiet input[type=time] { width: auto; }
     .row input[type=text] { flex: 1; min-width: 200px; }
     input[type=number] { width: 130px; }
     .small { font-size: 0.82rem; color: var(--muted); }
@@ -132,6 +133,39 @@
     </section>
 
     <section>
+      <h2>Popups and the tray</h2>
+      <p class="hint">BEYOND lives in the Windows tray (the icon by the clock: Open BEYOND, Pause popups, Quit) and keeps
+        running when the browser is closed. Windows popups only come while you're not looking at BEYOND's page;
+        clicking one opens that chat. Press Save after changing these.</p>
+      <label class="switch">
+        <input type="checkbox" id="popup_replies">
+        <span><b>When the AI has replied</b></span>
+      </label>
+      <label class="switch">
+        <input type="checkbox" id="popup_reminders">
+        <span><b>When a reminder goes off</b> <span class="small">(with Done and Snooze on the popup)</span></span>
+      </label>
+      <label class="switch">
+        <input type="checkbox" id="popup_errors">
+        <span><b>When something goes wrong</b> <span class="small">(for example the AI server stopped answering)</span></span>
+      </label>
+      <div class="row quiet">
+        <label>Quiet hours: no popups from <input type="time" id="quiet_start"> to <input type="time" id="quiet_end"></label>
+        <span class="small">Leave both empty for no quiet hours.</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="start_with_windows">
+        <span><b>Start BEYOND with Windows</b>
+          <span class="small">Adds BEYOND to your Windows startup programs (for your user only), in the tray, so
+            reminders work without you starting it.</span></span>
+      </label>
+      <div class="row">
+        <button type="button" class="ghost" id="popupTest">Send a test popup</button>
+        <span id="popupResult" class="small"></span>
+      </div>
+    </section>
+
+    <section>
       <h2>BEYOND's address</h2>
       <label for="web_port">Port <span class="small" id="portDefault"></span></label>
       <input type="number" id="web_port" min="1024" max="65535">
@@ -155,8 +189,9 @@
 
   <script>
     const $ = id => document.getElementById(id);
-    const fields = ['ai_server_url', 'ai_model', 'web_port', 'allow_network', 'auto_facts', 'recall', 'auto_lookup'];
-    const checkboxes = ['allow_network', 'auto_facts', 'recall', 'auto_lookup'];
+    const checkboxes = ['allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
+                        'popup_errors', 'start_with_windows'];
+    const fields = ['ai_server_url', 'ai_model', 'web_port', 'quiet_start', 'quiet_end', ...checkboxes];
     let view = null;
 
     function show(kind, text) {
@@ -175,7 +210,7 @@
       $('portDefault').textContent = `(default ${v.defaults.web_port})`;
       $('portShown').textContent = v.running.port;
       // House rules stay editable from any device, like /rule in a chat; the rest is this-PC-only.
-      document.querySelectorAll('input:not(#newRule), #save, #reset, #test').forEach(el => el.disabled = !v.can_change);
+      document.querySelectorAll('input:not(#newRule), #save, #reset, #test, #popupTest').forEach(el => el.disabled = !v.can_change);
       $('viewOnly').hidden = v.can_change;
       $('restartBanner').hidden = !(v.can_change && v.restart_needed.length);
       const list = $('addresses');
@@ -205,9 +240,19 @@
       return {
         ai_server_url: $('ai_server_url').value, ai_model: $('ai_model').value,
         web_port: Number($('web_port').value), allow_network: $('allow_network').checked,
-        auto_facts: $('auto_facts').checked, recall: $('recall').checked, auto_lookup: $('auto_lookup').checked,
+        quiet_start: $('quiet_start').value, quiet_end: $('quiet_end').value,
+        ...Object.fromEntries(checkboxes.map(f => [f, $(f).checked])),
       };
     }
+
+    $('popupTest').onclick = async () => {
+      const out = $('popupResult');
+      try {
+        const r = await call('/api/notify/test', { kind: 'error' });
+        out.textContent = 'Sent: look by the clock.' + (r.would_show_normally !== 'yes'
+          ? ` (Real popups wouldn't show right now: ${r.would_show_normally}.)` : '');
+      } catch (e) { out.textContent = e.message; }
+    };
 
     async function call(url, body) {
       const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' },

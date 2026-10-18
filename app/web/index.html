@@ -639,6 +639,19 @@
     window.addEventListener('focus', titleBack);
     checkReminders();
     setInterval(checkReminders, 5000);
+
+    // ---------- "I'm on screen" ----------
+    // Windows popups only come when you're not looking at BEYOND: tell the server while this page is visible.
+    function reportPresence() {
+      const visible = document.visibilityState === 'visible' && document.hasFocus();
+      fetch('/api/presence', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                               body: JSON.stringify({ visible }), keepalive: true }).catch(() => {});
+    }
+    document.addEventListener('visibilitychange', reportPresence);
+    window.addEventListener('focus', reportPresence);
+    window.addEventListener('blur', reportPresence);
+    reportPresence();
+    setInterval(() => { if (document.visibilityState === 'visible' && document.hasFocus()) reportPresence(); }, 10000);
     autoGrow();
   </script>
 </body>

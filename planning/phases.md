@@ -184,7 +184,7 @@ Studio's engine on 10086 for most of development; that must never become the def
   chat with Done and Snooze buttons.
 - **Done when:** a reminder set for 2 minutes from now pops up in the chat on time.
 
-### Phase 20: Tray icon and popups
+### Phase 20: Tray icon and popups ✅ (done 2026-10-17)
 - BEYOND runs from a **system-tray icon** (Open BEYOND, Pause popups, Quit) and keeps running when the browser is
   closed. It can start with Windows.
 - **Windows popups** (notifications) so you know something happened while you're doing something else:

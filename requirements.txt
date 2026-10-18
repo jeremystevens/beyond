@@ -7,3 +7,6 @@ tzdata>=2024.1
 ddgs>=9.16,<10          # /web search (DuckDuckGo, no API key)
 segno>=1.6,<2            # /qr codes (offline)
 dateparser>=1.2,<2       # dates like "yesterday" or "oct 3" in /spent
+pystray>=0.19,<1         # the tray icon
+pillow>=10               # draws the tray and popup icon
+Windows-Toasts>=1.3,<2   # Windows popups (with Done / Snooze buttons)

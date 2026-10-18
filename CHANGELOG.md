@@ -6,6 +6,26 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 20: tray icon and popups** (version 0.20.0).
+  - `beyond.py` now runs BEYOND from a **system-tray icon** (an orange B drawn with Pillow): Open BEYOND (also a
+    double-click), Pause popups, Quit BEYOND; the web server runs in a background thread and keeps running when the
+    browser is closed. Started with `pythonw.exe` it has no console window and writes to `data\beyond.log`;
+    `--console` runs it the old way. New dependencies: `pystray`, `pillow`, `Windows-Toasts`.
+  - New `app/notify.py`, the one shared **notify** feature: `notify.show(kind, title, text, chat_id, buttons=…)`.
+    A popup is shown only if its kind is on, it isn't quiet hours (also across midnight), popups aren't paused, and
+    you aren't looking at BEYOND's page: the page reports every 10 seconds while it's visible and focused
+    (`POST /api/presence`). Clicking a popup opens BEYOND at that chat; popup buttons call back into BEYOND.
+    BEYOND registers its name and icon for popups under the Windows user (needed for buttons).
+  - Popups for: **a finished AI reply**, **a reminder** (✅ Done, 😴 10 min, 😴 1 hour on the popup, with the same
+    rules as the page's buttons), and **problems** (an AI error during a reply, and the AI server stopping, checked
+    every minute, once per outage).
+  - Settings: a "Popups and the tray" section with a switch per kind, quiet hours, **Start BEYOND with Windows**
+    (new `app/autostart.py`: your user's Run entry, `pythonw.exe beyond.py`, changed only when you switch it) and
+    **Send a test popup** (`POST /api/notify/test`, this PC only).
+  - Fixed: two comments in `app/config.py` had been garbled by an encoding mistake in Phase 11.
+  - Tested: the popup rules (each setting, quiet hours, looking at the page, Pause), a bad quiet-hours time refused,
+    the registration, the startup entry switched on (checked) and off again, the test popup (seen on screen by the
+    owner), and a reply and a reminder popup triggered with nobody looking (no errors).
 - **Phase 19: reminders, in the app** (version 0.19.0), ported from PromptetheusBot (one user, this PC's time zone).
   - New `app/reminders.py`: the bot's reading of one-time times ("30m", "in two hours", "tomorrow at 6pm",
     "friday", "March 3") and repeating schedules (daily, weekdays, weekends, days of the week, every N hours or

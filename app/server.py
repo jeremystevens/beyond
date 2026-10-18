@@ -12,8 +12,8 @@ from fastapi.responses import FileResponse, JSONResponse, Response, StreamingRes
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from app import (chats, checklists, commands, config, engine, expenses, learning, lookups, memory, notes, ports,
-                 reminders, rules, settings)
+from app import (autostart, chats, checklists, commands, config, engine, expenses, learning, lookups, memory, notes,
+                 notify, ports, reminders, rules, settings)
 
 chats.initialize()
 rules.initialize()
@@ -45,8 +45,29 @@ def _fire_reminders():
         if not chat_id or not chats.exists(chat_id):
             chat_id = next((c['id'] for c in chats.list_chats() if c['title'] == REMINDERS_CHAT), None) or \
                 chats.create(REMINDERS_CHAT)
-        chats.add_message(chat_id, 'assistant', f'⏰ Reminder: {message}{repeat}', kind='reminder',
-                          buttons=commands.reminder_buttons(reminder_id))
+        message_id = chats.add_message(chat_id, 'assistant', f'⏰ Reminder: {message}{repeat}', kind='reminder',
+                                       buttons=commands.reminder_buttons(reminder_id))
+        notify.show('reminder', '⏰ Reminder', message + repeat, chat_id,
+                    buttons=[('✅ Done', f'remind:done:{reminder_id}'),
+                             ('😴 10 min', f'remind:snooze:{reminder_id}:10'),
+                             ('😴 1 hour', f'remind:snooze:{reminder_id}:60')],
+                    on_button=lambda action, mid=message_id: _press(mid, action))
+
+
+async def _watch_ai():
+    """A popup if the AI server stops answering (checked every minute; once per outage)."""
+    was_ok = None
+    while True:
+        try:
+            state = (await engine.status())['state']
+            if state == 'unreachable' and was_ok:
+                notify.show('error', 'BEYOND: the AI stopped answering',
+                            "BEYOND can't reach the AI server any more. Is it still running, with a model loaded?")
+            if state != 'not_set':
+                was_ok = state == 'ok'
+        except Exception:
+            logging.exception('Checking the AI server failed')
+        await asyncio.sleep(60)
 
 
 async def _reminder_loop():
@@ -62,9 +83,10 @@ async def _reminder_loop():
 
 @asynccontextmanager
 async def lifespan(_app):
-    task = asyncio.create_task(_reminder_loop())
+    tasks = [asyncio.create_task(_reminder_loop()), asyncio.create_task(_watch_ai())]
     yield
-    task.cancel()
+    for task in tasks:
+        task.cancel()
 
 
 app = FastAPI(title='BEYOND', version=config.VERSION, docs_url=None, redoc_url=None, lifespan=lifespan)
@@ -240,6 +262,7 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 finished = True
             except engine.EngineError as exc:
                 yield json.dumps({'type': 'error', 'message': str(exc)}) + '\n'
+                notify.show('error', 'BEYOND: the AI had a problem', str(exc), chat_id)
             text = ''.join(answer).strip()
             cleaned = lookups.without_fake_mark(text)
             if cleaned != text and cleaned:
@@ -259,6 +282,7 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 yield json.dumps({'type': 'done'}) + '\n'
                 ANSWERS_IN_PROGRESS -= 1
                 writing = False
+                notify.show('reply', 'BEYOND replied', text, chat_id)   # only if you're not looking at the page
                 if pickup and memory.wants_pickup(pickup):
                     note = await _pick_up_facts(pickup)
                     if note:
@@ -375,6 +399,46 @@ def fired_reminders(after: int = -1):
     if after < 0:
         return {'latest': latest, 'items': []}
     return {'latest': latest, 'items': chats.messages_after('reminder', after)}
+
+
+def _press(message_id, action):
+    """A button pressed on a popup (e.g. a reminder's Snooze): same rules as on the page."""
+    message = chats.get_message(message_id)
+    if message is None or action not in {b.get('action') for row in message['buttons'] for b in row}:
+        return
+    reply = commands.press(action, message)
+    if reply is not None:
+        chats.update_message(message_id, reply.text, reply.buttons)
+
+
+class Presence(BaseModel):
+    visible: bool
+
+
+@app.post('/api/presence')
+def presence(body: Presence):
+    """The page says whether it's on screen, so popups only come when you're not looking at BEYOND."""
+    notify.page_seen(body.visible)
+    return {'ok': True}
+
+
+class PopupTest(BaseModel):
+    kind: Literal['reply', 'reminder', 'error'] = 'error'
+
+
+@app.post('/api/notify/test')
+def test_popup(body: PopupTest, request: Request):
+    """"Send a test popup" on the Settings page. Shown even while you're looking, so you can see it."""
+    if not is_this_pc(request):
+        return only_this_pc()
+    examples = {'reply': ('BEYOND replied', 'This is what a popup looks like when an answer is ready.'),
+                'reminder': ('⏰ Reminder', 'This is what a reminder popup looks like.'),
+                'error': ('BEYOND: test problem', 'This is what a popup looks like when something goes wrong.')}
+    title, text = examples[body.kind]
+    problem = notify.show(body.kind, title, text, force=True)
+    if problem:
+        return JSONResponse({'error': f'No popup: {problem}.'}, status_code=400)
+    return {'ok': True, 'would_show_normally': notify.why_not(body.kind) or 'yes'}
 
 
 @app.post('/api/messages/{message_id}/press')
@@ -504,6 +568,10 @@ def save_settings(body: SettingsChanges, request: Request):
         if problem:
             first_line = problem.split('\n')[0].replace("BEYOND can't start: port", 'Port')
             return JSONResponse({'error': first_line + ' Please pick another.'}, status_code=400)
+    if 'start_with_windows' in cleaned and cleaned['start_with_windows'] != autostart.is_on():
+        problem = autostart.apply(cleaned['start_with_windows'])   # the Windows startup entry, only when it changes
+        if problem:
+            return JSONResponse({'error': problem}, status_code=400)
     return _settings_view(request, settings.save(cleaned))
 
 
@@ -511,6 +579,8 @@ def save_settings(body: SettingsChanges, request: Request):
 def reset_settings(request: Request):
     if not is_this_pc(request):
         return only_this_pc()
+    if autostart.is_on():
+        autostart.apply(False)
     return _settings_view(request, settings.reset())
 
 

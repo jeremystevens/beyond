@@ -4,7 +4,7 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 19 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> **Status: early development (Phase 20 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
 > browser: it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
@@ -183,10 +183,20 @@ Needs **Python 3.14** on Windows.
 cd D:\AI\beyond
 py -3.14 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-lock.txt
-.\.venv\Scripts\python.exe beyond.py
+.\.venv\Scripts\pythonw.exe beyond.py
 ```
 
-Then open **http://127.0.0.1:7770** in your browser.
+BEYOND starts in the **Windows tray** (the orange **B** by the clock): click it, or open
+**http://127.0.0.1:7770** in your browser. Its menu has **Open BEYOND**, **Pause popups** and **Quit BEYOND**. It keeps
+running when the browser is closed, so reminders still go off. What it prints goes to `data\beyond.log`. To run it in a
+console window instead (no tray icon), use `.\.venv\Scripts\python.exe beyond.py --console`.
+
+**Popups.** While you're not looking at BEYOND's page, Windows popups tell you when the AI has replied, when a
+reminder goes off (with ✅ Done and 😴 Snooze right on the popup), and when something went wrong (for example the AI
+server stopped answering). Clicking a popup opens that chat. Each kind can be switched off on the Settings page, with
+quiet hours and a **Send a test popup** button. Settings can also add BEYOND to your Windows startup programs (**Start
+BEYOND with Windows**, for your user only). BEYOND registers its name and icon for popups under your Windows user
+(`HKCU\Software\Classes\AppUserModelId\BEYOND.LocalAI`), which Windows needs for the popup buttons to work.
 
 ## Settings
 
@@ -214,7 +224,8 @@ repository, so deleting `data\settings.json` also brings back the defaults.
 ## Project layout
 
 ```
-beyond.py            Start BEYOND (checks the port, runs the web server, restarts it after port/network changes)
+beyond.py            Start BEYOND: the tray icon, then the web server (checks the port, restarts after port/network
+                     changes); --console runs it without the tray
 app/config.py        Default settings, including every port number (the only place ports are defined)
 app/settings.py      Your settings: the defaults plus your changes in data/settings.json (check, save, reset)
 app/engine.py        The engine connector: the only place BEYOND talks to an AI server (and the history window)
@@ -227,6 +238,8 @@ app/notes.py         The notepad (/note, /notes), in the same database
 app/checklists.py    Checklists (/list), in the same database
 app/expenses.py      The expense log and reports (/spent), in the same database
 app/reminders.py     Reminders (/remind): reading times and schedules; the server fires them
+app/notify.py        Windows popups: one shared feature (settings, quiet hours, "not while you're looking")
+app/autostart.py     "Start BEYOND with Windows" (your user's startup programs)
 app/lookups.py       Automatic lookups: when a question needs the weather, news or web
 app/commands.py      Slash commands: one list (name, summary, example, function) drives /help, the / menu
                      and "did you mean…?"; replies can carry buttons, handled by ACTIONS
