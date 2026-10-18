@@ -6,6 +6,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 31: blackjack** (version 0.31.0), ported from PromptetheusBot.
+  - `/blackjack` (alias `/bj`) deals a hand on a card table in the chat: real-looking cards, the dealer's hidden card
+    as a card back, Hit and Stand, then the dealer plays to 17 (standing on soft 17). Naturals end the hand on the
+    deal with an explanation. Deal again, Stats, Rules and Games follow every hand, and the Games menu has a
+    Play blackjack button. `/blackjack stats` and `/blackjack rules` work as in the bot.
+  - The rules are the bot's, unchanged (`app/tools/blackjack.py`). Hands are saved like trivia rounds: the deck
+    and the face-down card live in `blackjack_hands` on the server, and the chat message only holds the face-up
+    cards. Moves carry a revision, so a stale or repeated click can't change a hand twice, and a finished hand
+    counts once in both the blackjack record and the shared game stats. Hands refresh across devices.
 - **Phase 30: study quiz** (version 0.30.0), ported from PromptetheusBot's /quizme (one user).
   - New `app/study_quiz.py`: offline math questions (addition, subtraction, multiplication, division,
     percentages, squares, mixed math, times tables) with exact answers and worked explanations, and AI-written

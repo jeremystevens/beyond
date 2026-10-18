@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
                  https, memory, notes, notify, ports, reminders, rules, settings)
 
-from app import photo_jobs, image_jobs, speech_jobs, games, study_quiz, tictactoe, trivia
+from app import photo_jobs, image_jobs, speech_jobs, blackjack, games, study_quiz, tictactoe, trivia
 from app.tools import scan, speech, speech_to_text
 
 chats.initialize()
@@ -24,6 +24,7 @@ games.initialize()
 tictactoe.initialize()
 trivia.initialize()
 study_quiz.initialize()
+blackjack.initialize()
 rules.initialize()
 memory.initialize()
 learning.initialize()
@@ -139,6 +140,7 @@ app.include_router(image_jobs.router)
 app.include_router(speech_jobs.router)
 app.include_router(tictactoe.router)
 app.include_router(trivia.router)
+app.include_router(blackjack.router)
 app.mount('/static', StaticFiles(directory=config.WEB_DIR), name='static')
 
 

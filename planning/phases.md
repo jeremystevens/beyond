@@ -283,7 +283,7 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - Topic quizzes that adapt to you, with Next / Stop and stats.
 - **Done when:** a quiz on any topic runs and the stats update.
 
-### Phase 31: Blackjack
+### Phase 31: Blackjack ✅ (done 2026-10-18; tests passed and owner played it)
 - Playing cards on screen, Hit / Stand, dealer play, stats.
 - **Done when:** full hands can be played, including blackjack and bust.
 

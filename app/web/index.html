@@ -177,6 +177,16 @@
     .trivia-choice.is-wrong { border: 2px solid #ba443b; background: #ffedeb; }
     .trivia-summary { display: block; margin: 8px 0; font-weight: 650; }
     .trivia-source { margin: 10px 0 4px; font-size: .75rem; color: #716961; }
+    .bj-hand { margin: 10px 0; }
+    .bj-label { display: block; font-size: .85rem; font-weight: 650; color: #716961; margin-bottom: 6px; }
+    .bj-cards { display: flex; flex-wrap: wrap; gap: 6px; }
+    .bj-card { display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 74px;
+               border: 1px solid #d6c8bd; border-radius: 8px; background: #fff; color: #222; font-size: 1.15rem;
+               font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+    .bj-card.red { color: #c0392b; }
+    .bj-card.back { background: repeating-linear-gradient(45deg, #d96326 0 6px, #e98a55 6px 12px);
+                    border-color: #b64813; }
+    .bj-status.won { color: #397c4e; } .bj-status.lost { color: #ba443b; } .bj-status.push { color: #716961; }
     @media (max-width: 600px) { .trivia-answers { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -770,6 +780,7 @@
       el.querySelector('.game-view')?.remove();
       el.tttState = game?.type === 'tictactoe' ? game : null;
       el.triviaState = game?.type === 'trivia' ? game : null;
+      el.bjState = game?.type === 'blackjack' ? game : null;
       if (!game) return;
       const box = document.createElement('div'); box.className = 'game-view';
       if (game.type === 'menu') {
@@ -794,6 +805,11 @@
             const play = document.createElement('button'); play.type = 'button'; play.className = 'chip';
             play.textContent = 'Start a quiz'; play.style.marginTop = '10px';
             play.onclick = () => sendGameCommand('/quizme'); card.append(play);
+          }
+          if (item.id === 'blackjack' && item.available) {
+            const play = document.createElement('button'); play.type = 'button'; play.className = 'chip';
+            play.textContent = 'Play blackjack'; play.style.marginTop = '10px';
+            play.onclick = () => sendGameCommand('/blackjack'); card.append(play);
           }
           box.append(card);
         }
@@ -884,6 +900,54 @@
               ['Change difficulty', '/tictactoe'], ['Game stats', '/tictactoe stats'], ['Games', '/games']]) {
           const button = document.createElement('button'); button.type = 'button'; button.className = 'chip';
           button.textContent = label; button.onclick = () => sendGameCommand(command); controls.append(button);
+        }
+        box.append(controls);
+      } else if (game.type === 'blackjack') {
+        // Only face-up cards ever reach the page; the dealer's hidden card is drawn as a card back.
+        const card = (text) => {
+          const face = document.createElement('span');
+          face.className = 'bj-card' + (/[♥♦]/.test(text) ? ' red' : '');
+          face.textContent = text;
+          face.setAttribute('aria-label', text);
+          return face;
+        };
+        const hand = (label, cards, hidden) => {
+          const row = document.createElement('div'); row.className = 'bj-hand';
+          const name = document.createElement('span'); name.className = 'bj-label'; name.textContent = label;
+          const holder = document.createElement('div'); holder.className = 'bj-cards';
+          for (const c of cards) holder.append(card(c));
+          for (let i = 0; i < hidden; i++) {
+            const back = document.createElement('span'); back.className = 'bj-card back';
+            back.setAttribute('aria-label', 'face-down card'); holder.append(back);
+          }
+          row.append(name, holder);
+          return row;
+        };
+        box.append(hand(`Dealer · ${game.dealer_hidden ? 'showing ' : ''}${game.dealer_total}`, game.dealer, game.dealer_hidden),
+                   hand(`You · ${game.player_soft ? 'soft ' : ''}${game.player_total}`, game.player, 0));
+        const status = document.createElement('span'); status.className = 'ttt-status bj-status';
+        status.setAttribute('role', 'status');
+        status.textContent = game.result ? game.message : 'Hit or Stand?';
+        if (game.result) status.classList.add(['win', 'blackjack', 'dealer_bust'].includes(game.result) ? 'won'
+          : game.result === 'push' ? 'push' : 'lost');
+        box.append(status);
+        if (game.note) { const note = document.createElement('p'); note.className = 'ttt-hint'; note.textContent = game.note; box.append(note); }
+        const controls = document.createElement('div'); controls.className = 'ttt-controls';
+        if (!game.result) {
+          for (const [label, move] of [['Hit', 'hit'], ['Stand', 'stand']]) {
+            const b = document.createElement('button'); b.type = 'button'; b.className = 'chip bj-move';
+            b.textContent = label; b.onclick = () => playBlackjack(el, move, game.revision); controls.append(b);
+          }
+        } else {
+          const r = game.record;
+          const record = document.createElement('p'); record.className = 'ttt-hint';
+          record.textContent = `Record: ${r.wins} wins · ${r.losses} losses · ${r.pushes} pushes · ${r.blackjacks} blackjacks`;
+          box.append(record);
+        }
+        for (const [label, command] of [[game.result ? 'Deal again' : 'New hand', '/blackjack'], ['Stats', '/blackjack stats'],
+                                         ['Rules', '/blackjack rules'], ['Games', '/games']]) {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'chip';
+          b.textContent = label; b.onclick = () => sendGameCommand(command); controls.append(b);
         }
         box.append(controls);
       } else if (game.type === 'coin') {
@@ -987,6 +1051,61 @@
       }
     }
     setInterval(refreshTictactoe, 4000);
+
+    // ---------- blackjack: the server deals and decides; the page shows and sends Hit / Stand ----------
+    const bjBusy = new Set();
+    function applyBlackjack(el, data) {
+      if (!el.isConnected || (el.bjState && data.game.revision < el.bjState.revision)) return;
+      const focused = el.contains(document.activeElement);
+      fill(el, data.text); showGame(el, data.game);
+      if (focused) (el.querySelector('.bj-move') || el.querySelector('.ttt-controls button'))?.focus();
+    }
+    async function playBlackjack(el, move, revision) {
+      const id = Number(el.dataset.messageId);
+      if (bjBusy.has(id)) return;
+      bjBusy.add(id);
+      el.querySelectorAll('.bj-move').forEach(button => { button.disabled = true; });
+      try {
+        const response = await fetch('/api/blackjack/' + id + '/' + move, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ revision }),
+        });
+        const data = await response.json();
+        if (data.game) applyBlackjack(el, data);
+        if (response.status === 404 && el.isConnected) {
+          el.bjState = null;
+          el.querySelector('.bj-status').textContent = data.error;
+          return;
+        }
+        if (!response.ok) throw new Error(data.error || 'That move could not be saved.');
+      } catch (error) {
+        if (el.isConnected && el.bjState) {
+          showGame(el, el.bjState);
+          el.querySelector('.bj-status').textContent = error.name === 'TypeError'
+            ? 'BEYOND is not responding. Try again.' : error.message;
+        }
+      } finally {
+        bjBusy.delete(id);
+      }
+    }
+    async function refreshBlackjack() {   // a hand played on another device shows up here too
+      if (document.hidden) return;
+      for (const status of list.querySelectorAll('.bj-status')) {
+        const el = status.closest('.msg'), state = el.bjState, id = Number(el.dataset.messageId);
+        const rect = status.getBoundingClientRect(), bounds = log.getBoundingClientRect();
+        if (!state || state.result || bjBusy.has(id) || rect.bottom < bounds.top || rect.top > bounds.bottom) continue;
+        try {
+          const response = await fetch('/api/blackjack/' + id);
+          const data = await response.json();
+          if (bjBusy.has(id) || !el.isConnected) continue;
+          if (response.status === 404) {
+            el.bjState = null;
+            el.querySelectorAll('.bj-move').forEach(button => { button.disabled = true; });
+            status.textContent = data.error;
+          } else if (response.ok && data.game.revision > state.revision) applyBlackjack(el, data);
+        } catch { /* The saved hand stays visible while disconnected. */ }
+      }
+    }
+    setInterval(refreshBlackjack, 4000);
 
     const triviaBusy = new Set();
     function triviaCommand(category, difficulty) {

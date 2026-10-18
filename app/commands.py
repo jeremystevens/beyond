@@ -21,7 +21,7 @@ from app import briefing, chats, checklists, expenses, learning, memory, notes, 
 from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewrite, weather, web_search, wikipedia
 from app.tools.calculator import calculate
 from app.tools.dice import roll_result
-from app import engine, games, study_quiz, tictactoe, trivia
+from app import blackjack, engine, games, study_quiz, tictactoe, trivia
 from app.tools.units import convert
 from app.tools.imagine import HELP as IMAGINE_HELP
 from app.tools import speech
@@ -780,6 +780,27 @@ def _trivia(args=''):
     return Reply(trivia.text(game), game=game, save_message=lambda cid: trivia.save_new(cid, state))
 
 
+def _blackjack(args=''):
+    requested = args.strip().lower()
+    if requested in ('stats', 'score', 'record', 'me'):
+        return Reply(blackjack.stats_text())
+    if requested in ('rules', 'help', 'how', '?'):
+        return Reply(blackjack.rules.RULES)
+    state = blackjack.new()
+    game = blackjack.public(state)
+    reply = Reply(blackjack.text(game), game=game)
+
+    def save(chat_id):
+        """Save the hand (a natural is recorded with it), then show exactly what was saved, record included."""
+        message_id = blackjack.save_new(chat_id, state)
+        with chats.connect() as db:
+            saved = blackjack.view_in(db, message_id, blackjack.load(message_id, db))
+        reply.text, reply.game = saved['text'], saved['game']
+        return message_id
+    reply.save_message = save
+    return reply
+
+
 def _tictactoe(args=''):
     requested = args.strip().lower()
     if requested == 'stats':
@@ -955,7 +976,9 @@ COMMANDS = [
             '/trivia science hard', _trivia, group='Games'),
     Command('tictactoe', 'Play Easy, Normal or Impossible (never loses); /tictactoe stats shows your record',
             '/tictactoe normal', _tictactoe, aliases=('ttt',), group='Games'),
-    Command('quizme', 'A study quiz that adapts to you: math (instant) or any topic (AI); /quizme stats, /quizme stop',
+    Command('blackjack', 'Blackjack against the dealer: Hit or Stand; /blackjack stats, /blackjack rules',
+            '/blackjack', _blackjack, aliases=('bj',), group='Games'),
+    Command('quizme','A study quiz that adapts to you: math (instant) or any topic (AI); /quizme stats, /quizme stop',
             '/quizme multiplication', _quizme, aliases=('quiz',), group='Games'),
     Command('games', 'Open the games menu or see shared game stats (/games stats)', '/games', _games, group='Games'),
     Command('speak', 'Read the last AI answer, or supplied text (up to 1800 characters), with local Kokoro/Piper audio; enable Spoken replies in Settings',

@@ -9,13 +9,13 @@
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
 > slash commands (/calc, /convert, /time, /roll, /weather, /news, /web, /wiki, /define, /movie, /joke, /qr,
-> /note, /list, /spent, /remind, /morning, /scan, /look, /imagine, /speak, /games, /tictactoe, /trivia, /quizme, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
+> /note, /list, /spent, /remind, /morning, /scan, /look, /imagine, /speak, /games, /tictactoe, /trivia, /quizme, /blackjack, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
 > arrives in Phase 33.
 
 ## Games and dice
 
-Open **Games** in the header or type **/games**. Dice, coins, tic-tac-toe, trivia and the study quiz are available
-now; the menu shows the planned phases for blackjack and hangman. Quick buttons roll a d6 or d20, flip a coin,
+Open **Games** in the header or type **/games**. Dice, coins, tic-tac-toe, trivia, the study quiz and blackjack are
+available now; the menu shows the planned phase for hangman. Quick buttons roll a d6 or d20, flip a coin,
 or show **Game stats**. Opening Games keeps any message draft or photo attachment in place.
 
 - **/roll** rolls a d6. **/roll 2d20+3**, **/roll 4d6kh3**, **/roll 4d6dl1**, **/roll adv+5**,
@@ -101,6 +101,23 @@ Choose **Start a quiz** in Games, or type **/quizme** for the topic buttons, or 
   minutes, and **/quizme stop** ends it now.
 
 `app/study_quiz.py` holds the question makers (ported from PromptetheusBot) and the saved progress.
+
+## Blackjack (/blackjack)
+
+Choose **Play blackjack** in Games, or type **/blackjack** (**/bj** also works). You and the dealer get two cards;
+you see only the dealer's first card. Tap **Hit** to take a card or **Stand** to keep your hand, and the dealer then
+plays, drawing until 17 or more (and standing on a soft 17). Get closer to 21 than the dealer without going over.
+You stand automatically on 21, and an ace with a 10-value card on the deal is blackjack, which ends the hand at once
+(the table says why). There's no betting.
+
+- **Deal again**, **Stats**, **Rules** and **Games** sit under every hand. **/blackjack stats** shows wins, losses,
+  pushes and blackjacks; **/blackjack rules** explains the game. Each hand counts once in **/games stats** too.
+- The deck is shuffled fresh for every hand with Windows' secure random source. The dealer's face-down card and the
+  rest of the deck stay on the server: the page (and anyone peeking at it) only ever gets the cards that are face up.
+- Hands are saved, so they survive reloads and restarts, and a hand played on one device updates on another.
+
+`app/tools/blackjack.py` holds the rules (ported unchanged from PromptetheusBot); `app/blackjack.py` saves hands and
+the record.
 
 ## Spoken replies
 
