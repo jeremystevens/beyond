@@ -53,9 +53,10 @@ def initialize():
         # answer that 🔄 Try again replaced. A replaced answer gets kind 'retried': shown, but not sent to the AI.
         # lookup (Phase 14): what an automatic lookup found for this answer, as JSON {ok, source, raw}.
         # image (Phase 15): a picture under a message, as a data: URL (e.g. a /qr code).
+        # stats: the model, tokens, time and speed of an AI answer, as JSON (shown in a small line under it).
         for column in ('rating INTEGER', 'reason TEXT', 'retry_of INTEGER', 'lookup TEXT', 'image TEXT', 'replaces INTEGER',
                        'audio BLOB', 'speech_state TEXT', 'speech_error TEXT', 'speech_engine TEXT',
-                       'speech_truncated INTEGER NOT NULL DEFAULT 0', 'game TEXT'):
+                       'speech_truncated INTEGER NOT NULL DEFAULT 0', 'game TEXT', 'stats TEXT'):
             if column.split()[0] not in columns:
                 db.execute('ALTER TABLE messages ADD COLUMN ' + column)
 
@@ -90,15 +91,16 @@ def _buttons(raw):
 
 
 def add_message(chat_id, role, content, stopped=False, kind='chat', buttons=None, retry_of=None, lookup=None,
-                image=None, replaces=None, game=None):
+                image=None, replaces=None, game=None, stats=None):
     """Save a message. `buttons`: rows of {'label', 'action'} to show under it (see app/commands.py)."""
     now = _now()
     with connect() as db:
         message_id = db.execute('INSERT INTO messages (chat_id, role, content, stopped, created_at, kind, buttons, '
-                                'retry_of, lookup, image, replaces, game) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                                'retry_of, lookup, image, replaces, game, stats) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                                 (chat_id, role, content, int(stopped), now, kind, _buttons_json(buttons),
                                  retry_of, json.dumps(lookup, ensure_ascii=False) if lookup else None,
-                                 image or None, replaces, json.dumps(game, ensure_ascii=False) if game else None)).lastrowid
+                                 image or None, replaces, json.dumps(game, ensure_ascii=False) if game else None,
+                                 json.dumps(stats) if stats else None)).lastrowid
         db.execute('UPDATE chats SET updated_at = ? WHERE id = ?', (now, chat_id))
     return message_id
 
@@ -207,10 +209,11 @@ def get(chat_id):
         if chat is None:
             return None
         messages = db.execute('SELECT id, role, content, stopped, created_at, kind, buttons, lookup, image, speech_state, speech_error, '
-                              'speech_engine, speech_truncated, game FROM messages '
+                              'speech_engine, speech_truncated, game, stats FROM messages '
                               'WHERE chat_id = ? ORDER BY id', (chat_id,)).fetchall()
     return {**dict(chat), 'messages': [{**dict(m), 'stopped': bool(m['stopped']), 'buttons': _buttons(m['buttons']),
-                                        'lookup': _lookup(m['lookup']), 'speech': speech_info(m), 'game': _game(m['game'])} for m in messages]}
+                                        'lookup': _lookup(m['lookup']), 'speech': speech_info(m), 'game': _game(m['game']),
+                                        'stats': _lookup(m['stats'])} for m in messages]}
 
 
 def _game(raw):

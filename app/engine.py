@@ -5,6 +5,8 @@ and Ollama all offer, so any of them can be plugged in. If an engine ever change
 """
 import json
 import re
+import time
+from pathlib import PureWindowsPath
 
 import httpx
 
@@ -20,7 +22,24 @@ class EngineError(Exception):
 
 # chat_stream() yields this (instead of text) while a thinking model is still thinking, so the page can say so.
 THINKING = type('Thinking', (), {'__repr__': lambda self: 'THINKING'})()
-THINKING_EXTRA_TOKENS = 2000   # thinking uses the answer's token budget too, so it gets room of its own
+THINKING_EXTRA_TOKENS = 2000
+
+
+class Stats(dict):
+    """chat_stream() yields this last: {'model', 'tokens', 'seconds', 'speed', 'thought'} for the line under an
+    answer ("Qwen3-4B-Q4_K_M · 77 tokens · 36s · 2.10 t/s"). 'thought' = seconds spent thinking, or 0."""
+
+
+def _stats(model, started, first_thinking, first_text, chunks, timings, usage):
+    """The numbers for one answer. llama.cpp reports exact token counts and speed ("timings"); other servers may
+    only report usage, or nothing, and then the streamed pieces are counted (about one token each)."""
+    ended = time.monotonic()
+    tokens = int(timings.get('predicted_n') or usage.get('completion_tokens') or chunks)
+    writing = (timings.get('predicted_ms') or 0) / 1000 or ended - (first_thinking or first_text or started)
+    speed = timings.get('predicted_per_second') or (tokens / writing if writing > 0 else 0)
+    thought = (first_text or ended) - first_thinking if first_thinking else 0
+    return Stats(model=PureWindowsPath(model).name if model else '', tokens=tokens,
+                 seconds=round(ended - started, 1), speed=round(speed, 2), thought=round(thought, 1))   # thinking uses the answer's token budget too, so it gets room of its own
 
 
 def _thinking_on():
@@ -222,13 +241,18 @@ async def chat(messages):
 
 async def chat_stream(messages, background='', max_tokens=None, temperature=None):
     """Like chat(), but yields the reply piece by piece as the AI writes it, and THINKING while a thinking model
-    is thinking. `background`: notes for this reply only (for example related old conversations).
+    is thinking, then one Stats at the end. `background`: notes for this reply only (for example related old
+    conversations).
     `max_tokens` / `temperature`: None = the defaults.
 
     If the caller stops reading (the person pressed Stop), the connection to the AI server is closed, which tells
     llama.cpp to stop writing, so the AI is free again for the next question (or for the Telegram bot)."""
     endpoint, url, payload = _prepare(messages, stream=True, background=background, max_tokens=max_tokens,
                                      temperature=temperature)
+    payload['stream_options'] = {'include_usage': True}   # token counts at the end, from servers that offer them
+    values = settings.load()
+    model = builtin_engine.model_name(values) if values['ai_mode'] == 'builtin' else values['ai_model']
+    started, first_thinking, first_text, chunks, timings, usage = time.monotonic(), None, None, 0, {}, {}
     try:
         async with _client() as client:
             async with client.stream('POST', endpoint, json=payload) as response:
@@ -238,16 +262,27 @@ async def chat_stream(messages, background='', max_tokens=None, temperature=None
                         continue
                     data = line[5:].strip()
                     if data == '[DONE]':
-                        return
+                        break
                     try:
-                        delta = json.loads(data)['choices'][0]['delta']
+                        chunk = json.loads(data)
+                        model = model or chunk.get('model') or ''
+                        timings = chunk.get('timings') or timings
+                        usage = chunk.get('usage') or usage
+                        if not chunk.get('choices'):
+                            continue
+                        delta = chunk['choices'][0]['delta']
                         piece = delta.get('content') or ''
                         thinking = bool(delta.get('reasoning_content'))
                     except (ValueError, KeyError, IndexError, TypeError, AttributeError):
                         continue
+                    if piece or thinking:
+                        chunks += 1
                     if piece:
+                        first_text = first_text or time.monotonic()
                         yield piece
                     elif thinking:
+                        first_thinking = first_thinking or time.monotonic()
                         yield THINKING   # the thinking itself is never shown or saved
+        yield _stats(model, started, first_thinking, first_text, chunks, timings, usage)
     except httpx.HTTPError as exc:
         raise _explain(exc, url) from exc

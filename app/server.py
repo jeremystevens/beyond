@@ -333,8 +333,11 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 # Written by BEYOND, so "Looked up" only ever appears when a lookup really ran.
                 yield json.dumps({'type': 'lookup', **lookup}) + '\n'
             try:
-                thinking = False
+                thinking, stats = False, None
                 async for piece in engine.chat_stream(history, notes, max_tokens=budget, temperature=temperature):
+                    if isinstance(piece, engine.Stats):
+                        stats = dict(piece)
+                        continue
                     if piece is engine.THINKING:
                         if not thinking and not answer:   # once: the page shows "Thinking…" with a timer
                             thinking = True
@@ -352,7 +355,8 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 text = cleaned
                 yield json.dumps({'type': 'replace', 'text': text}) + '\n'
             if finished and text:
-                answer_id = chats.add_message(chat_id, 'assistant', text, retry_of=retry_of, lookup=lookup)
+                answer_id = chats.add_message(chat_id, 'assistant', text, retry_of=retry_of, lookup=lookup,
+                                              stats=stats)
                 previous = chats.previous_answer(chat_id, answer_id)
                 buttons = learning.rating_buttons(answer_id)
                 chats.set_buttons(answer_id, buttons)
@@ -362,7 +366,7 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 voice = settings.load()
                 spoken = _start_speech(answer_id) if voice['speech_enabled'] and voice['speech_auto'] else None
                 yield json.dumps({'type': 'message', 'id': answer_id, 'buttons': buttons,
-                                  'speech': spoken, 'speakable': True}) + '\n'
+                                  'speech': spoken, 'speakable': True, 'stats': stats}) + '\n'
                 # "done": the answer is complete and saved, so the page can let you type again. Anything after this
                 # (the automatic fact pickup) is extra and arrives a little later on the same connection.
                 yield json.dumps({'type': 'done'}) + '\n'

@@ -111,7 +111,10 @@ class ThinkingTests(unittest.IsolatedAsyncioTestCase):
             return httpx.Response(200, json={'choices': [{'message': {'content': '["The user has a dog"]'}}]})
         lines = [{'reasoning_content': 'The user said hi, so'}, {'reasoning_content': ' I should greet them.'},
                  {'content': 'Hi'}, {'content': ' there!'}]
-        body = ''.join(f'data: {json.dumps({"choices": [{"delta": d}]})}\n\n' for d in lines) + 'data: [DONE]\n\n'
+        chunks = [{'choices': [{'delta': d}]} for d in lines]
+        chunks.append({'choices': [{'delta': {}, 'finish_reason': 'stop'}], 'model': r'C:\models\Qwen3-4B.gguf',
+                       'timings': {'predicted_n': 77, 'predicted_ms': 36000.0, 'predicted_per_second': 2.1388}})
+        body = ''.join(f'data: {json.dumps(c)}\n\n' for c in chunks) + 'data: [DONE]\n\n'
         return httpx.Response(200, text=body)
 
     def client(self, *args, **kwargs):
@@ -122,7 +125,12 @@ class ThinkingTests(unittest.IsolatedAsyncioTestCase):
                 patch.object(engine, '_client', self.client):
             pieces = [p async for p in engine.chat_stream([{'role': 'user', 'content': 'Hi'}])]
             await engine.complete([{'role': 'user', 'content': 'Facts?'}], max_tokens=120, temperature=0.1)
+        *pieces, stats = pieces
         self.assertEqual(pieces, [engine.THINKING, engine.THINKING, 'Hi', ' there!'])
+        self.assertIsInstance(stats, engine.Stats)   # the line under the answer: the engine's own numbers
+        self.assertEqual((stats['model'], stats['tokens'], stats['speed']), ('Qwen3-4B.gguf', 77, 2.14))
+        self.assertGreaterEqual(stats['thought'], 0)
+        self.assertEqual(self.sent[0]['stream_options'], {'include_usage': True})
         chat, one_off = self.sent
         self.assertEqual(chat['max_tokens'], config.ANSWER_MAX_TOKENS + engine.THINKING_EXTRA_TOKENS)
         self.assertNotIn('chat_template_kwargs', chat)
@@ -132,7 +140,7 @@ class ThinkingTests(unittest.IsolatedAsyncioTestCase):
 
 class LifecycleTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
-        self.temp = tempfile.TemporaryDirectory()
+        self.temp = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)   # Windows may hold engine.log a moment longer
         folder = Path(self.temp.name)
         self.saved = config.DATA_DIR, settings.FILE
         config.DATA_DIR, settings.FILE = folder, folder / 'settings.json'

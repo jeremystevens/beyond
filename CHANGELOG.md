@@ -6,6 +6,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Answer stats:** a small line under every AI answer shows the model that wrote it, how long it thought (thinking
+  models), the tokens written, the total time and the writing speed, e.g. `📦 Qwen3-4B-Q4_K_M · 🔤 77 tokens · ⏱ 36s ·
+  ⚡ 2.10 t/s`. The numbers come from llama.cpp's own timings (or the server's token usage, or a count of the streamed
+  pieces), are saved with the answer in a new `stats` column, and stay after a reload. Hover over one for what it means.
 - **Phase 33: built-in engine** (version 0.33.0).
   - Settings → AI engine chooses between BEYOND's own engine and an AI server you already run. The built-in engine
     starts llama.cpp's `llama-server.exe` with your `.gguf` model on a free port only this PC can reach, waits for
@@ -14,8 +18,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     one conversation slot so the prompt cache keeps working, no layers on a graphics card, and thinking models (Qwen3)
     answer straight away with thinking switched off unless "Let thinking models think first" is on (then the
     thinking is kept out of the answer). All of these are in Settings.
-  - With thinking on, the answer bubble shows **💭 Thinking… 12s** with a running timer while the model thinks, and
-    a small **💭 Thought for 34s** note under the answer once it's written. The thinking itself is never shown or
+  - With thinking on, the answer bubble shows **💭 Thinking… 12s** with a running timer while the model thinks; how
+    long it thought appears in the answer's stats line. The thinking itself is never shown or
     saved. Thinking gets 2000 tokens of its own on top of the answer's limit, and one-off jobs (fact pickup,
     `/rewrite`, `/joke`, the study quiz, the picture prompt helper) never think, so their small limits still fit.
   - A watcher keeps the engine in step with the settings: saving new ones restarts it, switching to an AI server

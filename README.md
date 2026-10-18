@@ -100,6 +100,7 @@ still arrive), and lets your other devices use it over a **secure address on you
 ━━ ASSISTANT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ◆  Its own built-in AI engine: pick a .gguf model and BEYOND runs it, no separate server
 ◆  Answers stream in as they're written, with Stop, Try again and 👍 👎 ratings
+◆  A stats line under each answer: model, tokens, time and speed (t/s)
 ◆  Its own personality, plus house rules it follows in every chat
 ◆  Saved, searchable conversations in a side panel; rename, delete, pick up later
 ◆  Looks up the weather, news and the web by itself, and shows you exactly what it found
@@ -315,11 +316,14 @@ BEYOND:
 - runs it **on the processor only**, tuned for that: 12 threads, an 8192-token context, an f16 cache and one
   conversation slot, so the start of the prompt stays cached and follow-up answers begin faster;
 - answers straight away with **thinking models** such as Qwen3: their thinking is switched off unless you turn on
-  **Let thinking models think first**. Then the answer bubble shows **💭 Thinking… 12s** while it thinks and
-  **💭 Thought for 34s** under the answer, but the thinking itself is never shown;
+  **Let thinking models think first**. Then the answer bubble shows **💭 Thinking… 12s** while it thinks, but the
+  thinking itself is never shown;
 - **restarts it** with new settings when you save them, and by itself if it stops (three tries, then
   **Restart engine** in Settings), with a popup when it goes down;
 - **closes it** when BEYOND quits, and stops an engine left behind by a crash the next time it starts.
+
+Under every answer a small stats line shows the model, the thinking time (thinking models), the tokens written, the
+total time and the writing speed: `📦 Qwen3-4B-Q4_K_M · 🔤 77 tokens · ⏱ 36s · ⚡ 2.10 t/s`.
 
 The engine stays loaded for as long as BEYOND runs, so it's always ready. Threads, context size, cache type (f16,
 q8_0 or q4_0) and thinking are all in Settings. The engine's own messages go to `data\engine.log`. Prefer an AI server

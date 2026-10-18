@@ -81,6 +81,9 @@
                image-rendering: pixelated; background: #fff; }
     .lookup { display: block; margin-top: 10px; font-size: 0.82rem; color: var(--muted); white-space: normal; }
     .lookup summary { cursor: pointer; }
+    .stats { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 0.74rem; color: var(--muted);
+             font-variant-numeric: tabular-nums; }
+    .stats .model { padding: 1px 7px; border: 1px solid var(--border); border-radius: 999px; }
     .lookup .sources { margin-top: 6px; padding: 8px 10px; border-left: 2px solid var(--border); white-space: pre-wrap;
                        max-height: 260px; overflow: auto; }
     .msg a { color: inherit; text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
@@ -404,6 +407,28 @@
       el.insertBefore(box, el.querySelector('.buttons'));
     }
 
+    // The small line under an AI answer: which model wrote it, how many tokens, how long and how fast.
+    function showStats(el, stats) {
+      if (!stats || !stats.tokens || el.querySelector('.stats')) return;
+      const line = document.createElement('div');
+      line.className = 'stats';
+      const seconds = s => s >= 60 ? `${Math.floor(s / 60)}m ${Math.round(s % 60)}s` : `${Math.round(s)}s`;
+      const parts = [];
+      if (stats.model) parts.push(['model', '📦 ' + stats.model.replace(/\.gguf$/i, ''), 'Model']);
+      if (stats.thought) parts.push(['', '💭 ' + seconds(stats.thought), 'Time spent thinking']);
+      parts.push(['', `🔤 ${stats.tokens} tokens`, 'Tokens written']);
+      parts.push(['', '⏱ ' + seconds(stats.seconds), 'Total time, from sending to the last word']);
+      if (stats.speed) parts.push(['', `⚡ ${stats.speed.toFixed(2)} t/s`, 'Writing speed, tokens per second']);
+      for (const [cls, text, title] of parts) {
+        const span = document.createElement('span');
+        if (cls) span.className = cls;
+        span.textContent = text;
+        span.title = title;
+        line.appendChild(span);
+      }
+      el.insertBefore(line, el.querySelector('.buttons'));
+    }
+
     function noteBubble(text) {   // a small note from BEYOND itself, e.g. "🧠 Noted for next time"
       const el = document.createElement('div');
       el.className = 'msg note-msg';
@@ -520,6 +545,7 @@
         if (m.stopped) addNote(el, 'Stopped');
         if (m.kind === 'retried') addNote(el, RETRIED);
         showLookup(el, m.lookup);
+        showStats(el, m.stats);
         showImage(el, m.image);
         if (m.kind === 'scan' || m.kind === 'vision') showCopy(el, m.content);
         if (m.kind === 'vision_pending' || m.kind === 'image_pending') el.classList.add('thinking');
@@ -694,7 +720,7 @@
       const mine = current;
       setBusy(true);
       let answer = '', problem = null, startedNewChat = false, finished = false, lookup = null;
-      let thinkingTimer = null, thinkingSince = 0, thoughtFor = 0;   // a thinking model's "💭 Thinking… 12s"
+      let thinkingTimer = null, thinkingSince = 0;   // a thinking model's "💭 Thinking… 12s"
       // Called once the answer is complete ("done"), or when the stream ends: lets you type again. A "Noted for
       // next time" note may still arrive afterwards on the same connection.
       function finish() {
@@ -703,7 +729,6 @@
         clearInterval(thinkingTimer);
         reply.classList.remove('writing', 'thinking');
         if (answer) {
-          if (thoughtFor) addNote(reply, `💭 Thought for ${thoughtFor}s`);
           if (mine.stopped) addNote(reply, 'Stopped');
           showLookup(reply, lookup);
         } else {
@@ -740,10 +765,7 @@
               if (event.new) { chatId = mine.chatId = event.id; startedNewChat = true; showChatInAddress(); loadList(); }
             } else if (event.type === 'token') {
               const follow = nearBottom();
-              if (thinkingTimer) {   // the model finished thinking: a small note says how long it took
-                clearInterval(thinkingTimer); thinkingTimer = null;
-                thoughtFor = Math.max(1, Math.round((Date.now() - thinkingSince) / 1000));
-              }
+              if (thinkingTimer) { clearInterval(thinkingTimer); thinkingTimer = null; }   // done thinking
               if (!answer) reply.className = 'msg assistant writing' + (event.kind === 'command' ? ' command' : '');
               answer += event.text;
               fill(reply, answer);
@@ -771,6 +793,7 @@
               if (event.speak_requested) manualSpeech.add(event.id);
               showSpeech(reply, event.id, event.speech, event.speakable);
               showLookup(reply, lookup);
+              showStats(reply, event.stats);
               showImage(reply, event.image);
               // 🔄 is only offered on the newest answer
               if (event.buttons.some(row => row.some(b => (b.action || '').startsWith('rate:retry:'))))

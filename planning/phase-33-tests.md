@@ -27,6 +27,10 @@ what you saw. The engine's messages are in `data\engine.log`, BEYOND's in `data\
       prompt cache works.
 - [X] Open BEYOND on your other PC or phone (`https://…:7771`) and chat there too.
 
+- [ ] Under each answer there's a small stats line: **📦 Qwen3-4B-Q4_K_M · 🔤 … tokens · ⏱ …s · ⚡ … t/s**.
+      Hovering over a part explains it. Reload the page: the line is still there. Commands (like `/calc 2+2`)
+      have no stats line.
+
 ## 3. Memory, rules and learning
 
 - [X] `/remember my favourite colour is green`, then in a **new chat** ask "what's my favourite colour?"
@@ -61,7 +65,7 @@ what you saw. The engine's messages are in `data\engine.log`, BEYOND's in `data\
 - [X] Turn on **Let thinking models think first** and Save. After the restart, answers take longer, but still
       **show no thinking text**. Turn it off again.
 - [ ] With thinking on, the bubble shows **💭 Thinking… 12s** counting up while it thinks, and the finished answer
-      has a small **💭 Thought for …s** note. `/rewrite` and a fact like "I just got a dog" still work. Turn
+      shows the thinking time (💭) in its stats line. `/rewrite` and a fact like "I just got a dog" still work. Turn
       thinking off again.
 - [X] Switch to **An AI server I already run** (`http://127.0.0.1:10086`) and Save. BEYOND's `llama-server.exe` closes,
       and chat answers through Studio's engine. Switch back to the built-in engine and Save; it loads again.
