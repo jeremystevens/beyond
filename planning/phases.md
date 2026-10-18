@@ -17,6 +17,8 @@
 - **Every new slash command must appear in /help, /help <command>, and the browser's / menu** through the shared
   command registry. Update the README command table and relevant usage sections, CHANGELOG.md, this plan, and
   app/personality.md's capability description alongside it (owner's requirement, 2026-10-17).
+- **Git identity:** commits must use Jeremy Stevens's configured jeremystevens identity, with no AI co-author
+  credit or Co-authored-by trailer (owner's requirement, 2026-10-17).
 - **On this PC, AI runs on the processor only** (the NVIDIA card crashes every engine).
 
 ## Running alongside PromptetheusBot on the owner's PC
@@ -208,7 +210,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 
 ## Stage D: Photos, pictures and voice
 
-### Phase 21: Photos in, and `/scan` ✅ (done 2026-10-17; OCR/API checked with a receipt image; real-phone UI check pending)
+### Phase 21: Photos in, and `/scan` ✅ (done 2026-10-17; automated OCR/API checks passed; owner confirmed it works after restarting)
 - Drag-and-drop and a 📎 button for photos; `/scan` reads the text in them (instant).
 - **Done when:** dropping a photo of a receipt and choosing "Read text" shows its text, ready to copy.
 
