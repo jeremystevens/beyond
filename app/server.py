@@ -17,8 +17,7 @@ from app import (autostart, briefing, chats, checklists, commands, config, engin
                  memory, notes, notify, ports, reminders, rules, settings)
 
 from app import photo_jobs, image_jobs, speech_jobs
-from app.tools import speech
-from app.tools import scan
+from app.tools import scan, speech, speech_to_text
 
 chats.initialize()
 rules.initialize()
@@ -598,6 +597,39 @@ def delete_chat(chat_id: int):
     return {'ok': True} if chats.delete(chat_id) else JSONResponse({'error': 'That chat no longer exists.'},
                                                                    status_code=404)
 
+
+
+# ---------- voice input ----------
+
+@app.post('/api/transcribe')
+async def transcribe_recording(request: Request):
+    """The 🎤 button: a recording from the browser (raw body, at most 10 MB) -> its words, offline. Nothing is
+    saved; the page puts the words in the message box and sends them like typed text."""
+    body = bytearray()
+    async for chunk in request.stream():
+        if len(body) + len(chunk) > speech_to_text.MAX_RECORDING_BYTES:
+            return JSONResponse({'error': 'That recording is too long. Keep it under two minutes.'}, status_code=413)
+        body.extend(chunk)
+    kind = request.headers.get('content-type', '')
+    suffix = '.mp4' if 'mp4' in kind or 'aac' in kind else '.ogg' if 'ogg' in kind else '.wav' if 'wav' in kind \
+        else '.webm'
+    try:
+        text, seconds = await asyncio.to_thread(speech_to_text.transcribe, bytes(body), suffix)
+    except speech_to_text.SpeechBusy as exc:
+        return JSONResponse({'error': str(exc)}, status_code=409)
+    except speech_to_text.SpeechError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=400)
+    except ImportError:
+        return JSONResponse({'error': 'Voice input is not installed. Install requirements-lock.txt and restart '
+                                      'BEYOND.'}, status_code=503)
+    except Exception:
+        logging.exception('Turning a recording into text failed')
+        return JSONResponse({'error': "Voice input isn't working right now. Please type your message instead."},
+                            status_code=503)
+    if not text:
+        return JSONResponse({'error': "I didn't catch any words. Try again a little closer to the microphone."},
+                            status_code=400)
+    return {'text': text, 'seconds': round(seconds, 1)}
 
 
 # ---------- photos and offline text recognition ----------

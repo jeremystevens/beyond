@@ -4,8 +4,8 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 25 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
-> browser: it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
+> **Status: early development (Phase 26 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> browser, by typing or by speaking (🎤): it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
 > slash commands (/calc, /convert, /time, /roll, /weather, /news, /web, /wiki, /define, /movie, /joke, /qr,
@@ -227,6 +227,22 @@ These are guidance to DreamShaper, not guarantees. No extra model or dependency 
 
 For reproducible API comparisons, POST /api/imagine also accepts an optional integer seed (-1 for random, or
 0–2147483647). Browser users still choose presets only; ordinary generations remain random.
+
+## Voice input (🎤)
+
+Tap **🎤** next to the message box, speak, and tap **⏹**: your words are turned into text **on this PC** and sent
+like a typed message (anything already in the box is kept in front of them). Recording stops by itself after two
+minutes. While the words are being worked out the button shows ⏳; a short question takes a couple of seconds.
+If an answer is still being written, the words wait in the box for you to send.
+
+- Speech recognition is **Whisper "base"** via faster-whisper, on the processor only (the same model and settings
+  as PromptetheusBot's voice notes). The model (about 145 MB) is downloaded once from Hugging Face the first time
+  you use the microphone and then works offline.
+- The recording is never kept: it is written to a temporary file for the decoder and deleted straight away. Only
+  the words become part of the chat.
+- One recording is turned into text at a time; a second one at the same moment gets a "still working" reply.
+- Browsers only allow the microphone on a secure page: **http://127.0.0.1 on this PC** works. On a phone or another
+  computer using BEYOND's network address (plain http), the 🎤 button is greyed out and explains why.
 
 ## Personality
 
