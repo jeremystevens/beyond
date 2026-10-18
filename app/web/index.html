@@ -148,6 +148,11 @@
           <img id="photo-thumb" alt="Attached photo">
           <span id="photo-status" role="status"></span>
           <button type="button" id="read-photo">Read text</button>
+          <button type="button" class="ghost" id="describe-photo">Describe it</button>
+          <button type="button" class="ghost" id="receipt-photo">Receipt / totals</button>
+          <input type="text" id="photo-question" maxlength="500" placeholder="Your question about this photo"
+                 aria-label="Question about the photo" style="flex:1;min-width:0;flex-basis:100%">
+          <button type="button" class="ghost" id="ask-photo">Ask a question</button>
           <button type="button" class="ghost" id="remove-photo" aria-label="Remove attached photo">Remove</button>
         </div>
         <input id="photo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
@@ -384,11 +389,13 @@
         if (m.kind === 'note') { noteBubble(m.content); continue; }
         const el = bubble(m.role + (m.kind === 'command' && m.role === 'assistant' ? ' command' : '') +
                           (['reminder', 'briefing'].includes(m.kind) ? ' reminder' : ''), m.content);
+        el.dataset.messageId = String(m.id);
         if (m.stopped) addNote(el, 'Stopped');
         if (m.kind === 'retried') addNote(el, RETRIED);
         showLookup(el, m.lookup);
         showImage(el, m.image);
-        if (m.kind === 'scan') showCopy(el, m.content);
+        if (m.kind === 'scan' || m.kind === 'vision') showCopy(el, m.content);
+        if (m.kind === 'vision_pending') el.classList.add('vision-pending');
         showButtons(el, m.id, m.buttons);
       }
       scrollDown(true);
@@ -505,11 +512,17 @@
       const text = input.value.trim();
       if (current || scanning) return;
       if (pendingPhoto) {
-        if (text && text.toLowerCase() !== '/scan') {
-          $('photo-status').textContent = 'Choose Read text or send /scan for this photo. Photo descriptions arrive in Phase 22.';
-          return;
+        if (!text && $('photo-question').value.trim()) { lookPhoto('ask'); return; }
+        if (!text || text.toLowerCase() === '/scan') {
+          input.value = ''; autoGrow(); readPhoto(); return;
         }
-        input.value = ''; autoGrow(); readPhoto(); return;
+        const look = /^\/look(?:\s+(.*))?$/i.exec(text);
+        if (look) {
+          input.value = ''; autoGrow();
+          lookPhoto(look[1] ? 'ask' : 'describe', look[1] || ''); return;
+        }
+        $('photo-status').textContent = 'Choose an action, or send /look followed by your question.';
+        return;
       }
       if (!text) return;
       input.value = ''; autoGrow();
@@ -631,6 +644,7 @@
       $('photo-preview').hidden = true;
       $('photo-thumb').removeAttribute('src');
       $('photo-file').value = '';
+      $('photo-question').value = '';
     }
     function choosePhoto(files) {
       if (current || scanning) { bubble('error', 'Wait for this answer to finish before attaching a photo.'); return; }
@@ -645,7 +659,7 @@
       pendingPhoto = file;
       previewUrl = URL.createObjectURL(file);
       $('photo-thumb').src = previewUrl;
-      $('photo-status').textContent = 'Photo attached. Read its text locally; the photo and result will be saved in this chat.';
+      $('photo-status').textContent = 'Photo attached. Read text, describe it, check receipt totals, or ask a question. Saved only on this PC.';
       $('photo-preview').hidden = false;
     }
     function showCopy(el, text) {
@@ -674,7 +688,7 @@
       if (!pendingPhoto || current || scanning) return;
       const file = pendingPhoto, originChat = chatId;
       scanning = true;
-      for (const id of ['send', 'attach-photo', 'read-photo', 'remove-photo']) $(id).disabled = true;
+      for (const id of ['send', 'attach-photo', 'read-photo', 'remove-photo', 'describe-photo', 'receipt-photo', 'ask-photo']) $(id).disabled = true;
       $('photo-status').textContent = 'Reading text on this PC… The first scan may take a little longer.';
       const progress = bubble('assistant thinking', 'Reading text from the photo…');
       try {
@@ -697,9 +711,51 @@
         if (pendingPhoto === file) $('photo-status').textContent = 'Could not read this photo. Try again or choose another.';
       } finally {
         progress.remove(); scanning = false;
-        for (const id of ['send', 'attach-photo', 'read-photo', 'remove-photo']) $(id).disabled = false;
+        for (const id of ['send', 'attach-photo', 'read-photo', 'remove-photo', 'describe-photo', 'receipt-photo', 'ask-photo']) $(id).disabled = false;
       }
     }
+
+    async function lookPhoto(action, suppliedQuestion = '') {
+      if (!pendingPhoto || current || scanning) return;
+      const question = suppliedQuestion || $('photo-question').value.trim();
+      if (action === 'ask' && !question) {
+        $('photo-status').textContent = 'Type your question about the photo first.';
+        $('photo-question').focus(); return;
+      }
+      const file = pendingPhoto, originChat = chatId;
+      scanning = true;
+      const controls = ['send', 'attach-photo', 'read-photo', 'remove-photo', 'describe-photo', 'receipt-photo', 'ask-photo'];
+      controls.forEach(id => $(id).disabled = true);
+      const progress = bubble('assistant thinking', 'Preparing the photo…');
+      try {
+        const params = new URLSearchParams({ action });
+        if (originChat !== null) params.set('chat_id', originChat);
+        if (action === 'ask') params.set('question', question);
+        const response = await fetch('/api/look?' + params, {
+          method: 'POST', body: file, headers: { 'Content-Type': file.type || 'application/octet-stream' },
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'The photo could not be submitted.');
+        if (progress.isConnected && chatId === originChat) {
+          progress.remove();
+          await openChat(data.chat_id);  // reload saved progress, or the answer if it finished unusually quickly
+        }
+        loadList();
+      } catch (error) {
+        if (progress.isConnected) { progress.remove(); bubble('error', error.message); }
+      } finally {
+        progress.remove(); scanning = false;
+        controls.forEach(id => $(id).disabled = false);
+      }
+    }
+    $('describe-photo').onclick = () => lookPhoto('describe');
+    $('receipt-photo').onclick = () => lookPhoto('receipt');
+    $('ask-photo').onclick = () => lookPhoto('ask');
+    $('photo-question').addEventListener('keydown', event => {
+      if (event.key === 'Enter') { event.preventDefault(); lookPhoto('ask'); }
+    });
+
+
     $('attach-photo').onclick = () => { if (!current && !scanning) $('photo-file').click(); };
     $('photo-file').onchange = () => choosePhoto($('photo-file').files);
     $('remove-photo').onclick = clearPhoto;
@@ -736,6 +792,16 @@
       reminderMark = data.latest;
     }
     function showReminder(r) {
+      if (r.kind === 'vision' || r.kind === 'vision_error') {
+        if (r.chat_id === chatId) {
+          if (r.replaces) list.querySelector('[data-message-id="' + r.replaces + '"]')?.remove();
+          if (list.querySelector('[data-message-id="' + r.id + '"]')) return;
+          const answer = bubble(r.kind === 'vision' ? 'assistant' : 'error', r.content);
+          answer.dataset.messageId = String(r.id);
+          if (r.kind === 'vision') showCopy(answer, r.content);
+          loadList(); return;
+        }
+      }
       if (r.chat_id === chatId) {
         const el = bubble('assistant reminder', r.content);
         showButtons(el, r.id, r.buttons);

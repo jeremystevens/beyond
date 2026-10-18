@@ -54,6 +54,17 @@ def validate(changes):
             value = str(value or '').strip()
             if len(value) > 200:
                 raise SettingsError('The model name is too long.')
+        elif key in ('vision_executable', 'vision_model', 'vision_mmproj'):
+            if not isinstance(value, str):
+                raise SettingsError('Vision file paths must be text.')
+            value = value.strip().strip('"')
+            suffix = '.exe' if key == 'vision_executable' else '.gguf'
+            if value and (len(value) > 1024 or not value.lower().endswith(suffix)):
+                raise SettingsError(f'{key} must be a {suffix} file path.')
+        elif key in ('vision_threads', 'vision_timeout'):
+            low, high = (1, 64) if key == 'vision_threads' else (30, 3600)
+            if isinstance(value, bool) or not isinstance(value, int) or not low <= value <= high:
+                raise SettingsError(f'{key} must be a whole number between {low} and {high}.')
         elif key == 'web_port':
             try:
                 value = int(value)

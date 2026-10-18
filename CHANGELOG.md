@@ -6,6 +6,26 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 22: /look photo understanding** (version 0.22.0).
+  - Describe it, Receipt / totals and a custom question through the photo controls or /look with an attachment.
+    The shared registry adds /look to /help, /help look and the / menu.
+  - app/tools/vision.py ports the bot's Gemma 3 + matching mmproj CPU llama-mtmd-cli invocation. Independent
+    vision settings, empty/off on a fresh download; host-only Settings controls for paths, threads and timeout.
+    The owner's existing model files are reused by local configuration without changing Studio or the bot.
+  - app/photo_jobs.py accepts one background analysis at a time; the request returns immediately so chat remains
+    available. The photo, progress and answer stay in the local chat but are excluded from text-model history.
+    Completed answers arrive through the existing polling system and trigger the shared reply popup.
+  - Progress replacement is tied to its own message, with a new migrated replaces column. Reload, deleted chats,
+    process errors, timeouts, shutdown cancellation and recovery after a restart are handled. Temporary inference
+    files are removed; CPU operation is enforced and the child process has no interactive input.
+  - Arrival polling now advances only through the delivered batch, avoiding skipped messages.
+  - Verification: all 18 automated checks passed, covering settings, CPU arguments, process timeout/cancellation,
+    concurrent chat, busy rejection, completion notification calls, persistence, deletion and restart/shutdown.
+    A real CPU description identified the test shapes/colors in 151 seconds; a full live app check then returned
+    "A red square and a blue circle" while normal text chat also replied. Syntax, dependencies and whitespace
+    checks passed. Windows notifications are enabled; the test-popup request succeeded. Ordinary popups were
+    suppressed while BEYOND's page was being viewed, as intended. Owner UI/popup verification remains pending.
+  - The vision child runs at below-normal Windows priority so text chat has scheduling priority.
 - **Phase 21: photos and /scan** (version 0.21.0).
   - Photo picker and drag-and-drop, local preview, Read text, and /scan with an attached photo.
   - Ported PromptetheusBot's RapidOCR reader and receipt row/column grouping to app/tools/scan.py. Bundled

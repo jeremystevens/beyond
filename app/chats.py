@@ -53,7 +53,7 @@ def initialize():
         # answer that 🔄 Try again replaced. A replaced answer gets kind 'retried': shown, but not sent to the AI.
         # lookup (Phase 14): what an automatic lookup found for this answer, as JSON {ok, source, raw}.
         # image (Phase 15): a picture under a message, as a data: URL (e.g. a /qr code).
-        for column in ('rating INTEGER', 'reason TEXT', 'retry_of INTEGER', 'lookup TEXT', 'image TEXT'):
+        for column in ('rating INTEGER', 'reason TEXT', 'retry_of INTEGER', 'lookup TEXT', 'image TEXT', 'replaces INTEGER'):
             if column.split()[0] not in columns:
                 db.execute('ALTER TABLE messages ADD COLUMN ' + column)
 
@@ -88,15 +88,15 @@ def _buttons(raw):
 
 
 def add_message(chat_id, role, content, stopped=False, kind='chat', buttons=None, retry_of=None, lookup=None,
-                image=None):
+                image=None, replaces=None):
     """Save a message. `buttons`: rows of {'label', 'action'} to show under it (see app/commands.py)."""
     now = _now()
     with connect() as db:
         message_id = db.execute('INSERT INTO messages (chat_id, role, content, stopped, created_at, kind, buttons, '
-                                'retry_of, lookup, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                                'retry_of, lookup, image, replaces) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                                 (chat_id, role, content, int(stopped), now, kind, _buttons_json(buttons),
                                  retry_of, json.dumps(lookup, ensure_ascii=False) if lookup else None,
-                                 image or None)).lastrowid
+                                 image or None, replaces)).lastrowid
         db.execute('UPDATE chats SET updated_at = ? WHERE id = ?', (now, chat_id))
     return message_id
 
@@ -154,11 +154,11 @@ def messages_after(kinds, after, limit=20):
     """Messages of these kinds newer than id `after`, oldest first, with their chat's name (for the page)."""
     marks = ', '.join('?' * len(kinds))
     with connect() as db:
-        rows = db.execute('SELECT m.id, m.chat_id, m.content, m.buttons, m.kind, c.title FROM messages m '
+        rows = db.execute('SELECT m.id, m.chat_id, m.content, m.buttons, m.kind, m.replaces, c.title FROM messages m '
                           f'JOIN chats c ON c.id = m.chat_id WHERE m.kind IN ({marks}) AND m.id > ? ORDER BY m.id '
                           'LIMIT ?', (*kinds, after, limit)).fetchall()
     return [{'id': r['id'], 'chat_id': r['chat_id'], 'content': r['content'], 'buttons': _buttons(r['buttons']),
-             'kind': r['kind'], 'chat_title': r['title']} for r in rows]
+             'kind': r['kind'], 'replaces': r['replaces'], 'chat_title': r['title']} for r in rows]
 
 
 def remove_message(message_id):

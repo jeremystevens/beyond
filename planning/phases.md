@@ -214,7 +214,7 @@ Studio's engine on 10086 for most of development; that must never become the def
 - Drag-and-drop and a 📎 button for photos; `/scan` reads the text in them (instant).
 - **Done when:** dropping a photo of a receipt and choosing "Read text" shows its text, ready to copy.
 
-### Phase 22: `/look`
+### Phase 22: `/look` (implemented 2026-10-17; 18 automated checks and live CPU/concurrent-chat checks passed; owner's UI/popup check pending)
 - Ask the vision AI about a photo: Describe it, Receipt / totals, or your own question (about 1–2 minutes, one at a
   time, with a progress message).
 - A **popup when the answer is ready** (Phase 20's notify feature).

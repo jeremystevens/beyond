@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
                  memory, notes, notify, ports, reminders, rules, settings)
 
+from app import photo_jobs
 from app.tools import scan
 
 chats.initialize()
@@ -74,7 +75,7 @@ async def _watch_ai():
         await asyncio.sleep(60)
 
 
-ARRIVALS = ('reminder', 'briefing')   # messages BEYOND posts by itself; the page asks for new ones every few seconds
+ARRIVALS = ('reminder', 'briefing', 'vision', 'vision_error')   # messages BEYOND posts by itself; the page asks for new ones every few seconds
 BRIEFING_CHAT = '☀️ Morning briefing'
 
 
@@ -116,13 +117,18 @@ async def _reminder_loop():
 
 @asynccontextmanager
 async def lifespan(_app):
+    photo_jobs.recover()
     tasks = [asyncio.create_task(loop()) for loop in (_reminder_loop, _briefing_loop, _watch_ai)]
-    yield
-    for task in tasks:
-        task.cancel()
+    try:
+        yield
+    finally:
+        await photo_jobs.shutdown()
+        for task in tasks:
+            task.cancel()
 
 
 app = FastAPI(title='BEYOND', version=config.VERSION, docs_url=None, redoc_url=None, lifespan=lifespan)
+app.include_router(photo_jobs.router)
 app.mount('/static', StaticFiles(directory=config.WEB_DIR), name='static')
 
 
@@ -431,7 +437,8 @@ def fired_reminders(after: int = -1):
     latest = chats.latest_message_id(ARRIVALS)
     if after < 0:
         return {'latest': latest, 'items': []}
-    return {'latest': latest, 'items': chats.messages_after(ARRIVALS, after)}
+    items = chats.messages_after(ARRIVALS, after)
+    return {'latest': items[-1]['id'] if items else after, 'items': items}
 
 
 def _press(message_id, action):

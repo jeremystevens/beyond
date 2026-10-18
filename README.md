@@ -4,12 +4,12 @@
 
 *What Local AI Studio users wanted next.*
 
-> **Status: early development (Phase 21 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
+> **Status: early development (Phase 22 of the plan in `planning/phases.md`).** You can chat with BEYOND in your
 > browser: it has its own personality, follows your house rules, remembers facts about you in every chat (ones you
 > tell it and ones it notices), recalls related older conversations, learns from your 👍 👎 ratings, checks the weather, news or web by itself when a question needs it, writes its
 > answers as you watch (with a Stop button and 🔄 Try again), saves your conversations in a side panel, and has
 > slash commands (/calc, /convert, /time, /roll, /weather, /news, /web, /wiki, /define, /movie, /joke, /qr,
-> /note, /list, /spent, /remind, /morning, /scan, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
+> /note, /list, /spent, /remind, /morning, /scan, /look, /remember, /help), some with buttons. It uses an AI server you already run (such as Local AI Studio); BEYOND's own built-in AI engine
 > arrives in Phase 33.
 
 ## Saved facts
@@ -92,6 +92,7 @@ Tab or Enter to pick one. BEYOND answers commands itself, instantly, without the
 |---|---|---|
 | `/help` | List every command, or explain one | `/help calc` |
 | `/scan` | Attach a photo, then extract its printed text locally; results have Copy text | Attach a photo, then `/scan` |
+| `/look` | Attach a photo, then ask the local vision AI; Describe it, Receipt / totals, or a custom question | Attach a photo, then `/look what is on the table?` |
 | `/calc` | Calculator: maths, percentages, tips, splitting a bill | `/calc tip 85.50 18% split 4` |
 | `/convert` | Units: temperature, distance, weight, cooking, speed and more | `/convert 72 f to c` |
 | `/time` | Time in a city, several cities, or convert a time | `/time 3pm London to Tokyo` |
@@ -130,7 +131,32 @@ may read incorrectly. Only one scan runs at a time, and other requests get a cle
 
 The prepared photo and extracted text are saved in this chat on your PC and remain after a reload. Deleting the
 chat removes them. Metadata is stripped from the saved photo. Neither is sent to the chat model or online
-services. Describing photos with the vision model comes in Phase 22.
+services. Use /look below for a vision-model answer.
+
+## Photo understanding (/look)
+
+Attach a photo and choose **Describe it**, **Receipt / totals**, or type a question in the photo question box and
+choose **Ask a question**. Sending **/look** describes the attached photo; **/look <question>** asks your question.
+The same image limits as /scan apply.
+
+BEYOND saves a progress message and starts a separate **CPU vision process** at background priority on Windows.
+**You can keep chatting, change
+chats or close the browser** while it works. Usually allow about 1–2 minutes; loading the model or a busy PC can
+take several minutes. One photo analysis runs at a time; another request gets a clear busy reply.
+
+The result is saved in the same chat, replacing its progress message. A **Windows popup** opens that chat when
+clicked; it follows **When the AI has replied**, quiet hours, Pause popups and the existing rule to suppress
+popups while you are looking at BEYOND. Failures use the error-popup preference. Restarting BEYOND interrupts a
+running analysis and leaves a clear retry message. Deleting its chat discards the result without recreating it.
+
+On the host PC, open **Settings → Photo understanding (/look)** and select a CPU **llama-mtmd-cli.exe**, a
+**Gemma 3 vision model (.gguf)**, and its **matching mmproj projector (.gguf)**, then enable it and Save.
+Threads and timeout are adjustable; CPU operation is enforced. File paths are stored only in your local settings,
+with empty paths and the feature off on a fresh download. Built-in model downloads come in a later phase.
+
+The photo and answer stay on this PC. Temporary inference files are deleted after the process exits. This does
+not switch the model in Local AI Studio or send photos to the chat server. The vision answer can misread unclear
+details; use /scan for quick printed-text extraction.
 
 ## Personality
 
@@ -265,6 +291,8 @@ app/tools/           The tools behind the commands (calculator, units, world_tim
                      jokes, little_lookups, rewrite, qr),
                      from PromptetheusBot
 app/tools/scan.py    Offline photo text reader (RapidOCR, ported from the bot)
+app/tools/vision.py  One-off CPU photo analysis (Gemma 3, ported from the bot)
+app/photo_jobs.py    Background /look jobs, saved progress, completion and shutdown
 app/ports.py         Port checks (free? who's using it?) and this PC's network addresses
 app/server.py        The web server (FastAPI): pages, chat, settings and status endpoints
 app/web/             The pages: index.html (chat), settings.html, style.css (shared look), app-height.js

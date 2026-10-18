@@ -22,6 +22,7 @@ from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewri
 from app.tools.calculator import calculate
 from app.tools.dice import roll_dice
 from app.tools.units import convert
+from app.tools.vision import HELP as LOOK_HELP
 from app.tools.scan import HELP as SCAN_HELP
 from app.tools.web import Unavailable
 from app.tools.world_time import world_time
@@ -810,6 +811,8 @@ def _help(args=''):
 
 
 COMMANDS = [
+    Command('look', 'Ask the local vision AI about an attached photo; describe it, read a receipt, or ask a question',
+            '/look what is in this photo?', lambda _args: LOOK_HELP, group='Photos'),
     Command('scan', 'Read printed text from an attached photo, entirely offline', '/scan',
             lambda _args: SCAN_HELP, group='Photos'),
     Command('help', 'List every command, or explain one', '/help calc', _help, group='Help'),

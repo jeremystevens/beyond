@@ -88,6 +88,25 @@
     </section>
 
     <section>
+      <h2>Photo understanding (/look)</h2>
+      <p class="hint">Runs a separate CPU vision process for each photo, usually about 1–2 minutes.
+        Chat stays available. Use Gemma 3 with its matching projector and a CPU llama-mtmd-cli.exe.
+        Your file paths stay in this PC's settings; fresh downloads have none configured.</p>
+      <label class="switch"><input type="checkbox" id="vision_enabled"><span><b>Enable photo understanding</b></span></label>
+      <label for="vision_executable">CPU vision executable (.exe)</label>
+      <input type="text" id="vision_executable" spellcheck="false" style="width:100%">
+      <label for="vision_model">Vision model (.gguf)</label>
+      <input type="text" id="vision_model" spellcheck="false" style="width:100%">
+      <label for="vision_mmproj">Matching mmproj projector (.gguf)</label>
+      <input type="text" id="vision_mmproj" spellcheck="false" style="width:100%">
+      <div class="row">
+        <label for="vision_threads">CPU threads <input type="number" id="vision_threads" min="1" max="64"></label>
+        <label for="vision_timeout">Timeout (seconds) <input type="number" id="vision_timeout" min="30" max="3600"></label>
+      </div>
+      <p class="small">Press Save. Changes apply to the next photo. Finished-photo popups use "When the AI has replied" below.</p>
+    </section>
+
+    <section>
       <h2>House rules</h2>
       <p class="hint">Instructions BEYOND follows in every chat, for example "Always answer in under 3 sentences" or
         "Use metric units". You can also type <b>/rule &lt;text&gt;</b> and <b>/rules</b> in a chat. They're saved straight
@@ -190,8 +209,9 @@
   <script>
     const $ = id => document.getElementById(id);
     const checkboxes = ['allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
-                        'popup_errors', 'start_with_windows'];
-    const fields = ['ai_server_url', 'ai_model', 'web_port', 'quiet_start', 'quiet_end', ...checkboxes];
+                        'popup_errors', 'start_with_windows', 'vision_enabled'];
+    const fields = ['ai_server_url', 'ai_model', 'web_port', 'quiet_start', 'quiet_end',
+                    'vision_executable', 'vision_model', 'vision_mmproj', 'vision_threads', 'vision_timeout', ...checkboxes];
     let view = null;
 
     function show(kind, text) {
@@ -241,6 +261,9 @@
         ai_server_url: $('ai_server_url').value, ai_model: $('ai_model').value,
         web_port: Number($('web_port').value), allow_network: $('allow_network').checked,
         quiet_start: $('quiet_start').value, quiet_end: $('quiet_end').value,
+        vision_executable: $('vision_executable').value, vision_model: $('vision_model').value,
+        vision_mmproj: $('vision_mmproj').value, vision_threads: Number($('vision_threads').value),
+        vision_timeout: Number($('vision_timeout').value),
         ...Object.fromEntries(checkboxes.map(f => [f, $(f).checked])),
       };
     }
