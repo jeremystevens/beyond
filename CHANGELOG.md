@@ -38,7 +38,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - Tested: the download from another address over http and https; trusting only the downloaded file (OpenSSL,
     strict), BEYOND's secure address is accepted by IP, by the PC's name and on 127.0.0.1, and a wrong name is
     rejected; 7 HTTPS tests, including the authority outliving a server renewal and a forged certificate for a real
-    website (and for a public address) being rejected by the name constraints.
+    website (and for a public address) being rejected by the name constraints. The owner installed it on
+    another PC and the browser warning is gone (2026-10-18).
 - **Phase 27: games menu and dice** (version 0.27.0).
   - Added /games, /games stats and a Games header button that preserves message drafts and attached photos.
     The menu offers quick dice/coin rolls and marks later games with their planned phases.
