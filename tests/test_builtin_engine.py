@@ -9,6 +9,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import httpx
+
 from app import builtin_engine, config, engine, settings
 
 FAKE_SERVER = textwrap.dedent('''
@@ -87,6 +89,45 @@ class CommandTests(unittest.TestCase):
     def test_missing_files_are_explained(self):
         self.assertIn('Choose llama-server.exe', builtin_engine.missing({**config.DEFAULTS}))
         self.assertIn("can't find the engine program", builtin_engine.missing(self.values()))
+
+
+class ThinkingTests(unittest.IsolatedAsyncioTestCase):
+    """With thinking on, the page is told the model is thinking, but never what it thinks."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.saved = settings.FILE
+        settings.FILE = Path(self.temp.name) / 'settings.json'
+        settings.save({'ai_mode': 'builtin', 'engine_thinking': True})
+        self.sent = []
+
+    def tearDown(self):
+        settings.FILE = self.saved
+        self.temp.cleanup()
+
+    def reply(self, request):
+        self.sent.append(json.loads(request.content))
+        if not self.sent[-1]['stream']:
+            return httpx.Response(200, json={'choices': [{'message': {'content': '["The user has a dog"]'}}]})
+        lines = [{'reasoning_content': 'The user said hi, so'}, {'reasoning_content': ' I should greet them.'},
+                 {'content': 'Hi'}, {'content': ' there!'}]
+        body = ''.join(f'data: {json.dumps({"choices": [{"delta": d}]})}\n\n' for d in lines) + 'data: [DONE]\n\n'
+        return httpx.Response(200, text=body)
+
+    def client(self, *args, **kwargs):
+        return httpx.AsyncClient(transport=httpx.MockTransport(self.reply))
+
+    async def test_thinking_is_signalled_not_shown(self):
+        with patch.object(builtin_engine, 'url', return_value='http://127.0.0.1:1'), \
+                patch.object(engine, '_client', self.client):
+            pieces = [p async for p in engine.chat_stream([{'role': 'user', 'content': 'Hi'}])]
+            await engine.complete([{'role': 'user', 'content': 'Facts?'}], max_tokens=120, temperature=0.1)
+        self.assertEqual(pieces, [engine.THINKING, engine.THINKING, 'Hi', ' there!'])
+        chat, one_off = self.sent
+        self.assertEqual(chat['max_tokens'], config.ANSWER_MAX_TOKENS + engine.THINKING_EXTRA_TOKENS)
+        self.assertNotIn('chat_template_kwargs', chat)
+        self.assertEqual(one_off['chat_template_kwargs'], {'enable_thinking': False})   # small jobs never think
+        self.assertEqual(one_off['max_tokens'], 120)
 
 
 class LifecycleTests(unittest.IsolatedAsyncioTestCase):

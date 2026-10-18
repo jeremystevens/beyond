@@ -315,7 +315,8 @@ BEYOND:
 - runs it **on the processor only**, tuned for that: 12 threads, an 8192-token context, an f16 cache and one
   conversation slot, so the start of the prompt stays cached and follow-up answers begin faster;
 - answers straight away with **thinking models** such as Qwen3: their thinking is switched off unless you turn on
-  **Let thinking models think first**, and even then it never shows up in the answer;
+  **Let thinking models think first**. Then the answer bubble shows **💭 Thinking… 12s** while it thinks and
+  **💭 Thought for 34s** under the answer, but the thinking itself is never shown;
 - **restarts it** with new settings when you save them, and by itself if it stops (three tries, then
   **Restart engine** in Settings), with a popup when it goes down;
 - **closes it** when BEYOND quits, and stops an engine left behind by a crash the next time it starts.

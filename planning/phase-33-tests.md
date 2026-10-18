@@ -60,6 +60,9 @@ what you saw. The engine's messages are in `data\engine.log`, BEYOND's in `data\
       back to 12.
 - [X] Turn on **Let thinking models think first** and Save. After the restart, answers take longer, but still
       **show no thinking text**. Turn it off again.
+- [ ] With thinking on, the bubble shows **💭 Thinking… 12s** counting up while it thinks, and the finished answer
+      has a small **💭 Thought for …s** note. `/rewrite` and a fact like "I just got a dog" still work. Turn
+      thinking off again.
 - [X] Switch to **An AI server I already run** (`http://127.0.0.1:10086`) and Save. BEYOND's `llama-server.exe` closes,
       and chat answers through Studio's engine. Switch back to the built-in engine and Save; it loads again.
 - [X] Type a wrong model path and Save. Settings explains that it can't find the model file, and chat shows a clear

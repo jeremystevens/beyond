@@ -333,7 +333,13 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 # Written by BEYOND, so "Looked up" only ever appears when a lookup really ran.
                 yield json.dumps({'type': 'lookup', **lookup}) + '\n'
             try:
+                thinking = False
                 async for piece in engine.chat_stream(history, notes, max_tokens=budget, temperature=temperature):
+                    if piece is engine.THINKING:
+                        if not thinking and not answer:   # once: the page shows "Thinking…" with a timer
+                            thinking = True
+                            yield json.dumps({'type': 'status', 'text': '💭 Thinking…', 'thinking': True}) + '\n'
+                        continue
                     answer.append(piece)
                     yield json.dumps({'type': 'token', 'text': piece}) + '\n'
                 finished = True

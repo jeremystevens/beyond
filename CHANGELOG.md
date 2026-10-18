@@ -14,6 +14,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     one conversation slot so the prompt cache keeps working, no layers on a graphics card, and thinking models (Qwen3)
     answer straight away with thinking switched off unless "Let thinking models think first" is on (then the
     thinking is kept out of the answer). All of these are in Settings.
+  - With thinking on, the answer bubble shows **💭 Thinking… 12s** with a running timer while the model thinks, and
+    a small **💭 Thought for 34s** note under the answer once it's written. The thinking itself is never shown or
+    saved. Thinking gets 2000 tokens of its own on top of the answer's limit, and one-off jobs (fact pickup,
+    `/rewrite`, `/joke`, the study quiz, the picture prompt helper) never think, so their small limits still fit.
   - A watcher keeps the engine in step with the settings: saving new ones restarts it, switching to an AI server
     stops it, and if it stops by itself it's started again (three tries, then **Restart engine** in Settings). A
     leftover engine from a crash is stopped on the next start, and quitting BEYOND frees the model's memory. The

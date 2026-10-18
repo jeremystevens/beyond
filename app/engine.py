@@ -18,6 +18,24 @@ class EngineError(Exception):
     """A problem explained in plain words, ready to show on the page."""
 
 
+# chat_stream() yields this (instead of text) while a thinking model is still thinking, so the page can say so.
+THINKING = type('Thinking', (), {'__repr__': lambda self: 'THINKING'})()
+THINKING_EXTRA_TOKENS = 2000   # thinking uses the answer's token budget too, so it gets room of its own
+
+
+def _thinking_on():
+    values = settings.load()
+    return values['ai_mode'] == 'builtin' and values['engine_thinking']
+
+
+def _one_off(payload):
+    """One-off jobs (picking facts, /rewrite, the study quiz…) never think, even with thinking on: they have small
+    token budgets that the thinking would use up. Only BEYOND's own engine is sent this switch."""
+    if settings.load()['ai_mode'] == 'builtin':
+        payload['chat_template_kwargs'] = {'enable_thinking': False}
+    return payload
+
+
 def system_prompt():
     """BEYOND's personality (app/personality.md), then the house rules, then the saved facts. Read on every message,
     so changes to any of them apply straight away. All three rarely change, so the AI server can keep reusing them."""
@@ -117,7 +135,7 @@ def _prepare(messages, stream, background='', max_tokens=None, temperature=None)
     # history_window); the conversation follows, newest message last, with any notes for this reply attached to it.
     messages = with_reply_notes(trim(messages), background)
     payload = {'messages': [{'role': 'system', 'content': system_prompt()}, *messages], 'stream': stream,
-               'max_tokens': max_tokens or config.ANSWER_MAX_TOKENS,
+               'max_tokens': (max_tokens or config.ANSWER_MAX_TOKENS) + (THINKING_EXTRA_TOKENS if _thinking_on() else 0),
                'temperature': config.TEMPERATURE if temperature is None else temperature, 'cache_prompt': True}
     if model:
         payload['model'] = model
@@ -128,7 +146,7 @@ async def complete(messages, max_tokens, temperature):
     """A one-off request with its own instructions (not BEYOND's personality), e.g. picking facts out of a message.
     Returns the AI's text."""
     url, model = _server()
-    payload = {'messages': messages, 'stream': False, 'max_tokens': max_tokens, 'temperature': temperature}
+    payload = _one_off({'messages': messages, 'stream': False, 'max_tokens': max_tokens, 'temperature': temperature})
     if model:
         payload['model'] = model
     try:
@@ -142,7 +160,7 @@ async def complete(messages, max_tokens, temperature):
 def complete_blocking(messages, max_tokens, temperature):
     """complete() for code that runs in a worker thread (commands such as /rewrite and /joke)."""
     url, model = _server()
-    payload = {'messages': messages, 'stream': False, 'max_tokens': max_tokens, 'temperature': temperature}
+    payload = _one_off({'messages': messages, 'stream': False, 'max_tokens': max_tokens, 'temperature': temperature})
     if model:
         payload['model'] = model
     try:
@@ -203,8 +221,9 @@ async def chat(messages):
 
 
 async def chat_stream(messages, background='', max_tokens=None, temperature=None):
-    """Like chat(), but yields the reply piece by piece as the AI writes it. `background`: notes for this reply
-    only (for example related old conversations). `max_tokens` / `temperature`: None = the defaults.
+    """Like chat(), but yields the reply piece by piece as the AI writes it, and THINKING while a thinking model
+    is thinking. `background`: notes for this reply only (for example related old conversations).
+    `max_tokens` / `temperature`: None = the defaults.
 
     If the caller stops reading (the person pressed Stop), the connection to the AI server is closed, which tells
     llama.cpp to stop writing, so the AI is free again for the next question (or for the Telegram bot)."""
@@ -221,10 +240,14 @@ async def chat_stream(messages, background='', max_tokens=None, temperature=None
                     if data == '[DONE]':
                         return
                     try:
-                        piece = json.loads(data)['choices'][0]['delta'].get('content') or ''
+                        delta = json.loads(data)['choices'][0]['delta']
+                        piece = delta.get('content') or ''
+                        thinking = bool(delta.get('reasoning_content'))
                     except (ValueError, KeyError, IndexError, TypeError, AttributeError):
                         continue
                     if piece:
                         yield piece
+                    elif thinking:
+                        yield THINKING   # the thinking itself is never shown or saved
     except httpx.HTTPError as exc:
         raise _explain(exc, url) from exc
