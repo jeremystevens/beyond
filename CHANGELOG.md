@@ -24,7 +24,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     A real CPU description identified the test shapes/colors in 151 seconds; a full live app check then returned
     "A red square and a blue circle" while normal text chat also replied. Syntax, dependencies and whitespace
     checks passed. Windows notifications are enabled; the test-popup request succeeded. Ordinary popups were
-    suppressed while BEYOND's page was being viewed, as intended. Owner UI/popup verification remains pending.
+    suppressed while BEYOND's page was being viewed, as intended. Owner confirmed the photo/UI test passed with a game title-screen description. Visual popup verification remains pending.
   - The vision child runs at below-normal Windows priority so text chat has scheduling priority.
 - **Phase 21: photos and /scan** (version 0.21.0).
   - Photo picker and drag-and-drop, local preview, Read text, and /scan with an attached photo.
