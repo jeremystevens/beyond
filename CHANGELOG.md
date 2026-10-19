@@ -6,6 +6,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- **A quieter line under each answer.** 👍 👎 🔄 and Read aloud were big rounded buttons on two rows. They're now
+  small, light outline icons on one line under the answer (Copy, Good answer, Bad answer, Read aloud, Try again),
+  with the stats on the right. The icons darken on hover, each one names itself on hover, and phones get bigger tap
+  areas. **Copy** is new: it copies the answer's own words and shows a tick. The 👎 "what was wrong?" choices, game
+  controls and downloads still show as normal buttons. Rating an answer no longer wipes its stats line until a reload.
+- **Stats without bright emoji.** The model, tokens, time and speed (and thinking time) use thin grey outline icons
+  that match the buttons: a box, two coins, a clock and a lightning bolt (a lightbulb for thinking).
+- **Settings in a clearer order.** Sections are grouped, most-changed first, with jump links at the top: AI engine
+  and models, Chat and everyday use (persona, house rules, chat prompt, spoken replies, memory, lookups, search
+  history), Popups and startup, Photos and pictures, then Address and network. Nothing was removed. The Save bar now
+  stays at the bottom of the screen while you scroll.
 - **Faster cold first reply** (version 0.34.7). After a built-in model loads, BEYOND now pre-reads the stable
   system prompt with a one-token hidden request before reporting the engine Ready. This moves the cold prompt cost
   into startup instead of beginning it after the person presses Send. The warm-up is local, is never saved as a
@@ -133,8 +144,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     and HTTPS serve successfully. Jeremy confirmed the Models feature works. His phone-layout feedback moved
     Games and Models into the hamburger menu; review of that revised layout is pending.
 - **Answer stats:** a small line under every AI answer shows the model that wrote it, how long it thought (thinking
-  models), the tokens written, the total time and the writing speed, e.g. `📦 Qwen3-4B-Q4_K_M · 🔤 77 tokens · ⏱ 36s ·
-  ⚡ 2.10 t/s`. The numbers come from llama.cpp's own timings (or the server's token usage, or a count of the streamed
+  models), the tokens written, the total time and the writing speed, e.g. `Qwen3-4B-Q4_K_M · 77 tokens · 36s ·
+  2.10 t/s`. The numbers come from llama.cpp's own timings (or the server's token usage, or a count of the streamed
   pieces), are saved with the answer in a new `stats` column, and stay after a reload. Hover over one for what it means.
 - **Phase 33: built-in engine** (version 0.33.0).
   - Settings → AI engine chooses between BEYOND's own engine and an AI server you already run. The built-in engine

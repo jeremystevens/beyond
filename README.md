@@ -101,7 +101,7 @@ still arrive), and lets your other devices use it over a **secure address on you
 ◆  Its own built-in AI engine: pick a .gguf model and BEYOND runs it, no separate server
 ◆  A phone-friendly Models page: sizes, load/unload/switch and settings saved for each model
 ◆  Answers stream in as they're written, with Stop, Try again and 👍 👎 ratings
-◆  A stats line under each answer: model, tokens, time and speed (t/s)
+◆  One quiet line under each answer: copy, rate, read aloud, try again, plus model, tokens, time and speed
 ◆  A short CPU-friendly system prompt, or write and AI-optimize your own in Settings
 ◆  Choose Normal, Professional, Sarcastic, Evil or Funny in Settings, alongside your house rules
 ◆  Saved, searchable conversations in a side panel; rename, delete, pick up later
@@ -330,8 +330,9 @@ BEYOND:
   **Restart engine** in Settings), with a popup when it goes down;
 - **closes it** when BEYOND quits, and stops an engine left behind by a crash the next time it starts.
 
-Under every answer a small stats line shows the model, the thinking time (thinking models), the tokens written, the
-total time and the writing speed: `📦 Qwen3-4B-Q4_K_M · 🔤 77 tokens · ⏱ 36s · ⚡ 2.10 t/s`.
+Under every answer one quiet line holds small outline icons on the left (Copy, 👍, 👎, Read aloud, Try again) and
+the stats on the right: the model, the thinking time (thinking models), the tokens written, the total time and the
+writing speed, e.g. `Qwen3-4B-Q4_K_M · 77 tokens · 36s · 2.10 t/s`. Hover over any of them for what it means.
 
 The engine stays loaded for as long as BEYOND runs, so it's always ready. Threads, context size, cache type (f16,
 q8_0 or q4_0) and thinking are all in Settings. The engine's own messages go to `data\engine.log`. Prefer an AI server
@@ -592,7 +593,7 @@ Set it up on the host PC in **Settings → Picture generation**: `sd-cli.exe` fr
 
 <br>
 
-**Spoken replies.** `/speak` reads the last answer; **Read aloud** under an answer does the same; **Read answers
+**Spoken replies.** `/speak` reads the last answer; the **Read aloud** (speaker) icon under an answer does the same; **Read answers
 aloud automatically** is optional in Settings. Speech uses **Kokoro** (Piper as fallback) in a separate CPU process,
 one clip at a time. Clips are saved with the answer and play in an audio player with seek controls.
 
@@ -646,7 +647,9 @@ your user's startup programs.
 <a id="settings"></a>
 ## `▸ SETTINGS`
 
-Click **Settings** at the top of the chat page (or open `http://127.0.0.1:7770/settings`). Engine paths, network and
+Click **Settings** at the top of the chat page (or open `http://127.0.0.1:7770/settings`). It's grouped with the
+most-changed settings first, with jump links at the top: AI engine and models, Chat and everyday use, Popups and
+startup, Photos and pictures, then Address and network. Engine paths, network and
 other general settings can only be changed on the PC BEYOND runs on. **Chat prompt**, **Persona** and
 **House rules** can also be changed from your phone or another home-network device. The Models page lets those
 devices select and tune models already added on the PC.

@@ -84,6 +84,9 @@
     .stats { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 0.74rem; color: var(--muted);
              font-variant-numeric: tabular-nums; }
     .stats .model { padding: 1px 7px; border: 1px solid var(--border); border-radius: 999px; }
+    .stats span { display: inline-flex; align-items: center; gap: 4px; }
+    .stats svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8;
+                 stroke-linecap: round; stroke-linejoin: round; flex: none; }
     /* The quiet line under an AI answer: small light icons on the left, the stats on the right */
     .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px;
             margin-top: 8px; white-space: normal; }
@@ -522,15 +525,24 @@
       line.className = 'stats';
       const seconds = s => s >= 60 ? `${Math.floor(s / 60)}m ${Math.round(s % 60)}s` : `${Math.round(s)}s`;
       const parts = [];
-      if (stats.model) parts.push(['model', '📦 ' + stats.model.replace(/\.gguf$/i, ''), 'Model']);
-      if (stats.thought) parts.push(['', '💭 ' + seconds(stats.thought), 'Time spent thinking']);
-      parts.push(['', `🔤 ${stats.tokens} tokens`, 'Tokens written']);
-      parts.push(['', '⏱ ' + seconds(stats.seconds), 'Total time, from sending to the last word']);
-      if (stats.speed) parts.push(['', `⚡ ${stats.speed.toFixed(2)} t/s`, 'Writing speed, tokens per second']);
-      for (const [cls, text, title] of parts) {
+      // Thin outline icons in the text colour, like the buttons beside them (no bright emoji).
+      const icon = {
+        model: '<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/>',
+        thought: '<path d="M12 18v3"/><path d="M8 21h8"/><path d="M9 14a5 5 0 1 1 6 0c-.8.6-1 1.3-1 2v2h-4v-2c0-.7-.2-1.4-1-2z"/>',
+        tokens: '<circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/>',
+        time: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+        speed: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+      };
+      if (stats.model) parts.push(['model', 'model', stats.model.replace(/\.gguf$/i, ''), 'Model']);
+      if (stats.thought) parts.push(['', 'thought', seconds(stats.thought), 'Time spent thinking']);
+      parts.push(['', 'tokens', `${stats.tokens} tokens`, 'Tokens written']);
+      parts.push(['', 'time', seconds(stats.seconds), 'Total time, from sending to the last word']);
+      if (stats.speed) parts.push(['', 'speed', `${stats.speed.toFixed(2)} t/s`, 'Writing speed, tokens per second']);
+      for (const [cls, kind, text, title] of parts) {
         const span = document.createElement('span');
         if (cls) span.className = cls;
-        span.textContent = text;
+        span.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${icon[kind]}</svg>`;
+        span.append(text);
         span.title = title;
         line.appendChild(span);
       }
