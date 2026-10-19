@@ -6,7 +6,7 @@ which is never committed and only holds what differs from these defaults, so a n
 """
 from pathlib import Path
 
-VERSION = '0.34.3'
+VERSION = '0.34.7'
 PHASE = 34
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -34,6 +34,9 @@ NETWORK_HOST = '0.0.0.0'        # other devices on the network can too ("Allow o
 
 # Settings a person can change. These are the fresh-install values; changes go in data/settings.json.
 DEFAULTS = {
+    'custom_prompt_enabled': False,
+    'custom_prompt': '',
+    'persona_enabled': False,    # optional role instructions are off unless explicitly enabled
     'persona': 'normal',          # chat speaking style; applies to the next reply
     # Where BEYOND's AI comes from: 'builtin' = BEYOND starts llama.cpp itself (app/builtin_engine.py),
     # 'server' = an AI server you already run (Local AI Studio's engine, LM Studio, Ollama…).
@@ -98,7 +101,7 @@ DEFAULTS = {
     # Start BEYOND (in the tray) when you sign in to Windows.
     'start_with_windows': False,
 }
-BOOLEAN_SETTINGS = ('engine_enabled', 'engine_thinking', 'speech_enabled', 'speech_auto', 'image_enabled', 'vision_enabled', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
+BOOLEAN_SETTINGS = ('custom_prompt_enabled', 'persona_enabled', 'engine_enabled', 'engine_thinking', 'speech_enabled', 'speech_auto', 'image_enabled', 'vision_enabled', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
                     'popup_errors', 'start_with_windows')
 TIME_SETTINGS = ('quiet_start', 'quiet_end')
 RESTART_SETTINGS = ('web_port', 'allow_network')   # these only take effect after BEYOND restarts

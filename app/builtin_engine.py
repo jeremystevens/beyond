@@ -137,7 +137,7 @@ def status():
     else:
         if desired != _engine.wanted or state == 'off':
             state = 'not_set' if missing(values) else 'starting'
-        message = {'ready': '', 'starting': 'The AI engine is loading the model.'}.get(
+        message = {'ready': '', 'starting': _engine.problem or 'The AI engine is loading the model.'}.get(
             state, _engine.problem or missing(values))
     return {'state': 'ok' if state == 'ready' else state, 'builtin': True, 'model': model_name(values),
             'message': message, 'port': _engine.port if state == 'ready' else None}
@@ -185,8 +185,28 @@ async def _healthy(client, port):
         return False
 
 
+async def _warm_chat_prompt(client, port):
+    """Pre-read the stable system prompt so the person's first reply need not pay that CPU cost."""
+    # Imported here to avoid builtin_engine <-> engine import work while modules are still loading.
+    from app import engine
+    payload = {
+        'messages': [
+            {'role': 'system', 'content': engine.system_prompt()},
+            {'role': 'user', 'content': ' '},
+        ],
+        'stream': False,
+        'max_tokens': 1,
+        'temperature': 0,
+        'cache_prompt': True,
+        'chat_template_kwargs': {'enable_thinking': False},
+    }
+    with using_model():
+        response = await client.post(f'http://{HOST}:{port}/v1/chat/completions', json=payload, timeout=START_TIMEOUT)
+        response.raise_for_status()
+
+
 async def start(values):
-    """Start llama-server with these settings and wait until the model is loaded."""
+    """Start llama-server, load the model and pre-read BEYOND's stable chat prompt."""
     await stop()
     _engine.wanted = wanted(values)
     problem = missing(values)
@@ -215,7 +235,18 @@ async def start(values):
                 _failed('The AI engine stopped while loading the model.')
                 return
             if await _healthy(client, port):
-                _engine.state, _engine.failures = 'ready', 0
+                _engine.problem = 'The AI engine is preparing its first reply.'
+                logging.info('Pre-reading the chat prompt')
+                try:
+                    await _warm_chat_prompt(client, port)
+                    logging.info('The chat prompt is ready')
+                except (httpx.HTTPError, ValueError):
+                    # A warm-up failure must not make a healthy model unavailable; the first chat can read it normally.
+                    logging.warning('The AI engine could not pre-read the chat prompt', exc_info=True)
+                if wanted(settings.load()) != _engine.wanted:
+                    await stop()
+                    return
+                _engine.state, _engine.problem, _engine.failures = 'ready', '', 0
                 logging.info('The AI engine is ready')
                 return
             await asyncio.sleep(0.5)

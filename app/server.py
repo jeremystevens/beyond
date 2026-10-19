@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, StrictInt
 
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
-                 https, memory, models, notes, notify, personas, ports, reminders, rules, search_history, settings)
+                 https, memory, models, notes, notify, personas, ports, prompts, reminders, rules, search_history, settings)
 
 from app import builtin_engine, photo_jobs, image_jobs, speech_jobs, blackjack, followups, games, hangman, study_quiz, tictactoe, trivia
 from app.tools import scan, speech, speech_to_text
@@ -327,6 +327,7 @@ async def repeat_search(identifier: int):
     chats.add_message(chat_id,'user',entry['command'],kind='command')
     message_id = chats.add_message(chat_id,'assistant',reply.text,kind='command',buttons=reply.buttons)
     followups.save(chat_id,message_id,reply.lookup_context)
+    followups.save_pending(chat_id,message_id,reply.pending_lookup)
     return {'chat_id':chat_id}
 
 
@@ -395,6 +396,14 @@ async def chat_stream(body: SendRequest):
     recalled = search_history.recall_request(content)
     if recalled is not None:
         return _command_reply(body.chat_id, content, run_as='/searchhistory ' + recalled)
+    weather_request = (await asyncio.to_thread(followups.weather_request, body.chat_id, content)
+                       if settings.load()['auto_lookup'] else None)
+    if weather_request:
+        if weather_request['kind']=='command':
+            return _command_reply(body.chat_id, content, run_as=weather_request['command'], follow_action=weather_request)
+        reply=(commands.weather_confirmation_reply(weather_request) if weather_request['kind']=='weather_confirm'
+               else commands.Reply(weather_request['text'],pending_lookup=weather_request.get('pending')))
+        return _command_reply(body.chat_id, content, prepared=reply)
     followup = await asyncio.to_thread(followups.resolve, body.chat_id, content)
     if followup and followup['kind'] in ('command','weather_day'):
         return _command_reply(body.chat_id, content, run_as=followup['command'], follow_action=followup)
@@ -447,6 +456,11 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
         try:
             yield json.dumps(opening) + '\n'
             notes = background
+            if not found:
+                notes='\n\n'.join(part for part in (background,
+                    'No new lookup was performed for this reply. Never promise to check/search later: your reply '
+                    'cannot trigger a tool after it ends. If information is missing, ask for the location or '
+                    'suggest /weather <city, state/country>. Use any supplied previous result only as past data.') if part)
             if found:
                 yield json.dumps({'type': 'status', 'text': lookups.status(*found)}) + '\n'
                 result = await asyncio.to_thread(lookups.run, question, *found)
@@ -628,6 +642,7 @@ def _command_reply(chat_id, content, run_as=None, prepared=None, follow_action=N
                       chats.add_message(current, 'assistant', reply.text, kind='command', buttons=reply.buttons,
                                         image=reply.image, game=reply.game))
         followups.save(current,message_id,reply.lookup_context)
+        followups.save_pending(current,message_id,reply.pending_lookup)
         if reply.on_saved:   # e.g. /remind: the reminder goes off in this chat
             reply.on_saved(current)
         spoken = _start_speech(message_id, reply.speech_text) if reply.speech_text is not None else None
@@ -864,6 +879,8 @@ def _settings_view(request, values=None):
         'values': values,
         'defaults': config.DEFAULTS,
         'personas': personas.options(),
+        'default_prompt': prompts.default_prompt(),
+        'custom_prompt_max_chars': prompts.MAX_CUSTOM_CHARS,
         'running': running,
         'restart_needed': [key for key in config.RESTART_SETTINGS if values[key] != running[key.replace('web_', '')]],
         'network_addresses': [{'adapter': a, 'address': ip} for a, ip in ports.network_addresses()],
@@ -876,21 +893,71 @@ def get_settings(request: Request):
     return _settings_view(request)
 
 
+
+class PromptChoice(BaseModel):
+    model_config = {'extra': 'forbid'}
+    custom_prompt: str = Field(max_length=16000)
+    custom_prompt_enabled: bool = False
+
+
+@app.post('/api/prompt')
+def save_prompt(body: PromptChoice):
+    # A narrow text preference like house rules; no engine, file path or network changes.
+    try:
+        values=settings.save(body.model_dump())
+    except settings.SettingsError as exc:
+        return JSONResponse({'error':str(exc)},status_code=400)
+    return {key:values[key] for key in ('custom_prompt','custom_prompt_enabled')}
+
+
+
+class PromptDraft(BaseModel):
+    model_config = {'extra': 'forbid'}
+    prompt: str = Field(min_length=1,max_length=16000)
+
+
+PROMPT_IMPROVE_LOCK = asyncio.Lock()
+
+
+@app.post('/api/prompt/improve')
+async def improve_prompt(body: PromptDraft):
+    draft=body.prompt.strip()
+    if not draft:
+        return JSONResponse({'error':'Enter a prompt to improve.'},status_code=400)
+    if PROMPT_IMPROVE_LOCK.locked() or builtin_engine.busy():
+        return JSONResponse({'error':'The AI is busy. Try improving the prompt after its current reply finishes.'},status_code=409)
+    async with PROMPT_IMPROVE_LOCK:
+        try:
+            improved=await engine.complete(prompts.improvement_messages(draft),max_tokens=600,temperature=0.2)
+        except engine.EngineError as exc:
+            return JSONResponse({'error':str(exc)},status_code=503)
+    improved=improved.strip()
+    lines=improved.splitlines()
+    fence=chr(96)*3
+    if len(lines)>2 and lines[0].startswith(fence) and lines[-1].strip()==fence:
+        improved='\n'.join(lines[1:-1]).strip()
+    if not improved or len(improved)>prompts.MAX_CUSTOM_CHARS:
+        return JSONResponse({'error':'The AI did not return a usable prompt. Your draft is unchanged.'},status_code=502)
+    # Return a draft only. Applying it still requires the explicit Save prompt action.
+    return {'prompt':improved,'words':len(improved.split())}
+
+
 class PersonaChoice(BaseModel):
     model_config = {'extra': 'forbid'}
     persona: str = Field(min_length=1, max_length=30)
+    persona_enabled: bool = False
 
 
 @app.post('/api/persona')
 def save_persona(body: PersonaChoice):
     """A speaking-style preference, editable from other devices like the existing house rules.
-    Only the preset name can be changed here, never engine paths or general settings."""
+    Only the preset and its on/off switch can be changed here, never engine paths or general settings."""
     try:
-        values = settings.save({'persona': body.persona})
+        values = settings.save({'persona': body.persona, 'persona_enabled': body.persona_enabled})
     except settings.SettingsError as exc:
         return JSONResponse({'error': str(exc)}, status_code=400)
     logging.info('Persona changed to %s', values['persona'])
-    return {'persona': values['persona']}
+    return {'persona': values['persona'], 'persona_enabled': values['persona_enabled']}
 
 
 @app.post('/api/settings')

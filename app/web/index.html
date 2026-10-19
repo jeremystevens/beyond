@@ -84,6 +84,18 @@
     .stats { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 0.74rem; color: var(--muted);
              font-variant-numeric: tabular-nums; }
     .stats .model { padding: 1px 7px; border: 1px solid var(--border); border-radius: 999px; }
+    /* The quiet line under an AI answer: small light icons on the left, the stats on the right */
+    .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px;
+            margin-top: 8px; white-space: normal; }
+    .foot .acts { display: flex; align-items: center; gap: 2px; margin-left: -6px; }
+    .foot .stats { margin-top: 0; margin-left: auto; }
+    .chip.icon { width: 30px; height: 30px; padding: 0; border: none; border-radius: 8px; background: none;
+                 color: var(--muted); display: inline-flex; align-items: center; justify-content: center; min-height: 0; }
+    .chip.icon:hover:not(:disabled) { background: var(--bg); color: var(--text); }
+    .chip.icon:disabled { opacity: 0.4; }
+    .chip.icon svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8;
+                     stroke-linecap: round; stroke-linejoin: round; }
+    @media (pointer: coarse) { .chip.icon { width: 38px; height: 38px; min-height: 0; padding: 0; } }
     .lookup .sources { margin-top: 6px; padding: 8px 10px; border-left: 2px solid var(--border); white-space: pre-wrap;
                        max-height: 260px; overflow: auto; }
     .msg a { color: inherit; text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
@@ -327,7 +339,9 @@
     // ---------- buttons under a message ----------
     function showButtons(el, messageId, buttons) {
       el.querySelector('.buttons')?.remove();
-      if (!buttons || !buttons.length) return;
+      el.querySelectorAll('.foot .acts [data-kind="up"], .foot .acts [data-kind="down"], .foot .acts [data-kind="retry"]')
+        .forEach(old => old.remove());
+      if (!buttons || !buttons.length) { arrangeFooter(el); return; }
       const box = document.createElement('div');
       box.className = 'buttons';
       for (const row of buttons) {
@@ -349,6 +363,7 @@
           const chip = document.createElement('button');
           chip.type = 'button'; chip.className = 'chip';
           chip.textContent = b.label;
+          if (b.action) chip.dataset.action = b.action;
           if (b.send && b.send.startsWith('/')) {   // e.g. Next question: sends the command like a typed message
             chip.onclick = () => sendGameCommand(b.send);
             line.appendChild(chip);
@@ -363,6 +378,79 @@
         box.appendChild(line);
       }
       (el.querySelector('.game-grid .ready') || el).appendChild(box);
+      arrangeFooter(el);
+    }
+
+    // ---------- the line under an AI answer ----------
+    const ICONS = {
+      copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+      copied: '<path d="M20 6 9 17l-5-5"/>',
+      up: '<path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>',
+      down: '<path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/>',
+      speak: '<path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.4 18.4a9 9 0 0 0 0-12.8"/>',
+      retry: '<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>',
+    };
+    const FOOT_ORDER = ['copy', 'up', 'down', 'speak', 'retry'];
+    function asIcon(button, kind, label) {
+      button.className = 'chip icon';
+      button.dataset.kind = kind;
+      button.title = label; button.setAttribute('aria-label', label);
+      button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[kind]}</svg>`;
+      return button;
+    }
+    function answerText(el) {   // the answer's own words, without the line, buttons and notes under it
+      const copy = el.cloneNode(true);
+      copy.querySelectorAll('.foot, .buttons, .stats, .lookup, .speech-box, .note, .toast').forEach(x => x.remove());
+      return copy.innerText.trim();
+    }
+    async function copyAnswer(el, button) {
+      const text = answerText(el);
+      try {
+        if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(text);
+        else {
+          const area = document.createElement('textarea');
+          area.value = text; area.style.position = 'fixed'; area.style.opacity = '0';
+          document.body.appendChild(area); area.focus(); area.select();
+          const ok = document.execCommand('copy'); area.remove();
+          if (!ok) throw new Error('Copy not available');
+        }
+        asIcon(button, 'copied', 'Copied'); button.dataset.kind = 'copy';
+        setTimeout(() => button.isConnected && asIcon(button, 'copy', 'Copy'), 1500);
+      } catch { button.title = 'Copy not available here'; }
+    }
+    // Gathers 👍 👎 🔄, Read aloud and the stats into one quiet line under an AI answer. Run after any of them
+    // change; other buttons (the 👎 reasons, game controls, downloads) stay where they are.
+    function arrangeFooter(el) {
+      const rating = [...el.querySelectorAll('.buttons .chip[data-action]')]
+        .filter(c => /^rate:(up|down|retry):/.test(c.dataset.action));
+      const speak = el.querySelector('.speech-box .speak-button');
+      const stats = el.querySelector('.stats');
+      let foot = el.querySelector(':scope > .foot');
+      if (!foot && !rating.length && !stats) return;   // not an AI answer
+      if (!foot) {
+        foot = document.createElement('div');
+        foot.className = 'foot';
+        const acts = document.createElement('div');
+        acts.className = 'acts';
+        const copy = document.createElement('button');
+        copy.type = 'button';
+        asIcon(copy, 'copy', 'Copy');
+        copy.onclick = () => copyAnswer(el, copy);
+        acts.append(copy);
+        foot.append(acts);
+      }
+      const acts = foot.querySelector('.acts');
+      for (const chip of rating) {
+        const kind = chip.dataset.action.split(':')[1];
+        acts.append(asIcon(chip, kind, { up: 'Good answer', down: 'Bad answer', retry: 'Try again' }[kind]));
+      }
+      if (speak) acts.append(asIcon(speak, 'speak', speak.textContent || 'Read aloud'));
+      [...acts.children].sort((a, b) => FOOT_ORDER.indexOf(a.dataset.kind) - FOOT_ORDER.indexOf(b.dataset.kind))
+        .forEach(child => acts.append(child));
+      if (stats && stats.parentElement !== foot) foot.append(stats);
+      el.querySelectorAll('.buttons .row').forEach(row => { if (!row.children.length) row.remove(); });
+      el.querySelectorAll('.buttons').forEach(box => { if (!box.children.length) box.remove(); });
+      if (foot.parentElement !== el) el.insertBefore(foot, el.querySelector(':scope > .buttons, :scope > .speech-box'));
     }
 
     async function press(el, messageId, action) {
@@ -375,7 +463,9 @@
         const data = await r.json();
         if (!r.ok) throw new Error(data.error || 'Something went wrong.');
         const spoken = el.querySelector('.speech-box');
+        const foot = el.querySelector(':scope > .foot');   // keeps Copy, Read aloud and the stats
         fill(el, data.text);   // the message changes in place (plain text, as always)
+        if (foot) el.append(foot);
         showGame(el, data.game);
         showButtons(el, messageId, data.buttons);
         if (spoken) {
@@ -445,6 +535,7 @@
         line.appendChild(span);
       }
       el.insertBefore(line, el.querySelector('.buttons'));
+      arrangeFooter(el);
     }
 
     function noteBubble(text) {   // a small note from BEYOND itself, e.g. "🧠 Noted for next time"
@@ -1433,6 +1524,7 @@
       }
       previous?.querySelector('audio')?.pause();
       previous?.remove();
+      el.querySelector('.foot [data-kind="speak"]')?.remove();
       const box = document.createElement('div');
       box.className = 'speech-box'; box.dataset.state = signature;
       el.append(box);
@@ -1459,7 +1551,7 @@
       } else {
         pendingSpeech.delete(messageId);
         const button = document.createElement('button');
-        button.type = 'button'; button.className = 'chip';
+        button.type = 'button'; button.className = 'chip speak-button';
         button.textContent = info?.state === 'error' ? 'Retry audio' : 'Read aloud';
         button.onclick = async () => {
           button.disabled = true; manualSpeech.add(messageId);
@@ -1477,6 +1569,8 @@
           label.textContent = info.error; box.append(label);
         }
       }
+      arrangeFooter(el);
+      if (!box.children.length) box.remove();   // only the button was in it, and it moved to the line
     }
     async function checkSpeech() {
       if (!pendingSpeech.size || chatId === null) return;

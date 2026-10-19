@@ -45,6 +45,7 @@ class Reply:
     speech_text: str | None = None  # empty string = read the last AI answer; None = no speech request
     on_saved: Callable = None  # called with the chat's id once the reply is saved (e.g. where a reminder goes off)
     lookup_context: dict | None = None  # real lookup data for short follow-ups in this chat only
+    pending_lookup: dict | None = None  # a location/correction waiting for the next user turn
 
 
 def button(label, action):
@@ -1132,6 +1133,12 @@ def _as_reply(answer):
     return answer if isinstance(answer, Reply) else Reply(str(answer))
 
 
+
+def weather_confirmation_reply(action):
+    return Reply(action['text'],buttons=[[send_button('Yes, check this location',action['command'])]],
+                 pending_lookup=action['pending'])
+
+
 def run(text):
     """Answer a /command with a Reply. Unknown commands get a "did you mean…?" reply. Blocking (some commands look
     things up online), so call it from a thread."""
@@ -1141,7 +1148,14 @@ def run(text):
     if command is None:
         return Reply(f"I don't know the command /{name}. " + did_you_mean(name))
     arguments = args.strip()
+    if command.name=='weather':
+        from app.tools.places import suggest_location
+        suggestion=suggest_location(arguments)
+        if suggestion:
+            return weather_confirmation_reply(followups.weather_confirmation(suggestion))
     reply = _as_reply(command.run(arguments))
+    if command.name=='weather' and (not arguments or reply.text.startswith(("I couldn't find a place called:",'That place name is too short'))):
+        reply.pending_lookup={'tool':'weather','query':arguments,'status':'location'}
     if command.name in search_history.TOOLS and (arguments or command.name == 'news'):
         identifier = search_history.record(command.name, arguments or 'top', reply.text)
         reply.lookup_context = followups.snapshot(command.name, arguments or 'top', reply.text)

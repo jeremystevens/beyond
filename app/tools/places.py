@@ -2,6 +2,7 @@
 
 Copied from PromptetheusBot's weather plugin (its "City, ST" handling); used by /time now and by /weather later.
 """
+import difflib
 import unicodedata
 
 import httpx
@@ -24,6 +25,43 @@ US_STATES = {
 }
 
 
+
+def normalize_location(location):
+    """Accept an omitted comma before a recognized US state; leave other place names alone."""
+    location=' '.join(location.strip().split())
+    if ',' not in location:
+        for qualifier in sorted((*US_STATES.values(),*US_STATES),key=len,reverse=True):
+            suffix=' '+qualifier
+            if location.lower().endswith(suffix.lower()) and len(location)>len(suffix):
+                return location[:-len(suffix)].strip()+', '+qualifier
+    return location
+
+
+
+def suggest_location(location):
+    """Suggest a close US state spelling; never silently replace a city or select coordinates."""
+    location=' '.join(location.strip().split())
+    if normalize_location(location)!=location or location.lower() in {s.lower() for s in US_STATES.values()}:
+        return None
+    if ',' in location:
+        city,_,suffix=location.partition(',')
+        if suffix.strip().upper() in US_STATES or suffix.strip().lower() in {s.lower() for s in US_STATES.values()}:
+            return None
+        options=[(city.strip(),suffix.strip())]
+    else:
+        words=location.split()
+        options=[(' '.join(words[:-n]),' '.join(words[-n:])) for n in (1,2,3) if len(words)>n]
+    suggestions=[]
+    for city,suffix in options:
+        if not city or len(suffix)<5:
+            continue
+        ranked=sorted(((difflib.SequenceMatcher(None,suffix.lower(),state.lower()).ratio(),state)
+                       for state in US_STATES.values()),reverse=True)
+        if ranked[0][0]>=0.80 and ranked[0][0]-ranked[1][0]>=0.10:
+            suggestions.append((ranked[0][0],city+', '+ranked[0][1]))
+    return max(suggestions)[1] if suggestions else None
+
+
 def _matches(place, qualifier):
     """True if a geocoding result matches a 'City, State/Country' qualifier."""
     qualifier = qualifier.strip().lower()
@@ -43,7 +81,7 @@ def plain(text):
 def geocode(location):
     """The best match for 'City' or 'City, State/Country', as Open-Meteo's place dict, or None.
     Raises httpx.HTTPError when offline and ValueError for a too-short name."""
-    name, _, qualifier = location.partition(',')
+    name, _, qualifier = normalize_location(location).partition(',')
     name = name.strip()
     if len(name) < 2:
         raise ValueError('Location name is too short')

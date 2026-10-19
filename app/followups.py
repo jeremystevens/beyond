@@ -27,6 +27,44 @@ def initialize():
         db.execute("""CREATE TABLE IF NOT EXISTS lookup_answer_context (
             message_id INTEGER PRIMARY KEY REFERENCES messages(id) ON DELETE CASCADE,
             payload TEXT NOT NULL)""")
+        db.execute("""CREATE TABLE IF NOT EXISTS lookup_pending (
+            chat_id INTEGER PRIMARY KEY REFERENCES chats(id) ON DELETE CASCADE,
+            anchor_id INTEGER NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+            payload TEXT NOT NULL)""")
+
+
+def save_pending(chat_id, message_id, state):
+    with closing(chats.connect()) as db, db:
+        db.execute('DELETE FROM lookup_pending WHERE chat_id=?',(chat_id,))
+        if state and db.execute('SELECT 1 FROM messages WHERE id=? AND chat_id=?',(message_id,chat_id)).fetchone():
+            db.execute('INSERT INTO lookup_pending(chat_id,anchor_id,payload) VALUES (?,?,?)',
+                       (chat_id,message_id,json.dumps(state,ensure_ascii=False)))
+
+
+def pending(chat_id):
+    if chat_id is None:
+        return None
+    with closing(chats.connect()) as db:
+        row=db.execute('SELECT payload FROM lookup_pending WHERE chat_id=? AND anchor_id='
+                       '(SELECT MAX(id) FROM messages WHERE chat_id=?)',(chat_id,chat_id)).fetchone()
+    return json.loads(row['payload']) if row else None
+
+
+def weather_confirmation(location):
+    return {'kind':'weather_confirm','command':'/weather '+location,
+            'text':f'Did you mean {location}? Confirm below or reply yes to check the weather.',
+            'pending':{'tool':'weather','query':location,'status':'confirm'}}
+
+
+def is_confirmation(message):
+    text=message.lower().replace("’","'").strip().rstrip('!?. ')
+    if _CONFIRM.fullmatch(message.strip()):
+        return True
+    words=re.findall(r"[a-z']+",text)
+    allowed={"yes","yep","yeah","sure","correct","right","please","do","go","ahead","that","that's","thats",
+             "what","i","want","wanted","meant","exactly","excatly","is","it","you","got","absolutely","really"}
+    return bool(words and len(words)<=16 and words[0] in {'yes','yep','yeah','correct','absolutely'}
+                and all(word in allowed for word in words))
 
 
 def snapshot(tool, query, raw, fetched_at=None):
@@ -97,6 +135,99 @@ def context_notes(state, question):
             "The user's follow-up refers to this subject. Use the result for supported facts and name its source. "
             "Do not invent missing details or say you searched again. Weather/news here may be stale; ask for a "
             "fresh lookup if current conditions are needed.")
+
+
+
+# Only user turns establish an unfinished request. An AI promise is never a tool call.
+_CONFIRM = re.compile(r"(?:yes(?: please)?|please do|go ahead|sure|that would be (?:great|good|nice)|sounds good|ok(?:ay)?|great)[!., ]*",re.I)
+_LOCATION = re.compile(r"[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ.' -]{1,39}(?:,\s*[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ.' -]{1,39})?",re.I)
+
+
+def weather_request(chat_id, message):
+    """A location or confirmation can complete a recent user weather request."""
+    from app import lookups
+    def intent(text):
+        return bool(lookups._STRONG_WEATHER.search(text) and
+                    not lookups._PC_WORDS.search(text) and not lookups._CLIMATE.search(text))
+    def place(text):
+        if re.search(r'\b(?:write|make|create|fix|explain|recipe|code|movie|help|joke|forget|cancel|stop)\b',text,re.I):
+            return ''
+        text=text.strip().rstrip('?!.,')
+        # Extract a location from a short answer, never arbitrary prose or a new task.
+        match=re.search(r"\b(?:in|for|at|near)\s+(.+)$",text,re.I)
+        candidate=match[1] if match else re.sub(r'^(?:what about|how about|and)\s+','',text,flags=re.I)
+        if len(candidate.split())>6 or re.search(r"\b(?:write|make|create|fix|movie|film|news|code|recipe|thanks|thank|not|don't|yes|great|good|nice|hello|hi|forget|never|mind|instead|help|no|nah|tell|explain|joke|who|why|how|what|can|could|would|should|want|please|talk|about|i|we|my|you|your|like|love|think|have|am|are|was|were|need)\b",candidate,re.I):
+            return ''
+        if not _LOCATION.fullmatch(candidate):
+            return ''
+        return lookups._clean_place(candidate)
+    def action(location):
+        from app.tools.places import normalize_location, suggest_location
+        suggestion=suggest_location(location)
+        if suggestion:
+            return weather_confirmation(suggestion)
+        return {'kind':'command','command':'/weather '+normalize_location(location)}
+    waiting=pending(chat_id)
+    confirm=is_confirmation(message)
+    if waiting and confirm:
+        return action(waiting['query']) if waiting.get('query') else {
+            'kind':'weather_place','text':'Which city or town should I check? Include the state or country.',
+            'pending':{'tool':'weather','query':'','status':'location'}}
+    direct=lookups.weather_place(message)
+    if direct:
+        return action(direct)
+    active=intent(message)
+    clarification={'kind':'weather_place','text':'Which city or town should I check? Include the state or country, for example Franklin, Tennessee.',
+                   'pending':{'tool':'weather','query':'','status':'location'}}
+    if active:
+        current=get(chat_id)
+        if current and current['tool']=='weather' and REFERENCE.search(message):
+            return None  # Existing weather follow-ups already handle there/it and forecast days.
+        return clarification
+    if not active and (not chat_id or message.strip().startswith('/')):
+        return None
+    with closing(chats.connect()) as db:
+        rows=db.execute("SELECT role,content,kind,lookup FROM messages WHERE chat_id=? ORDER BY id DESC LIMIT 10",
+                        (chat_id,)).fetchall() if chat_id else []
+    candidate=place(message) if not active and not confirm else ''
+    if waiting and candidate:
+        return action(candidate)
+    if not confirm and not candidate:
+        return None
+    # A successful answer already fulfilled the request: thanks must not refresh it.
+    if rows and rows[0]['role']=='assistant' and (rows[0]['lookup'] or
+            rows[0]['kind']=='command' and rows[0]['content'].startswith('Weather for ')):
+        return None
+    for row in rows:
+        if row['role']!='user':
+            if row['kind']=='command' and (row['content'].startswith('Which city or town should I check?')
+                    or row['content'].startswith("I couldn't find a place called:")
+                    or row['content'].startswith('Tell me where, for example: /weather')):
+                active=True
+                break
+            continue
+        text=row['content'].strip()
+        if text.startswith('/'):
+            if text.split()[0].lower()=='/weather' and len(text.split())==1:
+                active=True
+                break
+            break
+        if intent(text):
+            active=True
+            candidate=candidate or lookups.weather_place(text)
+            break
+        if not confirm or (not candidate and not is_confirmation(text)):
+            candidate=candidate or place(text)
+            if not candidate:
+                break
+        # Walk through a short confirmation and its location, not unrelated subjects.
+        if not confirm:
+            break
+    if not active:
+        return None
+    if candidate:
+        return action(candidate)
+    return clarification
 
 
 def resolve(chat_id, message):

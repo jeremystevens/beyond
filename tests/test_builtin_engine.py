@@ -138,6 +138,30 @@ class ThinkingTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(one_off['max_tokens'], 120)
 
 
+class PromptWarmupTests(unittest.IsolatedAsyncioTestCase):
+    async def test_warmup_caches_only_the_stable_chat_prefix(self):
+        sent = []
+
+        def reply(request):
+            sent.append(json.loads(request.content))
+            return httpx.Response(200, json={'choices': [{'message': {'content': 'x'}}]})
+
+        client = httpx.AsyncClient(transport=httpx.MockTransport(reply))
+        try:
+            with patch.object(engine, 'system_prompt', return_value='stable prompt'):
+                await builtin_engine._warm_chat_prompt(client, 50123)
+        finally:
+            await client.aclose()
+
+        self.assertEqual(len(sent), 1)
+        payload = sent[0]
+        self.assertEqual(payload['messages'][0], {'role': 'system', 'content': 'stable prompt'})
+        self.assertEqual(payload['messages'][1], {'role': 'user', 'content': ' '})
+        self.assertEqual((payload['max_tokens'], payload['cache_prompt']), (1, True))
+        self.assertEqual(payload['chat_template_kwargs'], {'enable_thinking': False})
+        self.assertFalse(builtin_engine.busy())
+
+
 class LifecycleTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.temp = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)   # Windows may hold engine.log a moment longer

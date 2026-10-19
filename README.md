@@ -20,7 +20,7 @@ things up, keeps you organised, reads photos, listens, talks back and plays game
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.143-d96326?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=0d1117)
 ![License](https://img.shields.io/badge/License-MIT-d96326?style=for-the-badge&labelColor=0d1117)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-d96326?style=for-the-badge&logo=windows&logoColor=white&labelColor=0d1117)
-![Version](https://img.shields.io/badge/Version-0.34.3-d96326?style=for-the-badge&labelColor=0d1117)
+![Version](https://img.shields.io/badge/Version-0.34.7-d96326?style=for-the-badge&labelColor=0d1117)
 
 ![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local-d96326?style=for-the-badge&logo=shield&logoColor=white&labelColor=0d1117)
 ![AI](https://img.shields.io/badge/AI-OpenAI--compatible%20%C2%B7%20llama.cpp-d96326?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117)
@@ -102,6 +102,7 @@ still arrive), and lets your other devices use it over a **secure address on you
 ◆  A phone-friendly Models page: sizes, load/unload/switch and settings saved for each model
 ◆  Answers stream in as they're written, with Stop, Try again and 👍 👎 ratings
 ◆  A stats line under each answer: model, tokens, time and speed (t/s)
+◆  A short CPU-friendly system prompt, or write and AI-optimize your own in Settings
 ◆  Choose Normal, Professional, Sarcastic, Evil or Funny in Settings, alongside your house rules
 ◆  Saved, searchable conversations in a side panel; rename, delete, pick up later
 ◆  Looks up the weather, news and the web by itself, and shows you exactly what it found
@@ -317,8 +318,9 @@ With **Settings → AI engine → BEYOND's built-in engine**, BEYOND runs llama.
 a **CPU build** of `llama-server.exe` and a **`.gguf` model** (for example Qwen3-4B Q4_K_M), press **Save**, and
 BEYOND:
 
-- starts the engine on a **free port only this PC can reach**, waits until the model is loaded, and shows
-  "AI engine starting…" on the chat page until then (loading can take a few minutes from a hard disk);
+- starts the engine on a **free port only this PC can reach**, waits until the model is loaded, then pre-reads the
+  stable chat prompt before showing Ready. This moves most of the cold first-reply prompt cost into startup
+  (loading and preparation can take a few minutes from a hard disk);
 - runs it **on the processor only**, tuned for that: 12 threads, an 8192-token context, an f16 cache and one
   conversation slot, so the start of the prompt stays cached and follow-up answers begin faster;
 - answers straight away with **thinking models** such as Qwen3: their thinking is switched off unless you turn on
@@ -348,12 +350,16 @@ first: click one to open it, **✎** to rename it, **🗑** to delete it, **＋ 
 named after its first message. Refreshing the page or restarting BEYOND keeps your chats, and the page reopens the chat
 you were in. If you press Stop, what the AI wrote so far is saved and marked "Stopped".
 
-**Personality.** BEYOND's personality lives in `app/personality.md`: witty, curious, honest and plain-spoken, with
-short answers unless you ask for more. Its "What You Can Do Right Now" section tells the AI exactly which features
-exist, so it says "I can't do that yet" instead of pretending. Edits apply from the next message.
+**Personality.** BEYOND's optimized default lives in `app/personality.md`. It is 257 words, with a 59-word app
+contract added by Python for tool honesty and safety. Detailed tool notes are attached only when the current question
+needs them instead of being repeated in every chat. You can use the default, write your own prompt, or ask the loaded
+AI to improve a draft in Settings. Changes apply from the next reply.
 
-**Fast replies.** Each question is sent with up to the last 12 messages. The personality always comes first and the
-history grows from 6 to 12 messages before it's cut back in one step, so the AI server can reuse what it already read.
+**Fast replies.** Each question is sent with up to the last 12 messages. The stable prompt always comes first and the
+history grows from 6 to 12 messages before it is cut back in one step, so the AI server can reuse what it already read.
+The new 316-word default and app contract are about 85% shorter than the previous base prompt before memories and house
+rules. The built-in engine now pre-reads that stable prompt once after loading, before it reports Ready. A changed
+prompt, memories or house rules can still require new processing, and no fixed response time is promised.
 
 **House rules** are instructions BEYOND follows in every chat, such as "Always answer in under 3 sentences" or
 "Always answer in French" (up to 25). Use **/rule**, **/rules**, **/rule delete &lt;number&gt;**, or the House rules
@@ -384,6 +390,20 @@ chat**, works on phones and computers, and stays saved across a page refresh or 
 | `/define elated` | “What about jubilant?” | Looks up the new word. |
 | `/news tech` | “What about science?” | Fetches the new news topic. |
 | A web or Stack Overflow search | “Search again” | Repeats the original lookup with fresh results. |
+
+With automatic lookups enabled, you can also ask for weather in ordinary conversation. If you say “I meant
+the weather”, BEYOND asks for the city; “Franklin, Tennessee” in your next message runs the lookup. A short
+confirmation can finish an unresolved weather request using the location you just supplied. This uses recent
+user messages in the same chat, never an AI promise or another chat. A missing comma before a US state is
+handled by the shared place finder too: “Denver Colorado” or “Denver CO” works in chat, `/weather` and `/time`. A completed lookup is not repeated just
+because you say thanks or agree. Turn automatic lookups off in Settings to keep using explicit commands.
+
+An unfinished weather request stays saved in this chat while BEYOND waits for a location or confirmation.
+A close US state typo such as “how about franklin tennese” offers **Did you mean franklin, Tennessee?** with a
+**Yes, check this location** button. With automatic lookups on, replying “yes thats what i want!!” also runs
+that weather lookup. The geocoder validates the confirmed place and supplies its coordinates; the spelling
+suggestion itself is not a search and does not enter search history. Other city spelling errors may still
+need clarification. Pending requests survive restarts, stay within their chat, and end after a new topic.
 
 Clear “What about…”, “How about…” and “And…” comparisons reuse weather, news, Wikipedia, dictionary, movie or TV
 tools. A web/Stack Overflow comparison offers a choice: search the new topic alone, or include the previous
@@ -627,13 +647,14 @@ your user's startup programs.
 ## `▸ SETTINGS`
 
 Click **Settings** at the top of the chat page (or open `http://127.0.0.1:7770/settings`). Engine paths, network and
-other general settings can only be changed on the PC BEYOND runs on. **Persona** and **House rules** can also be
-changed from your phone or another home-network device. The Models page lets those devices select and tune
-models already added on the PC.
+other general settings can only be changed on the PC BEYOND runs on. **Chat prompt**, **Persona** and
+**House rules** can also be changed from your phone or another home-network device. The Models page lets those
+devices select and tune models already added on the PC.
 
 | Setting | What it does |
 |---|---|
-| **Persona** | [Normal, Professional, Sarcastic, Evil or Funny](#persona); applies to the next chat reply without restarting. |
+| **Chat prompt** | [Use the optimized default or write and AI-improve your own](#chat-prompt). |
+| **Persona** | [Optional speaking styles](#persona), off by default. Enable Use a persona to apply one. |
 | **AI engine** | BEYOND's built-in engine (`llama-server.exe` + a `.gguf` model, threads, context, cache, thinking) or an AI server you already run. |
 | **Models** | [Load, unload or switch models](#models), with CPU threads, context, cache and thinking saved per model. |
 | **AI server** | The address of your OpenAI-compatible AI server, with **Test connection**. Takes effect at once. |
@@ -646,6 +667,36 @@ models already added on the PC.
 | **Port** | 7770 by default; ports other AI apps rely on, and ports already in use, are refused. |
 | **Allow other devices** | Off by default. When on, BEYOND lists its addresses and offers its certificate. |
 
+<a id="chat-prompt"></a>
+### Chat prompt
+
+<details>
+<summary><b>Use the optimized default or write your own system prompt</b></summary>
+
+<br>
+
+The optimized default is active on a fresh install. Its 257-word personality plus the 59-word app contract gives the
+model its role, answer style, tool boundaries and honesty rules without making a CPU model reread a feature manual.
+Relevant tool details are added only to turns that need them. Saved memories and house rules are still included.
+
+The editor shows the optimized default on a fresh install, so it also serves as a starting example. To use your own
+instructions, open **Settings → Chat prompt**, enable **Use my own prompt**, edit the text and press **Save prompt**.
+The main Settings **Save** button includes it too. The word and character counter helps keep it short;
+prompts can be up to 16,000 characters, but a longer prompt takes the model longer to read. Changes apply to the next
+reply without restarting BEYOND or reloading the model.
+
+**Improve & optimize** sends the editor text to the currently loaded chat model with a one-off request to preserve the
+role, tone, language and important constraints while removing repetition and aiming for 250 words or fewer. It shows
+elapsed progress and refuses to queue while the AI is busy. The result is an **unsaved draft**: review it, edit it, use
+**Undo AI changes** if needed, then press **Save prompt**. If the editor is empty, the optimized default is used as the
+draft. The helper does not change chats, memories, house rules or saved settings by itself.
+
+**Use optimized default** turns the custom prompt off but keeps its text for later. **Reset to defaults** turns it off
+and clears the saved custom text. Python always adds the short app contract, so a custom prompt cannot grant tools or
+actions BEYOND does not have. The responsive editor and its narrow save endpoint work from phones and computers.
+
+</details>
+
 <a id="persona"></a>
 ### Persona
 
@@ -654,7 +705,11 @@ models already added on the PC.
 
 <br>
 
-Open **Settings → Persona**, choose a style and press **Save persona**. That button saves just the persona,
+**Personas are off by default.** Leave **Settings → Persona → Use a persona** unchecked and press
+**Save persona** to disable optional role instructions. The selected preset stays saved for later, but does
+not enter chat prompts while the switch is off. BEYOND's standard personality, house rules and memories remain.
+
+To opt in, enable **Use a persona**, choose a style and press **Save persona**. That button saves just this choice,
 so it does not apply unfinished edits elsewhere on the page. The main **Save** button also includes it when
 saving all settings from the host PC.
 
@@ -666,15 +721,20 @@ saving all settings from the host PC.
 | **Evil** | Fictional supervillain flair: dramatic, mischievous and playfully ominous. |
 | **Funny** | More jokes, amusing comparisons and lighthearted observations. |
 
-The choice adds a short role instruction to the chat system prompt. House rules, saved memories, factual
+When enabled, the choice adds a short role instruction to the chat system prompt. House rules, saved memories, factual
 accuracy and BEYOND's actual capabilities still apply. Normal uses the existing personality without an extra
 role block. The selected persona applies to the **next AI reply** in existing and new chats, across devices.
 An answer already being written keeps its current instructions.
 
 The choice is saved locally in `data/settings.json` and survives app restarts. Switching persona does not restart
 BEYOND, reload the model or rewrite old answers. One-off jobs such as memory extraction, the study quiz and
-picture-prompt improvement keep their own task instructions. **Reset to defaults** returns the persona to Normal.
+picture-prompt improvement keep their own task instructions. **Reset to defaults** turns personas off and returns the preset to Normal.
 Persona changes are available on phones as well as on the PC running BEYOND.
+
+Turning personas off does not remove the base system prompt. Normal already adds no extra role block.
+A slow first answer followed by faster replies can come from processing a fresh prompt and reusing it on later
+turns; disabling an already-empty Normal role block does not establish a speed improvement. Check engine logs
+and compare first replies separately from later replies. No automated AI benchmark was run for this change.
 
 </details>
 
@@ -753,7 +813,9 @@ BEYOND's page talks to a small JSON API, which you can use from scripts too.
 | `POST` | `/api/settings/test` · `/api/settings/reset` | Test an AI server address · reset to defaults |
 | `POST` | `/api/restart` | Restart BEYOND after a port or network change |
 | `POST` | `/api/engine/restart` | Restart the built-in AI engine |
-| `POST` | `/api/persona` | Save a persona preset (`{"persona":"sarcastic"}`); available to home-network devices |
+| `POST` | `/api/persona` | Save persona and on/off state (`{"persona":"sarcastic","persona_enabled":true}`); available to home-network devices |
+| `POST` | `/api/prompt` | Save the custom prompt and on/off state; available to home-network devices |
+| `POST` | `/api/prompt/improve` | Return an AI-optimized draft without saving it; refuses while the model is busy |
 | `GET` | `/api/models` | Model list, file sizes, saved settings and live engine state |
 | `POST` | `/api/models/load` · `/api/models/unload` | Load a listed model by ID · unload it |
 | `POST` | `/api/models/profile` | Save settings for a listed model by ID |
@@ -820,7 +882,8 @@ beyond/
 │   ├── engine.py            ← The only place BEYOND talks to the AI
 │   ├── builtin_engine.py    ← Starts, watches and stops the built-in llama.cpp engine
 │   ├── models.py            ← Local model list, file sizes, switching and per-model profiles
-│   ├── personality.md       ← BEYOND's base personality (the system prompt)
+│   ├── personality.md       ← BEYOND's short optimized default personality
+│   ├── prompts.py           ← Custom prompts, app contract, tool notes and AI improvement
 │   ├── personas.py          ← Normal, Professional, Sarcastic, Evil and Funny chat styles
 │   ├── commands.py          ← Every slash command, its help and its buttons
 │   ├── chats.py             ← Saved conversations (SQLite)
@@ -875,8 +938,9 @@ beyond/
    other devices reach the AI only through BEYOND's own page.
 
 ⛨  Other devices are off by default. When you allow them, they can chat but can't
-   change general settings or add file paths. They can choose a persona, edit house rules,
-   load or tune models already listed on the Models page, and browse/delete lookup history.
+   change general settings or add file paths. They can edit the chat prompt, choose a persona,
+   edit house rules, load or tune models already listed on the Models page, and browse/delete
+   lookup history.
    There's no login yet (Phase 38), so keep it off on shared networks.
 
 ⛨  The secure address (https://…:7771) uses BEYOND's own certificate authority. It's
@@ -936,9 +1000,10 @@ BEYOND is being built in **43 small phases**, each one tested before the next. T
 | ✅ 11 · Automatic memory | ✅ 21 · Photos and `/scan` | ✅ 32 · Hangman |
 | | | ✅ 33 · Built-in engine |
 | | | 34 · Models page (tested; mobile navigation revised) |
-| | | 34a · Persona selector |
+| | | 34a · Persona selector (optional; off by default) |
 | | | 34b · Search history |
 | | | ✅ 34c · Natural lookup follow-ups |
+| | | 34d · Optimized and custom chat prompts (ready to try) |
 
 </details>
 

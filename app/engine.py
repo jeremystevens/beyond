@@ -10,7 +10,7 @@ from pathlib import PureWindowsPath
 
 import httpx
 
-from app import builtin_engine, config, memory, personas, rules, settings
+from app import builtin_engine, config, memory, personas, prompts, rules, settings
 
 FALLBACK_PROMPT = ("You are BEYOND, a friendly and helpful assistant that runs entirely on the user's own computer. "
                    "Answer clearly and get to the point.")
@@ -56,13 +56,12 @@ def _one_off(payload):
 
 
 def system_prompt():
-    """Base personality, selected persona, house rules and saved facts. Read for every chat reply so changing
-    persona takes effect without restarting. One-off jobs keep their own task-specific instructions."""
-    try:
-        personality = config.PERSONALITY_FILE.read_text(encoding='utf-8').strip() or FALLBACK_PROMPT
-    except OSError:
-        personality = FALLBACK_PROMPT
-    return personality + personas.prompt_block(settings.load()['persona']) + rules.prompt_block() + memory.prompt_block()
+    """Optimized default or custom prompt, app context, optional persona, house rules and saved facts.
+    Read per chat reply; one-off jobs retain their task-specific instructions."""
+    values = settings.load()
+    personality = prompts.base_prompt(values) + prompts.APP_CONTRACT
+    role = personas.prompt_block(values['persona']) if values.get('persona_enabled', False) else ''
+    return personality + role + rules.prompt_block() + memory.prompt_block()
 
 
 def history_window(total):
@@ -94,7 +93,7 @@ def with_reply_notes(messages, background=''):
     Same approach as PromptetheusBot's notes block."""
     if not messages or messages[-1]['role'] != 'user':
         return messages
-    parts = [background.strip()] if background.strip() else []
+    parts = [part for part in (prompts.tool_notes(messages[-1]['content']), background.strip()) if part]
     current = rules.all_rules()
     if current:
         parts.append('Follow the house rules: ' + ' '.join(rule['text'].rstrip('.') + '.' for rule in current))

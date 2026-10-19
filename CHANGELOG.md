@@ -5,7 +5,67 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- **Faster cold first reply** (version 0.34.7). After a built-in model loads, BEYOND now pre-reads the stable
+  system prompt with a one-token hidden request before reporting the engine Ready. This moves the cold prompt cost
+  into startup instead of beginning it after the person presses Send. The warm-up is local, is never saved as a
+  message, uses no user question, disables thinking, and does not run for external AI servers. If it fails, the
+  healthy model remains available and the first chat processes the prompt normally. Owner verification reused
+  the 740-token pre-read prefix, processed only 99 new prompt tokens in 3.7 seconds, generated 41 tokens in 5.1
+  seconds, and completed the greeting in 8.78 seconds (shown as 9s).
+- **Shorter chat prompt** (version 0.34.6). The default personality is now 257 words plus a 59-word app contract,
+  about 85% shorter than the previous base prompt before memories and house rules. Broad tool instructions are
+  attached only to relevant user turns. Saved memories, house rules, optional personas and the rule that replies
+  cannot claim unfinished tool work still apply. This reduces prompt work on CPU models without promising a fixed
+  response time; no automated AI timing benchmark or live chat playthrough was run.
+- **Personas are optional and off by default** (0.34.5). Settings → Persona has a Use a persona switch,
+  also saved by Save persona and the main Settings Save. Off omits every optional role block even if a
+  non-Normal preset is saved. The saved preset remains available for later, and Reset to defaults turns it off.
+- The narrow persona API accepts persona_enabled; phones can change the switch without general settings access.
+  Existing settings without this field use off. The base personality, house rules and memories remain active.
+- Investigated the reported first-answer delay through existing logs: the first request processed thousands of
+  uncached prompt tokens, while later requests reused the prompt. Normal was selected and added zero role
+  characters, so this does not demonstrate a persona-caused slowdown or a measured speedup from disabling it.
+- README, personality and phase notes updated. A focused prompt check verified off for all five presets,
+  explicit opt-in, saved preference persistence and retained rules/memories. Python/browser syntax, HTML IDs
+  and whitespace checked. No automated AI timing benchmark or chat playthrough was run; owner comparison pending.
+
+
+### Fixed
+- **Conversational weather requests** (version 0.34.4): keep a recent user weather request active while asking
+  for the place, then run the real lookup when the user names it or confirms an unresolved request. Corrects
+  the Franklin, Tennessee exchange where the AI repeatedly promised a search without running one.
+- Explicit weather requests take priority over an old movie subject. Short confirmations use only recent user
+  turns in that chat; unrelated topics and completed lookups do not trigger another search. Respects the
+  automatic-lookups setting. Tightened the AI instructions against promising work after its reply ends.
+- Recognize US state names/abbreviations without a comma, so “Franklin Tennessee” reaches the place finder as
+  “Franklin, Tennessee”. README, personality and phase notes updated; owner recheck pending.
+- Missing-comma handling now lives in the shared place finder, covering “Denver Colorado” and “Denver CO”
+  across chat, /weather and /time. A failed weather location lookup accepts a corrected place in the next turn.
+- Save pending weather requests per chat and message. Close US state typos offer a correction and confirmation
+  button. Natural replies such as “yes thats what i want!!” run the actual lookup. Suggestions do not count as
+  searches or silently change coordinates. Pending requests survive restarts and end after a new topic.
+  Updated weather /help and per-answer instructions against promising future tool work; owner recheck pending.
+- Seven focused checks passed with temporary databases and stand-in results, including the exact misspelled
+  Franklin request followed by “yes thats what i want!!” calling the weather tool with no chat-model invocation.
+  Pending-state persistence, chat isolation, new-topic boundaries and shared Denver geocoding are covered, along with
+  state filtering, omitted commas, corrected locations, the exact reported
+  exchange and the chat stream calling the weather tool, showing progress, saving context and recording one
+  search without invoking the model. The live geocoder also resolved the suggested Franklin to Tennessee,
+  United States. Python/browser syntax and whitespace checked.
+
+
 ### Added
+- **Custom chat prompts and AI optimization** (version 0.34.6). Settings → Chat prompt can use the optimized default
+  or a user-written system prompt up to 16,000 characters, with a live word/character count, a prompt-only Save,
+  default restoration and responsive phone/desktop controls. The optimized default is shown in the editor on a
+  fresh install as a visible example. The custom prompt can be changed from home-network
+  devices like persona and house rules; Reset to defaults clears it.
+- **Improve & optimize** asks the loaded chat model to compress the editor text while preserving its intent. It shows
+  elapsed progress, refuses while the model is busy, and returns an unsaved draft for review with Undo AI changes.
+  It never changes saved settings until Save prompt is pressed and cannot add capabilities through the retained app
+  contract. Four focused stand-in checks passed for persistence/default restoration, prompt limits, relevant tool
+  notes, draft-only improvement, busy and failure paths. Python/browser syntax, HTML IDs and whitespace checked.
 - **Natural lookup follow-ups** (version 0.34.3), added before Phase 35.
   - Successful manual and automatic lookups retain bounded source data and the subject in the current chat.
     “What about Paris?” after /weather London runs a new Paris forecast. Today/tomorrow questions refresh the

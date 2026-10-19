@@ -14,7 +14,7 @@ from functools import wraps
 from pathlib import Path
 from urllib.parse import urlparse
 
-from app import config, personas
+from app import config, personas, prompts
 
 FILE = config.DATA_DIR / 'settings.json'
 PROFILE_KEYS = ('engine_threads', 'engine_context', 'engine_cache', 'engine_thinking')
@@ -66,6 +66,10 @@ def validate(changes):
         if key == 'persona':
             if not isinstance(value, str) or value not in personas.PERSONAS:
                 raise SettingsError('Choose Normal, Professional, Sarcastic, Evil or Funny.')
+        elif key == 'custom_prompt':
+            if not isinstance(value,str) or len(value)>prompts.MAX_CUSTOM_CHARS:
+                raise SettingsError(f'The custom prompt must be text under {prompts.MAX_CUSTOM_CHARS:,} characters.')
+            value=value.strip()
         elif key == 'ai_server_url':
             value = str(value or '').strip().rstrip('/')
             if value:
@@ -177,6 +181,8 @@ def validate(changes):
 def save(changes):
     """Apply changes and save only what differs from the defaults. Returns all the settings now in effect."""
     values = {**load(), **validate(changes)}
+    if values['custom_prompt_enabled'] and not values['custom_prompt'].strip():
+        raise SettingsError('Enter a custom prompt, or turn off Use my own prompt.')
     # Settings and the Models page share one atomic file. Editing either saves the active model's profile.
     if values['engine_model']:
         profiles = dict(values['model_profiles'])

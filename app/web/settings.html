@@ -35,6 +35,13 @@
     input[type=number] { width: 130px; }
     #persona { width: 100%; min-height: 44px; padding: 10px 12px; border-radius: 12px; font: inherit;
                font-size: 16px; color: var(--text); background: var(--bg); border: 1px solid var(--border); }
+    #custom_prompt { width:100%; box-sizing:border-box; min-height:180px; resize:vertical; padding:12px;
+      border:1px solid var(--border); border-radius:12px; font:inherit; font-size:16px; line-height:1.5;
+      color:var(--text); background:var(--bg); }
+    #defaultPrompt { white-space:pre-wrap; overflow-wrap:anywhere; max-height:320px; overflow:auto;
+      font:inherit; font-size:0.88rem; line-height:1.5; }
+    #promptLength, #promptResult { overflow-wrap:anywhere; }
+    #promptSave, #promptDefault, #promptImprove { min-height:44px; }
     #personaSave { min-height: 44px; }
     #personaResult { overflow-wrap: anywhere; }
     .small { font-size: 0.82rem; color: var(--muted); }
@@ -61,6 +68,16 @@
     .rules li span { display: inline-flex; align-items: flex-start; gap: 8px; width: 100%; justify-content: space-between; }
     .rules .remove { padding: 2px 8px; font-size: 0.8rem; flex: none; }
     [hidden] { display: none !important; }
+    .jump { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.88rem; }
+    .jump a { color: var(--accent); text-decoration: none; }
+    .jump a:hover { text-decoration: underline; }
+    h2.group { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+               margin: 14px 0 -6px; scroll-margin-top: 12px; }
+    /* Save stays in reach on this long page */
+    /* Sticky inside main's bottom padding too, so nothing shows below the bar while scrolling */
+    .actions { --pad: max(40px, env(safe-area-inset-bottom)); position: sticky; bottom: calc(-1 * var(--pad));
+               z-index: 1; padding: 12px 0 calc(12px + var(--pad)); margin-bottom: calc(-1 * var(--pad));
+               background: var(--bg); border-top: 1px solid var(--border); }
   </style>
 </head>
 <body>
@@ -72,7 +89,7 @@
     <h1>Settings</h1>
 
     <div class="banner warn" id="viewOnly" hidden>
-      You're on another device. Persona and house rules can be changed here; engine, network and other general
+      You're on another device. Persona, chat prompt and house rules can be changed here; engine, network and other general
       settings can only be changed on the PC BEYOND runs on.
     </div>
     <div class="banner warn" id="restartBanner" hidden>
@@ -81,23 +98,15 @@
     </div>
     <div class="banner" id="message" hidden></div>
 
-    <section aria-labelledby="historyHeading">
-      <h2 id="historyHeading">Search history</h2>
-      <p class="hint">Find past web, Wikipedia, weather, news and other lookups, even after their chat is deleted.
-        Filter by date, search again for fresh results, or select and delete old records.</p>
-      <a class="ghost button" href="/search-history">Open search history</a>
-    </section>
+    <nav class="jump" aria-label="Settings sections">
+      <a href="#group-engine">AI engine and models</a>
+      <a href="#group-chat">Chat and everyday use</a>
+      <a href="#group-popups">Popups and startup</a>
+      <a href="#group-media">Photos and pictures</a>
+      <a href="#group-network">Address and network</a>
+    </nav>
 
-    <section aria-labelledby="personaHeading">
-      <h2 id="personaHeading">Persona</h2>
-      <p class="hint">Choose how BEYOND speaks in chat. Your choice applies to the next AI reply, across chats and
-        devices. It stays saved without restarting the app or reloading your model.</p>
-      <label for="persona">Speaking style</label>
-      <select id="persona" aria-describedby="personaDescription" disabled><option value="normal">Normal</option></select>
-      <p class="hint" id="personaDescription" style="margin-top:10px"></p>
-      <div class="row"><button type="button" id="personaSave" disabled>Save persona</button></div>
-      <div class="result" id="personaResult" role="status" aria-live="polite"></div>
-    </section>
+    <h2 class="group" id="group-engine">AI engine and models</h2>
 
     <section>
       <h2>AI engine</h2>
@@ -158,42 +167,54 @@
       <p class="small">Only needed for servers that host several models at once, such as Ollama.</p>
     </section>
 
-    <section>
-      <h2>Photo understanding (/look)</h2>
-      <p class="hint">Runs a separate CPU vision process for each photo, usually about 1–2 minutes.
-        Chat stays available. Use Gemma 3 with its matching projector and a CPU llama-mtmd-cli.exe.
-        Your file paths stay in this PC's settings; fresh downloads have none configured.</p>
-      <label class="switch"><input type="checkbox" id="vision_enabled"><span><b>Enable photo understanding</b></span></label>
-      <label for="vision_executable">CPU vision executable (.exe)</label>
-      <input type="text" id="vision_executable" spellcheck="false" style="width:100%">
-      <label for="vision_model">Vision model (.gguf)</label>
-      <input type="text" id="vision_model" spellcheck="false" style="width:100%">
-      <label for="vision_mmproj">Matching mmproj projector (.gguf)</label>
-      <input type="text" id="vision_mmproj" spellcheck="false" style="width:100%">
-      <div class="row">
-        <label for="vision_threads">CPU threads <input type="number" id="vision_threads" min="1" max="64"></label>
-        <label for="vision_timeout">Timeout (seconds) <input type="number" id="vision_timeout" min="30" max="3600"></label>
-      </div>
-      <p class="small">Press Save. Changes apply to the next photo. Finished-photo popups use "When the AI has replied" below.</p>
+    <h2 class="group" id="group-chat">Chat and everyday use</h2>
+
+    <section aria-labelledby="personaHeading">
+      <h2 id="personaHeading">Persona</h2>
+      <p class="hint">Choose how BEYOND speaks in chat. Your choice applies to the next AI reply, across chats and
+        devices. It stays saved without restarting the app or reloading your model.</p>
+      <label class="switch"><input type="checkbox" id="persona_enabled"><span><b>Use a persona</b>
+        <span class="small">Off by default. Off sends no extra role instructions; BEYOND's standard voice still applies.</span></span></label>
+      <label for="persona">Speaking style</label>
+      <select id="persona" aria-describedby="personaDescription" disabled><option value="normal">Normal</option></select>
+      <p class="hint" id="personaDescription" style="margin-top:10px"></p>
+      <div class="row"><button type="button" id="personaSave" disabled>Save persona</button></div>
+      <div class="result" id="personaResult" role="status" aria-live="polite"></div>
     </section>
 
     <section>
-      <h2>Picture generation (/imagine)</h2>
-      <p class="hint">DreamShaper runs locally in a separate CPU process. Choose Quick (~1–2 minutes),
-        Good (~3–5 minutes), or Best (~9–12 minutes) in chat. Times vary; chat stays available.
-        Use sd-cli.exe from the CPU folder, not a GPU build. The optional Improve prompt button uses your
-        existing chat AI; common image defects are avoided automatically.</p>
-      <label class="switch"><input type="checkbox" id="image_enabled"><span><b>Enable picture generation</b></span></label>
-      <label for="image_executable">CPU picture executable (.exe)</label>
-      <input type="text" id="image_executable" spellcheck="false" style="width:100%">
-      <label for="image_model">DreamShaper model (.safetensors)</label>
-      <input type="text" id="image_model" spellcheck="false" style="width:100%">
+      <h2>House rules</h2>
+      <p class="hint">Instructions BEYOND follows in every chat, for example "Always answer in under 3 sentences" or
+        "Use metric units". You can also type <b>/rule &lt;text&gt;</b> and <b>/rules</b> in a chat. They're saved straight
+        away (no need to press Save).</p>
+      <ol class="rules" id="rules"></ol>
       <div class="row">
-        <label for="image_threads">CPU threads <input type="number" id="image_threads" min="1" max="64"></label>
-        <label for="image_timeout">Timeout (seconds) <input type="number" id="image_timeout" min="60" max="3600"></label>
+        <input type="text" id="newRule" maxlength="300" placeholder="Add a rule…" aria-label="New house rule">
+        <button type="button" class="ghost" id="addRule">Add</button>
       </div>
-      <p class="small">Press Save. Changes apply to the next picture. Finished-picture popups use
-        "When the AI has replied" and include a preview where Windows supports it.</p>
+      <div class="result" id="ruleResult"></div>
+    </section>
+
+    <section aria-labelledby="promptHeading">
+      <h2 id="promptHeading">Chat prompt</h2>
+      <p class="hint">The optimized default keeps BEYOND's instructions short for faster first replies.
+        You can use your own instructions instead. House rules, memories and honest tool use still apply.</p>
+      <label class="switch"><input type="checkbox" id="custom_prompt_enabled"><span><b>Use my own prompt</b>
+        <span class="small">Off uses the optimized default. Changes apply to the next AI reply.</span></span></label>
+      <label for="custom_prompt">Your prompt</label>
+      <textarea id="custom_prompt" rows="8" maxlength="16000" aria-describedby="promptLength"
+        placeholder="The optimized default appears here as an example."></textarea>
+      <p class="hint" id="promptLength" aria-live="polite"></p>
+      <div class="row">
+        <button type="button" id="promptSave" disabled>Save prompt</button>
+        <button type="button" id="promptDefault" class="ghost" disabled>Use optimized default</button>
+        <button type="button" id="promptImprove" class="ghost" disabled>Improve &amp; optimize</button>
+        <button type="button" id="promptUndo" class="ghost" hidden>Undo AI changes</button>
+      </div>
+      <p class="hint" style="margin-top:10px">Improve &amp; optimize uses your loaded AI to edit the text above,
+        or the optimized default when the editor is empty. Review the draft, then Save prompt to apply it.</p>
+      <div class="result" id="promptResult" role="status" aria-live="polite"></div>
+      <details><summary>View optimized default</summary><pre id="defaultPrompt"></pre></details>
     </section>
 
     <section>
@@ -222,19 +243,6 @@
       </div>
       <p class="small">Press Save. Settings affect newly generated audio; saved clips keep their original voice.
         Long answers read their first 1800 characters. Explicit /speak text is limited to 1800 characters.</p>
-    </section>
-
-    <section>
-      <h2>House rules</h2>
-      <p class="hint">Instructions BEYOND follows in every chat, for example "Always answer in under 3 sentences" or
-        "Use metric units". You can also type <b>/rule &lt;text&gt;</b> and <b>/rules</b> in a chat. They're saved straight
-        away (no need to press Save).</p>
-      <ol class="rules" id="rules"></ol>
-      <div class="row">
-        <input type="text" id="newRule" maxlength="300" placeholder="Add a rule…" aria-label="New house rule">
-        <button type="button" class="ghost" id="addRule">Add</button>
-      </div>
-      <div class="result" id="ruleResult"></div>
     </section>
 
     <section>
@@ -269,6 +277,15 @@
       </label>
     </section>
 
+    <section aria-labelledby="historyHeading">
+      <h2 id="historyHeading">Search history</h2>
+      <p class="hint">Find past web, Wikipedia, weather, news and other lookups, even after their chat is deleted.
+        Filter by date, search again for fresh results, or select and delete old records.</p>
+      <a class="ghost button" href="/search-history">Open search history</a>
+    </section>
+
+    <h2 class="group" id="group-popups">Popups and startup</h2>
+
     <section>
       <h2>Popups and the tray</h2>
       <p class="hint">BEYOND lives in the Windows tray (the icon by the clock: Open BEYOND, Pause popups, Quit) and keeps
@@ -302,6 +319,48 @@
       </div>
     </section>
 
+    <h2 class="group" id="group-media">Photos and pictures</h2>
+
+    <section>
+      <h2>Photo understanding (/look)</h2>
+      <p class="hint">Runs a separate CPU vision process for each photo, usually about 1–2 minutes.
+        Chat stays available. Use Gemma 3 with its matching projector and a CPU llama-mtmd-cli.exe.
+        Your file paths stay in this PC's settings; fresh downloads have none configured.</p>
+      <label class="switch"><input type="checkbox" id="vision_enabled"><span><b>Enable photo understanding</b></span></label>
+      <label for="vision_executable">CPU vision executable (.exe)</label>
+      <input type="text" id="vision_executable" spellcheck="false" style="width:100%">
+      <label for="vision_model">Vision model (.gguf)</label>
+      <input type="text" id="vision_model" spellcheck="false" style="width:100%">
+      <label for="vision_mmproj">Matching mmproj projector (.gguf)</label>
+      <input type="text" id="vision_mmproj" spellcheck="false" style="width:100%">
+      <div class="row">
+        <label for="vision_threads">CPU threads <input type="number" id="vision_threads" min="1" max="64"></label>
+        <label for="vision_timeout">Timeout (seconds) <input type="number" id="vision_timeout" min="30" max="3600"></label>
+      </div>
+      <p class="small">Press Save. Changes apply to the next photo. Finished-photo popups use "When the AI has replied" under Popups and startup.</p>
+    </section>
+
+    <section>
+      <h2>Picture generation (/imagine)</h2>
+      <p class="hint">DreamShaper runs locally in a separate CPU process. Choose Quick (~1–2 minutes),
+        Good (~3–5 minutes), or Best (~9–12 minutes) in chat. Times vary; chat stays available.
+        Use sd-cli.exe from the CPU folder, not a GPU build. The optional Improve prompt button uses your
+        existing chat AI; common image defects are avoided automatically.</p>
+      <label class="switch"><input type="checkbox" id="image_enabled"><span><b>Enable picture generation</b></span></label>
+      <label for="image_executable">CPU picture executable (.exe)</label>
+      <input type="text" id="image_executable" spellcheck="false" style="width:100%">
+      <label for="image_model">DreamShaper model (.safetensors)</label>
+      <input type="text" id="image_model" spellcheck="false" style="width:100%">
+      <div class="row">
+        <label for="image_threads">CPU threads <input type="number" id="image_threads" min="1" max="64"></label>
+        <label for="image_timeout">Timeout (seconds) <input type="number" id="image_timeout" min="60" max="3600"></label>
+      </div>
+      <p class="small">Press Save. Changes apply to the next picture. Finished-picture popups use
+        "When the AI has replied" and include a preview where Windows supports it.</p>
+    </section>
+
+    <h2 class="group" id="group-network">Address and network</h2>
+
     <section>
       <h2>BEYOND's address</h2>
       <label for="web_port">Port <span class="small" id="portDefault"></span></label>
@@ -326,15 +385,18 @@
 
   <script>
     const $ = id => document.getElementById(id);
-    const checkboxes = ['engine_enabled', 'engine_thinking', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
+    const checkboxes = ['custom_prompt_enabled', 'persona_enabled', 'engine_enabled', 'engine_thinking', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
                         'popup_errors', 'start_with_windows', 'vision_enabled', 'image_enabled', 'speech_enabled', 'speech_auto'];
-    const fields = ['persona', 'ai_mode', 'engine_executable', 'engine_model', 'engine_threads', 'engine_context', 'engine_cache',
+    const fields = ['custom_prompt', 'persona', 'ai_mode', 'engine_executable', 'engine_model', 'engine_threads', 'engine_context', 'engine_cache',
                     'ai_server_url', 'ai_model', 'web_port', 'quiet_start', 'quiet_end',
                     'vision_executable', 'vision_model', 'vision_mmproj', 'vision_threads', 'vision_timeout',
                     'image_executable', 'image_model', 'image_threads', 'image_timeout',
                     'speech_engine', 'speech_voice', 'speech_speed', 'speech_threads', 'speech_timeout',
                     'speech_kokoro_model', 'speech_kokoro_voices', 'speech_piper_model', ...checkboxes];
     let view = null;
+    let promptBusy = false;
+    let promptBeforeAI = null;
+    let promptShowingDefault = false;
 
     function show(kind, text) {
       const m = $('message');
@@ -345,6 +407,7 @@
 
     function fill(v) {
       view = v;
+      if (!promptBusy) promptBeforeAI = null;
       $('persona').replaceChildren();
       for (const preset of v.personas) {
         const option = document.createElement('option');
@@ -357,12 +420,20 @@
       }
       $('persona').disabled = $('personaSave').disabled = false;
       describePersona();
+      $('custom_prompt_enabled').disabled = false;
+      $('promptSave').disabled = $('promptDefault').disabled = false;
+      $('defaultPrompt').textContent = v.default_prompt;
+      promptShowingDefault = !$('custom_prompt').value.trim();
+      if (promptShowingDefault) $('custom_prompt').value = v.default_prompt;
+      $('custom_prompt').maxLength = v.custom_prompt_max_chars;
+      $('promptResult').textContent = '';
       $('personaResult').textContent = '';
       showMode();
       $('portDefault').textContent = `(default ${v.defaults.web_port})`;
       $('portShown').textContent = v.running.port;
       // Persona and house rules stay editable from other devices; general settings remain this-PC-only.
-      document.querySelectorAll('input:not(#newRule), select:not(#persona), #save, #reset, #test, #popupTest, #engineRestart').forEach(el => el.disabled = !v.can_change);
+      document.querySelectorAll('input:not(#newRule):not(#persona_enabled):not(#custom_prompt_enabled), select:not(#persona), #save, #reset, #test, #popupTest, #engineRestart').forEach(el => el.disabled = !v.can_change);
+      describePrompt();
       $('viewOnly').hidden = v.can_change;
       $('restartBanner').hidden = !(v.can_change && v.restart_needed.length);
       const list = $('addresses');
@@ -437,6 +508,8 @@
 
     function current() {
       return {
+        custom_prompt: promptShowingDefault && !$('custom_prompt_enabled').checked
+          ? view.values.custom_prompt : $('custom_prompt').value,
         ...($('persona').value !== view.values.persona ? { persona: $('persona').value } : {}),
         ai_mode: $('ai_mode').value, engine_executable: $('engine_executable').value,
         engine_model: $('engine_model').value, engine_threads: Number($('engine_threads').value),
@@ -458,11 +531,109 @@
       };
     }
 
+    // ---------- chat prompt ----------
+    function describePrompt() {
+      const enabled = $('custom_prompt_enabled').checked;
+      const text = enabled ? $('custom_prompt').value : (view?.default_prompt || '');
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      $('custom_prompt').disabled = promptBusy || !enabled;
+      $('promptSave').disabled = $('promptDefault').disabled = $('promptImprove').disabled = promptBusy;
+      $('custom_prompt_enabled').disabled = promptBusy;
+      $('promptUndo').hidden = !promptBeforeAI;
+      $('promptUndo').disabled = promptBusy;
+      $('save').disabled = $('reset').disabled = promptBusy || !view?.can_change;
+      $('promptLength').textContent = (enabled ? 'Custom prompt: ' : 'Optimized default: ') + words +
+        ' words · ' + text.length + ' characters.' +
+        (enabled && text.length > 3000 ? ' Long prompts take more time to process before the first reply.' : '') +
+        (!enabled ? (promptShowingDefault
+          ? ' This example is the active optimized default.'
+          : ' Your custom text is kept for later.') : '');
+    }
+    $('custom_prompt_enabled').onchange = () => {
+      describePrompt();
+      $('promptResult').textContent = 'Press Save prompt to apply this change.';
+    };
+    $('custom_prompt').oninput = () => {
+      promptShowingDefault = false;
+      describePrompt();
+    };
+    async function savePrompt(useCustom) {
+      const out = $('promptResult');
+      promptBusy = true;
+      describePrompt();
+      out.textContent = 'Saving…';
+      try {
+        const savedText = promptShowingDefault && !useCustom
+          ? view.values.custom_prompt : $('custom_prompt').value;
+        const data = await call('/api/prompt', {
+          custom_prompt: savedText, custom_prompt_enabled: useCustom
+        });
+        promptBeforeAI = null;
+        view.values.custom_prompt = data.custom_prompt;
+        view.values.custom_prompt_enabled = data.custom_prompt_enabled;
+        promptShowingDefault = !data.custom_prompt.trim();
+        $('custom_prompt').value = promptShowingDefault ? view.default_prompt : data.custom_prompt;
+        $('custom_prompt_enabled').checked = data.custom_prompt_enabled;
+        out.textContent = data.custom_prompt_enabled
+          ? 'Custom prompt saved. It applies to the next AI reply.'
+          : 'Using the optimized default. It applies to the next AI reply.';
+      } catch (error) { out.textContent = error.message; }
+      finally {
+        promptBusy = false;
+        describePrompt();
+      }
+    }
+    $('promptSave').onclick = () => savePrompt($('custom_prompt_enabled').checked);
+    $('promptDefault').onclick = () => savePrompt(false);
+    $('promptImprove').onclick = async () => {
+      if (promptBusy) return;
+      const source = $('custom_prompt').value.trim() || view.default_prompt;
+      const out = $('promptResult'), started = Date.now();
+      promptBusy = true;
+      describePrompt();
+      const progress = () => out.textContent = 'Improving draft… ' + Math.floor((Date.now() - started) / 1000) + 's';
+      progress();
+      const timer = setInterval(progress, 1000);
+      try {
+        const data = await call('/api/prompt/improve', { prompt: source });
+        promptBeforeAI = {
+          text: $('custom_prompt').value,
+          enabled: $('custom_prompt_enabled').checked,
+          showingDefault: promptShowingDefault
+        };
+        promptShowingDefault = false;
+        $('custom_prompt').value = data.prompt;
+        $('custom_prompt_enabled').checked = true;
+        out.textContent = 'Improved draft: ' + data.words + ' words. Review it, then press Save prompt to apply it.';
+      } catch (error) { out.textContent = error.message; }
+      finally {
+        clearInterval(timer);
+        promptBusy = false;
+        describePrompt();
+      }
+    };
+
+    $('promptUndo').onclick = () => {
+      if (!promptBeforeAI || promptBusy) return;
+      $('custom_prompt').value = promptBeforeAI.text;
+      $('custom_prompt_enabled').checked = promptBeforeAI.enabled;
+      promptShowingDefault = promptBeforeAI.showingDefault;
+      promptBeforeAI = null;
+      $('promptResult').textContent = 'Original draft restored. Saved settings are unchanged.';
+      describePrompt();
+    };
+
     // ---------- persona ----------
     function describePersona() {
+      const enabled = $('persona_enabled').checked;
+      $('persona').disabled = !enabled;
       const preset = view?.personas.find(p => p.id === $('persona').value);
-      $('personaDescription').textContent = preset?.description || '';
+      $('personaDescription').textContent = enabled ? (preset?.description || '') : 'Personas are off. BEYOND uses its standard voice.';
     }
+    $('persona_enabled').onchange = () => {
+      describePersona();
+      $('personaResult').textContent = 'Press Save persona to apply this change.';
+    };
     $('persona').onchange = () => {
       describePersona();
       $('personaResult').textContent = $('persona').value === view?.values.persona
@@ -470,16 +641,17 @@
     };
     $('personaSave').onclick = async () => {
       const select = $('persona'), button = $('personaSave'), out = $('personaResult');
-      const choice = select.value;
-      select.disabled = button.disabled = true;
+      const choice = select.value, enabled = $('persona_enabled').checked;
+      select.disabled = button.disabled = $('persona_enabled').disabled = true;
       out.textContent = 'Saving…';
       try {
-        const data = await call('/api/persona', { persona: choice });
+        const data = await call('/api/persona', { persona: choice, persona_enabled: enabled });
         view.values.persona = data.persona;
+        view.values.persona_enabled = data.persona_enabled;
         const preset = view.personas.find(p => p.id === data.persona);
-        out.textContent = (preset?.name || 'Persona') + ' saved. It applies to your next AI reply.';
+        out.textContent = data.persona_enabled ? (preset?.name || 'Persona') + ' saved. It applies to your next AI reply.' : 'Personas disabled. BEYOND uses its standard voice.';
       } catch (error) { out.textContent = error.message; }
-      finally { select.disabled = button.disabled = false; }
+      finally { button.disabled = $('persona_enabled').disabled = false; describePersona(); }
     };
 
     // ---------- the AI engine ----------

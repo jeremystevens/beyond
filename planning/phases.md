@@ -325,6 +325,11 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - **Done when:** the saved style affects the next chat reply, switching back restores Normal, and the control
   works on phone and desktop. Jeremy will playtest; inspect logs if anything fails.
 
+- **Performance follow-up (0.34.5):** personas are now off by default, with an explicit Use a persona switch.
+  Off suppresses optional role instructions while retaining the chosen preset, base personality, rules and
+  memories. First-turn engine logs show uncached prompt processing; Normal already had an empty role block,
+  so no speedup is claimed. Owner comparison pending.
+
 ### Phase 34b: Search history (implemented 2026-10-18; playtest pending)
 - Independent, dated SQLite records for useful lookup commands and automatic web/weather/news lookups. Exclude
   jokes, quotes, cat facts and games. Keep bounded result snapshots, sources, origin/status and UTC/local times.
@@ -346,6 +351,31 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
   answers for the resolved film, and different chats do not share subjects.
 - **Verified:** three focused routing/context checks passed. Jeremy completed the playtest and approved the feature
   on 2026-10-18.
+
+- **Follow-up fix (0.34.4):** resolve a weather clarification plus a location in the next user turn, including
+  a short confirmation of an unresolved request. Run the lookup instead of letting the AI promise it.
+  Keep context within this chat and respect automatic lookups. Shared place parsing accepts city/state names
+  without a comma (including Denver Colorado/Denver CO), and a failed lookup accepts a corrected location.
+  Save pending weather requests per chat and message; suggest close US state spellings, then execute the real
+  lookup after a natural confirmation or the explicit button. Pending requests survive restarts and end after
+  a new topic. Seven focused routing/state checks passed; owner recheck pending.
+
+### Phase 34d: Optimized and custom chat prompts (implemented 2026-10-18; owner playtest pending)
+- Replace the long feature-manual system prompt with a 257-word default and a 59-word Python app contract. Add
+  detailed tool notes only when the current question needs them; memories, house rules and optional personas remain.
+- Settings → Chat prompt can enable and save a custom prompt, show its size, restore the optimized default, and work
+  on phone or computer. Custom text is limited to 16,000 characters and applies to the next reply without a restart.
+- Improve & optimize uses the loaded chat model as a one-off editor, shows progress, refuses while the model is busy,
+  and returns an unsaved, reviewable draft with Undo. Saving remains explicit, and the app contract still prevents
+  invented tools, permissions or unfinished actions.
+- **Performance follow-up (0.34.7):** after loading a built-in model, pre-read the stable system prompt with a
+  one-token hidden request before reporting Ready. This shifts the cold prompt cost into startup; it never creates
+  a chat message and a failure falls back to normal first-reply processing.
+- Focused checks use stand-in AI replies, plus Python/browser syntax, HTML ID and whitespace checks. Jeremy
+  confirmed the real CPU result: the warmed request reused 740 tokens, processed 99 new prompt tokens in 3.7 seconds,
+  generated 41 tokens in 5.1 seconds, and completed in 8.78 seconds (shown as 9s).
+- **Done when:** the optimized default answers normally, a saved custom prompt changes the next reply, and an
+  AI-improved draft can be reviewed, undone or saved from phone and desktop.
 
 ### Phase 35: Model downloads
 - Download models from Hugging Face inside the app, with **fingerprint checks**, resume after a broken download,
