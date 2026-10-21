@@ -396,6 +396,11 @@ async def chat_stream(body: SendRequest):
     recalled = search_history.recall_request(content)
     if recalled is not None:
         return _command_reply(body.chat_id, content, run_as='/searchhistory ' + recalled)
+    web_request = await asyncio.to_thread(followups.web_request, body.chat_id, content)
+    if web_request:
+        if web_request['kind'] == 'command':
+            return _command_reply(body.chat_id, content, run_as=web_request['command'], follow_action=web_request)
+        return _command_reply(body.chat_id, content, prepared=commands.Reply(web_request['text']))
     weather_request = (await asyncio.to_thread(followups.weather_request, body.chat_id, content)
                        if settings.load()['auto_lookup'] else None)
     if weather_request:
@@ -459,8 +464,9 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
             if not found:
                 notes='\n\n'.join(part for part in (background,
                     'No new lookup was performed for this reply. Never promise to check/search later: your reply '
-                    'cannot trigger a tool after it ends. If information is missing, ask for the location or '
-                    'suggest /weather <city, state/country>. Use any supplied previous result only as past data.') if part)
+                    'cannot trigger a tool after it ends. BEYOND has built-in web search through /web <query>; '
+                    'do not claim it lacks web access. Suggest /web for unknown facts, /weather for forecasts, '
+                    'or /news for headlines. Use any supplied previous result only as past data.') if part)
             if found:
                 yield json.dumps({'type': 'status', 'text': lookups.status(*found)}) + '\n'
                 result = await asyncio.to_thread(lookups.run, question, *found)
@@ -498,6 +504,9 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                     followups.save(chat_id,answer_id,active_context,for_retry=True)
                 previous = chats.previous_answer(chat_id, answer_id)
                 buttons = learning.rating_buttons(answer_id)
+                offer = '' if found else lookups.offer_search(question or '', text)
+                if offer:   # the answer sounds unsure and nothing was looked up: one tap searches the web
+                    buttons = buttons + [[{'label': '🔎 Search the web for this', 'send': '/web ' + offer}]]
                 chats.set_buttons(answer_id, buttons)
                 saved = True
                 if previous and learning.has_retry(previous['buttons']):   # 🔄 is only for the newest answer

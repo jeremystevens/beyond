@@ -1064,7 +1064,7 @@ COMMANDS = [
     Command('roll', 'Roll visual dice or flip a coin; keep/drop, repeats and saved stats', '/roll 2d20+3', _roll, group='Games'),
     Command('searchhistory', 'Recall saved lookups by date, tool or words; repeat them or manage them in Settings',
             '/searchhistory last Thursday', _history, aliases=('searches',), group='Look things up'),
-    Command('web', 'Search the web (DuckDuckGo)', '/web best hiking trails near Denver',
+    Command('web', 'Search the web (DuckDuckGo); ask search the web for a topic or follow up with yes please look it up for me', '/web best hiking trails near Denver',
             _online(web_search.search_web, 'DuckDuckGo'), aliases=('search',), group='Look things up'),
     Command('weather', 'Weather now, the next hours and 3 days; follow up with What about Paris?', '/weather San Jose, CA',
             _online(weather.get_weather, 'the weather service (Open-Meteo)'), group='Look things up'),

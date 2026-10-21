@@ -43,6 +43,26 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 ### Fixed
+- **Looks things up instead of guessing about unfamiliar names.** "Have you ever heard of Omarchy Linux?" got a
+  made-up answer, because automatic lookups only ran for current-events questions. Questions about a specific named
+  thing ("have you heard of…", "do you know anything about…", "what is NixOS?", "who is Linus Torvalds?") now search
+  the web first; general ones ("what is a fever?") still go straight to the AI. A correction like "you should always
+  look up the information" now searches the last topic, and an answer that still sounds unsure gets a 🔎 Search the web
+  for this button. The prompt also tells the AI to say it doesn't know a name rather than invent details.
+- **Polite web-search follow-ups** (0.34.9). Normalize phrases such as “yes please”, “could you please”, “go ahead
+  and” and trailing “for me” before routing explicit search requests. Extract the subject from “I was wondering
+  if you know what Omarchy Linux is?” and skip an earlier missed search request when retrying. Regression checks
+  cover the exact reported exchange, polite variants, negative requests, command invocation with stand-in results,
+  progress, search history and no chat-model call. Owner playtest pending.
+- **Web-search capability and natural requests** (0.34.8). Keep an explicit /web capability reminder in every chat
+  prompt, including custom prompts. Replace the weather-only missing-information note with matching web/weather/news
+  guidance so BEYOND does not claim the app lacks web access.
+- “Search the web for <topic>” and same-chat requests such as “look it up” or “use the built in web feature” run
+  the existing /web command in Python. Recent user messages identify the topic; AI guesses/denials do not.
+  No prior successful lookup is required. An unclear topic asks for clarification, and explicit requests work
+  with automatic lookups off. Existing progress, sources, search history and follow-up context are retained.
+- Updated shared /web help, README and phase notes. Regression checks use temporary databases and stand-in search
+  results for the reported Omarchy exchange, routing, isolation and negative requests; live playtesting stays with Jeremy.
 - **Conversational weather requests** (version 0.34.4): keep a recent user weather request active while asking
   for the place, then run the real lookup when the user names it or confirms an unresolved request. Corrects
   the Franklin, Tennessee exchange where the AI repeatedly promised a search without running one.

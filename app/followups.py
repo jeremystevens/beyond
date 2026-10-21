@@ -143,6 +143,118 @@ _CONFIRM = re.compile(r"(?:yes(?: please)?|please do|go ahead|sure|that would be
 _LOCATION = re.compile(r"[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ.' -]{1,39}(?:,\s*[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ.' -]{1,39})?",re.I)
 
 
+
+# Explicit user requests run the existing /web tool, even with automatic lookups off.
+# Only user turns identify a topic: assistant guesses and denials never become search queries.
+_WEB_REFERENCE = re.compile(
+    r"(?:(?:if you (?:don'?t|do not) know[,]?\s+)?you (?:could|can|should)(?: always)?\s+)?"
+    r"(?:(?:please|can you|could you|would you)\s+)?"
+    r"(?:look (?:it|that|this) up(?: (?:online|on the web))?|"
+    r"search (?:for (?:it|that|this)|(?:it|that|this)|(?:the )?(?:web|internet)(?: for (?:it|that|this))?)|"
+    r"(?:(?:yes[,]?\s+)?you can )?use (?:the |your )?(?:built[ -]?in )?(?:web|search)(?: search)?(?: feature| tool)?)"
+    r"(?: please)?", re.I)
+_WEB_DIRECT = re.compile(
+    r"(?:(?:please|can you|could you|would you)\s+)?"
+    r"(?:search (?:the )?(?:web|internet)(?: for| about)?|search for|"
+    r"look up|look (?:on the web|online) for)\s+(.+)", re.I)
+
+
+def _web_text(text):
+    """Strip conversational politeness around a request, never its negation or subject."""
+    text=' '.join(text.replace('’', "'").split()).strip().rstrip('!?. ')
+    for _ in range(6):
+        shorter=re.sub(
+            r"^(?:yes|yep|yeah|sure|okay|ok|please|can you|could you|would you|"
+            r"go ahead(?: and)?|i want you to|i'd like you to)[,\s]+",
+            '',text,flags=re.I)
+        if shorter==text:
+            break
+        text=shorter
+    for _ in range(3):
+        shorter=re.sub(r"(?:,\s*|\s+)(?:for me|please|thanks|thank you)$",'',text,flags=re.I)
+        if shorter==text:
+            break
+        text=shorter
+    return text
+
+
+# A longer message that still asks for a search ("that's wrong, you should always look up the information").
+_WEB_NUDGE = re.compile(
+    r"\b(?:look (?:it|that|this|them|the (?:info(?:rmation)?|answer|facts|details)) up|"
+    r"look up (?:the )?(?:info(?:rmation)?|answer|facts|details)|search (?:for )?(?:it|that|this) (?:up|online)|"
+    r"search (?:the )?(?:web|internet)(?: for (?:it|that|this))?|use (?:the |your )?web search)\b", re.I)
+_NO_SEARCH = re.compile(r"\b(?:don'?t|do not|no need to|never|without)\s+(?:\w+\s+){0,2}(?:look|search)", re.I)
+
+
+def _web_reference(text):
+    text=_web_text(text)
+    if _WEB_REFERENCE.fullmatch(text):
+        return True
+    direct=_WEB_DIRECT.fullmatch(text)
+    if direct and not re.fullmatch(r'(?:it|that|this)(?: online)?',direct[1].strip(),re.I):
+        return False   # "search the web for Omarchy Linux" names its own topic
+    return len(text)<=300 and bool(_WEB_NUDGE.search(text)) and not _NO_SEARCH.search(text)
+
+
+def _web_subject(text):
+    text=text.strip().rstrip('!?. ')
+    text=re.sub(r"^(?:i was wondering|i wonder|i'm wondering)\s+(?:if|whether)\s+you know\s+",
+                '',text,flags=re.I)
+    indirect=re.fullmatch(r"what\s+(.+?)\s+is",text,re.I)
+    if indirect:
+        return indirect[1].strip(' "\'')[:200]
+    for pattern in (
+        r"(?:have you (?:ever )?heard of|do you know (?:anything )?about|are you familiar with)\s+(.+)",
+        r"(?:what is|what's|tell me about|explain)\s+(.+)",
+    ):
+        match=re.fullmatch(pattern,text,re.I)
+        if match:
+            return match[1].strip(' "\'')[:200]
+    return text[:200] if text and len(text)<=300 else ''
+
+
+def web_request(chat_id, message):
+    """Resolve an explicit search request from this chat; ask rather than search a bare pronoun."""
+    text=_web_text(message)
+    if text.startswith('/'):
+        return None
+    reference=_web_reference(text)
+    direct=_WEB_DIRECT.fullmatch(text)
+    if not reference and not direct:
+        return None
+    if direct and not reference:
+        query=direct[1].strip()
+        if re.fullmatch(r'(?:it|that|this)(?: online)?',query,re.I):
+            reference=True
+        elif re.search(r"\b(?:my|mine|password|secret|api key)\b",query,re.I):
+            return {'kind':'clarify_web','text':'What public topic should I search for? Use /web <query>.'}
+        else:
+            return {'kind':'command','command':'/web '+query[:200]}
+    if reference and chat_id:
+        with closing(chats.connect()) as db:
+            rows=db.execute("SELECT content,kind FROM messages WHERE chat_id=? AND role='user' "
+                            "ORDER BY id DESC LIMIT 6",(chat_id,)).fetchall()
+        for row in rows:
+            previous=row['content'].strip()
+            # Skip the immediately preceding search requests/corrections, not unrelated topics.
+            if _web_reference(previous):
+                continue
+            state=None
+            direct=_WEB_DIRECT.fullmatch(_web_text(previous))
+            if direct:
+                query=direct[1].strip()
+            else:
+                state=get(chat_id) if previous.startswith('/') else None
+                query=subject(state) if state else _web_subject(previous)
+            if (not query or (previous.startswith('/') and not state) or
+                re.search(r"\b(?:my|mine|password|secret|api key)\b",query,re.I) or
+                re.fullmatch(r"(?:hi|hello|hey|thanks|thank you|yes|no|it|that|this|how are you|"
+                             r"what can you do|tell me a joke|help me.*)",query,re.I)):
+                break
+            return {'kind':'command','command':'/web '+query[:200]}
+    return {'kind':'clarify_web','text':'What should I search the web for? Name the topic or use /web <query>.'}
+
+
 def weather_request(chat_id, message):
     """A location or confirmation can complete a recent user weather request."""
     from app import lookups

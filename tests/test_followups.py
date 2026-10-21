@@ -109,6 +109,96 @@ class FollowupTests(unittest.TestCase):
         self.assertEqual(search_history.browse()['total'],1)
         self.assertEqual(followups.get(pending)['query'],'franklin, Tennessee')
 
+    def test_explicit_web_requests_resolve_user_topic_and_ignore_ai_denials(self):
+        chats.add_message(self.chat,'user','Have you ever heard of Omarchy Linux ?')
+        chats.add_message(self.chat,'assistant',"I don't have real-time web access.")
+        for text in ("If you don't know you could always look it up",
+                     'Yes you can use the built in web feature',
+                     'please search the web', 'look that up'):
+            self.assertEqual(followups.web_request(self.chat,text)['command'],'/web Omarchy Linux')
+        chats.add_message(self.chat,'user',"If you don't know you could always look it up")
+        chats.add_message(self.chat,'assistant',"Omarchy Linux isn't recognized.")
+        self.assertEqual(followups.web_request(self.chat,'Yes you can use the built in web feature')['command'],
+                         '/web Omarchy Linux')
+        self.assertEqual(followups.web_request(self.other,'look it up')['kind'],'clarify_web')
+        self.assertEqual(followups.web_request(None,'search the web for Omarchy Linux')['command'],
+                         '/web Omarchy Linux')
+        self.assertIsNone(followups.web_request(self.chat,"Don't search the web"))
+        self.assertIsNone(followups.web_request(self.chat,'What is a web search?'))
+        self.assertIsNone(followups.web_request(self.chat,'Write a story about searching the web'))
+        chats.add_message(self.chat,'user','Hello')
+        chats.add_message(self.chat,'assistant','Hi!')
+        self.assertEqual(followups.web_request(self.chat,'look it up')['kind'],'clarify_web')
+        chats.add_message(self.chat,'user','My password is private')
+        self.assertEqual(followups.web_request(self.chat,'look it up')['kind'],'clarify_web')
+
+    def test_web_followup_stream_runs_tool_once_even_when_automatic_lookups_are_off(self):
+        import asyncio
+        import json
+        from app import server
+        chats.add_message(self.chat,'user','Have you ever heard of Omarchy Linux ?')
+        chats.add_message(self.chat,'assistant',"I don't recognize it.")
+        seen=[]
+        def web(query):
+            seen.append(query)
+            return '1. Omarchy\nhttps://example.com/omarchy\nA Linux distribution.\n\nSource: test fixture'
+        async def send():
+            response=await server.chat_stream(server.SendRequest(
+                chat_id=self.chat,content="If you don't know you could always look it up"))
+            return [json.loads(event) async for event in response.body_iterator]
+        with patch.object(server.settings,'load',return_value={'auto_lookup':False}), \
+             patch.dict(commands._BY_NAME,{'web':Command('web','fake','/web',web)}), \
+             patch.object(server.engine,'chat_stream',side_effect=AssertionError('The tool should handle this request')):
+            events=asyncio.run(send())
+        self.assertEqual(seen,['Omarchy Linux'])
+        self.assertEqual(search_history.browse()['total'],1)
+        self.assertEqual(followups.get(self.chat)['query'],'Omarchy Linux')
+        self.assertTrue(any(e['type']=='status' for e in events))
+        self.assertTrue(any('A Linux distribution.' in e.get('text','') for e in events))
+
+    def test_polite_web_request_variants_run_the_exact_reported_subject(self):
+        chats.add_message(self.chat,'user','I was wondering if you know what Omarchy Linux is ?')
+        chats.add_message(self.chat,'assistant','I recommend using the built-in web search feature.')
+        for text in (
+            'yes please look it up for me', 'Yes, please look it up for me!',
+            'could you please look that up for me?', 'go ahead and search the web please',
+            'yes please search for it', "I'd like you to look it up, please",
+            'please search the web for Omarchy Linux for me',
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(followups.web_request(self.chat,text)['command'],'/web Omarchy Linux')
+        for text in ("yes please don't search the web", "Don't look it up for me",
+                     'Could you explain how web search works?', 'Write a story about web search'):
+            self.assertIsNone(followups.web_request(self.chat,text),text)
+        # An earlier missed request must not itself become the query on the retry.
+        chats.add_message(self.chat,'user','yes please look it up for me')
+        chats.add_message(self.chat,'assistant',"I'll look it up.")
+        self.assertEqual(followups.web_request(self.chat,'please look it up')['command'],'/web Omarchy Linux')
+
+    def test_reported_polite_exchange_executes_tool_without_chat_model(self):
+        import asyncio
+        import json
+        from app import server
+        chats.add_message(self.chat,'user','I was wondering if you know what Omarchy Linux is ?')
+        chats.add_message(self.chat,'assistant','I recommend using the built-in web search feature.')
+        seen=[]
+        def web(query):
+            seen.append(query)
+            return '1. Omarchy\nhttps://example.com/omarchy\nA Linux distribution.\n\nSource: test fixture'
+        async def send():
+            response=await server.chat_stream(server.SendRequest(
+                chat_id=self.chat,content='yes please look it up for me'))
+            return [json.loads(event) async for event in response.body_iterator]
+        with patch.object(server.settings,'load',return_value={'auto_lookup':False}), \
+             patch.dict(commands._BY_NAME,{'web':Command('web','fake','/web',web)}), \
+             patch.object(server.engine,'chat_stream',side_effect=AssertionError('No model promises')):
+            events=asyncio.run(send())
+        self.assertEqual(seen,['Omarchy Linux'])
+        self.assertEqual(search_history.browse()['total'],1)
+        self.assertEqual(followups.get(self.chat)['query'],'Omarchy Linux')
+        self.assertTrue(any(e['type']=='status' for e in events))
+        self.assertTrue(any('A Linux distribution.' in e.get('text','') for e in events))
+
     def test_missing_comma_is_handled_by_the_shared_place_finder(self):
         from app.tools import places
         from unittest.mock import Mock

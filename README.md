@@ -20,7 +20,7 @@ things up, keeps you organised, reads photos, listens, talks back and plays game
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.143-d96326?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=0d1117)
 ![License](https://img.shields.io/badge/License-MIT-d96326?style=for-the-badge&labelColor=0d1117)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-d96326?style=for-the-badge&logo=windows&logoColor=white&labelColor=0d1117)
-![Version](https://img.shields.io/badge/Version-0.34.7-d96326?style=for-the-badge&labelColor=0d1117)
+![Version](https://img.shields.io/badge/Version-0.34.9-d96326?style=for-the-badge&labelColor=0d1117)
 
 ![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local-d96326?style=for-the-badge&logo=shield&logoColor=white&labelColor=0d1117)
 ![AI](https://img.shields.io/badge/AI-OpenAI--compatible%20%C2%B7%20llama.cpp-d96326?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117)
@@ -351,14 +351,14 @@ first: click one to open it, **✎** to rename it, **🗑** to delete it, **＋ 
 named after its first message. Refreshing the page or restarting BEYOND keeps your chats, and the page reopens the chat
 you were in. If you press Stop, what the AI wrote so far is saved and marked "Stopped".
 
-**Personality.** BEYOND's optimized default lives in `app/personality.md`. It is 257 words, with a 59-word app
+**Personality.** BEYOND's optimized default lives in `app/personality.md`. It is 257 words, with a 69-word app
 contract added by Python for tool honesty and safety. Detailed tool notes are attached only when the current question
 needs them instead of being repeated in every chat. You can use the default, write your own prompt, or ask the loaded
 AI to improve a draft in Settings. Changes apply from the next reply.
 
 **Fast replies.** Each question is sent with up to the last 12 messages. The stable prompt always comes first and the
 history grows from 6 to 12 messages before it is cut back in one step, so the AI server can reuse what it already read.
-The new 316-word default and app contract are about 85% shorter than the previous base prompt before memories and house
+The new 326-word default and app contract are about 85% shorter than the previous base prompt before memories and house
 rules. The built-in engine now pre-reads that stable prompt once after loading, before it reports Ready. A changed
 prompt, memories or house rules can still require new processing, and no fixed response time is promised.
 
@@ -391,6 +391,12 @@ chat**, works on phones and computers, and stays saved across a page refresh or 
 | `/define elated` | “What about jubilant?” | Looks up the new word. |
 | `/news tech` | “What about science?” | Fetches the new news topic. |
 | A web or Stack Overflow search | “Search again” | Repeats the original lookup with fresh results. |
+
+Explicit web requests also work in ordinary conversation: “search the web for Omarchy Linux” runs the same tool
+as `/web Omarchy Linux`. After “Have you ever heard of Omarchy Linux?”, “If you don't know you could always look it up”
+or “yes please look it up for me” searches that subject from the current chat. Polite prefixes and “for me” are accepted. This does not require
+a previous successful lookup. If no clear subject exists, BEYOND asks what to search. Explicit search requests work
+even when automatic lookups are off, just like slash commands; results are recorded once in search history.
 
 With automatic lookups enabled, you can also ask for weather in ordinary conversation. If you say “I meant
 the weather”, BEYOND asks for the city; “Franklin, Tennessee” in your next message runs the lookup. A short
@@ -678,7 +684,7 @@ devices select and tune models already added on the PC.
 
 <br>
 
-The optimized default is active on a fresh install. Its 257-word personality plus the 59-word app contract gives the
+The optimized default is active on a fresh install. Its 257-word personality plus the 69-word app contract gives the
 model its role, answer style, tool boundaries and honesty rules without making a CPU model reread a feature manual.
 Relevant tool details are added only to turns that need them. Saved memories and house rules are still included.
 

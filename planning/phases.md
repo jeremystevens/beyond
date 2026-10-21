@@ -377,6 +377,15 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - **Done when:** the optimized default answers normally, a saved custom prompt changes the next reply, and an
   AI-improved draft can be reviewed, undone or saved from phone and desktop.
 
+- **Web follow-up correction (0.34.8):** keep built-in /web awareness in the small always-present app contract.
+  Explicit web requests run the existing Python tool, including “look it up” after an ordinary factual question
+  without a previous lookup. Resolve the topic from recent user turns in this chat, ask if unclear, and preserve
+  progress, sources/history and explicit-request behavior when automatic lookups are off. Owner playtest pending.
+
+- **Polite-request correction (0.34.9):** “yes please look it up for me” and other polite wrappers route to the
+  web tool. Extract the subject from indirect factual questions and skip prior search requests on retry.
+  The exact reported exchange is covered with stand-in results; owner playtest pending.
+
 ### Phase 35: Model downloads
 - Download models from Hugging Face inside the app, with **fingerprint checks**, resume after a broken download,
   a free-disk-space check, and license links for models that need the maker's terms accepted.

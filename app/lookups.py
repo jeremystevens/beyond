@@ -95,6 +95,58 @@ def web_query(message):
     return with_real_dates(query.strip(' ?'))[:200]
 
 
+# "Have you heard of Omarchy Linux?", "do you know anything about Hyprland?": a specific thing the model may not
+# know, and a small model guesses rather than admitting it. Always looked up.
+_ENTITY_ASK = re.compile(r"^\s*(?:(?:hey|so|ok|okay|hi|hello)[,!]?\s+)?(?:have you (?:ever )?(?:heard (?:of|about)|used|tried)|"
+                         r"are you familiar with|do you know (?:anything )?(?:about|of)|what do you know about|"
+                         r"ever heard of)\s+(.+?)\s*[?.!]*\s*$", re.I)
+# "What is Omarchy Linux?", "who is Linus Torvalds?", "tell me about Arch 2025.10": looked up when the subject is a
+# name (starts with a capital letter or has a number), not for general questions like "what is a fever?".
+_ENTITY_WHAT = re.compile(r"^\s*(?:what(?:'s| is| are| was)|who(?:'s| is| are| was| were)|tell me (?:about|what)|"
+                          r"explain)\s+(.+?)\s*[?.!]*\s*$", re.I)
+
+
+def entity_query(message):
+    """A question about a specific named thing -> the thing to search for; else ''."""
+    text = message.strip().replace('’', "'")
+    if len(text) > 200 or '\n' in text:
+        return ''
+    match = _ENTITY_ASK.match(text)
+    subject = match[1] if match else ''
+    if not match:
+        match = _ENTITY_WHAT.match(text)
+        if not match:
+            return ''
+        subject = re.sub(r'^(?:the|a|an)\s+', '', match[1], flags=re.I)
+        if not re.match(r'[A-Z0-9]', subject) or len(subject.split()) > 6:
+            return ''
+    subject = re.sub(r'^(?:the|a|an)\s+', '', subject, flags=re.I).strip(' "\'')
+    if not subject or _PERSONAL.search(subject) or not memory.keywords(subject):
+        return ''
+    return subject[:200]
+
+
+# An answer that admits it doesn't know, or offers a search it can't run itself.
+_UNSURE = re.compile(r"\b(?:look (?:it|that|this) up|(?:perform|do|run) a (?:quick )?(?:web )?search|search (?:the web|online)|"
+                     r"(?:don'?t|do not) have (?:real-time|current|live|internet|web|online)|not familiar with|"
+                     r"(?:don'?t|do not) have (?:any |enough |specific )?(?:information|details|data)|"
+                     r"(?:i'?m|i am) not (?:sure|certain|aware)|couldn'?t find|can'?t (?:confirm|verify)|"
+                     r"(?:not|isn'?t) (?:widely|well)[ -]known|lesser[ -]known)\b", re.I)
+
+
+def offer_search(question, answer):
+    """When an answer (with no lookup behind it) sounds unsure, the search to offer under it; else ''."""
+    if not question or question.startswith('/') or not _UNSURE.search(answer or ''):
+        return ''
+    query = entity_query(question) or web_query(question)
+    if not query:
+        first = re.split(r'(?<=[?.!])\s', question.strip(), maxsplit=1)[0].strip(' ?.!')
+        if len(first) > 150 or not _QUESTION.search(question) or len(memory.keywords(first)) < 2:
+            return ''
+        query = first
+    return query[:200]
+
+
 def detect(message):
     """At most one (kind, argument) for this message; the most specific kind wins."""
     place = weather_place(message)
@@ -103,7 +155,7 @@ def detect(message):
     topic = news_topic(message)
     if topic is not None:
         return 'news', topic or 'top'
-    query = web_query(message)
+    query = web_query(message) or entity_query(message)
     return ('web', query) if query else None
 
 
