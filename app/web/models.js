@@ -182,6 +182,7 @@
     act('/api/models/register', { path: $('modelPath').value.trim() }, 'Model added. Choose Load model when you are ready.', () => { $('modelPath').value = ''; });
   };
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+  document.addEventListener('models:changed', () => refresh());   // a download finished or was loaded
   refresh();
   setInterval(refresh, 3000);
 })();

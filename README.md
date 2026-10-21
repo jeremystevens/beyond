@@ -20,12 +20,12 @@ things up, keeps you organised, reads photos, listens, talks back and plays game
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.143-d96326?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=0d1117)
 ![License](https://img.shields.io/badge/License-MIT-d96326?style=for-the-badge&labelColor=0d1117)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-d96326?style=for-the-badge&logo=windows&logoColor=white&labelColor=0d1117)
-![Version](https://img.shields.io/badge/Version-0.34.9-d96326?style=for-the-badge&labelColor=0d1117)
+![Version](https://img.shields.io/badge/Version-0.35.0-d96326?style=for-the-badge&labelColor=0d1117)
 
 ![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local-d96326?style=for-the-badge&logo=shield&logoColor=white&labelColor=0d1117)
 ![AI](https://img.shields.io/badge/AI-OpenAI--compatible%20%C2%B7%20llama.cpp-d96326?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117)
 ![Runs on](https://img.shields.io/badge/Runs%20on-CPU%20only-d96326?style=for-the-badge&logo=intel&logoColor=white&labelColor=0d1117)
-![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2034%20of%2043-d96326?style=for-the-badge&labelColor=0d1117)
+![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2035%20of%2043-d96326?style=for-the-badge&labelColor=0d1117)
 ![Status](https://img.shields.io/badge/Status-Active%20development-d96326?style=for-the-badge&labelColor=0d1117)
 
 </div>
@@ -100,6 +100,7 @@ still arrive), and lets your other devices use it over a **secure address on you
 ━━ ASSISTANT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ◆  Its own built-in AI engine: pick a .gguf model and BEYOND runs it, no separate server
 ◆  A phone-friendly Models page: sizes, load/unload/switch and settings saved for each model
+◆  Download models from Hugging Face in the app, fingerprint-checked and resumable
 ◆  Answers stream in as they're written, with Stop, Try again and 👍 👎 ratings
 ◆  One quiet line under each answer: copy, rate, read aloud, try again, plus model, tokens, time and speed
 ◆  A short CPU-friendly system prompt, or write and AI-optimize your own in Settings
@@ -776,9 +777,14 @@ paths and large touch controls. It uses the same light/dark theme and safe-area/
   values stay in sync with the existing Settings page.
 - Model changes are refused while the AI is answering or completing a background request. Finish the answer or
   press **Stop** in chat first. You can cancel a slow model load with **Unload model**, or choose another model.
-- Weights stay on disk when you unload; this page never deletes, copies or downloads them. The models folder is
-  git-ignored. Profiles and the selected/unloaded state stay in local `data/settings.json`. Model downloads are
-  Phase 35.
+- Weights stay on disk when you unload; this page never deletes or copies them. The models folder is
+  git-ignored. Profiles and the selected/unloaded state stay in local `data/settings.json`.
+- **Get more models** downloads from Hugging Face: pick a recommended model, or paste any model's link (or
+  `owner/name`), press **Look up** and choose a file (Q4_K_M is a good size for a processor). Each file's SHA-256
+  fingerprint must match before it's kept. A broken download resumes where it stopped, **Pause** and **Resume**
+  work any time, and the free disk space is checked first. Models whose licence asks you to accept the maker's
+  terms need the tick box; gated ones that need a Hugging Face sign-in are linked instead. When it's done, press
+  **Load now**. Downloads are started on the PC BEYOND runs on; other devices can watch the progress.
 
 </details>
 
@@ -829,6 +835,10 @@ BEYOND's page talks to a small JSON API, which you can use from scripts too.
 | `POST` | `/api/models/load` · `/api/models/unload` | Load a listed model by ID · unload it |
 | `POST` | `/api/models/profile` | Save settings for a listed model by ID |
 | `POST` | `/api/models/register` | Add an existing GGUF file path (this PC only) |
+| `GET` | `/api/downloads` | Downloads in progress, recommended models and free disk space |
+| `GET` | `/api/downloads/browse?repo=` | The GGUF files in a Hugging Face model (this PC only) |
+| `POST` | `/api/downloads/recommended` · `/api/downloads/custom` | Start a download (this PC only) |
+| `POST` | `/api/downloads/pause` · `…/resume` · `…/cancel` · `…/clear` | Control downloads (this PC only) |
 | `GET` · `POST` | `/api/rules` | List or add house rules |
 | `DELETE` | `/api/rules/{id}` | Remove a house rule |
 
@@ -891,6 +901,7 @@ beyond/
 │   ├── engine.py            ← The only place BEYOND talks to the AI
 │   ├── builtin_engine.py    ← Starts, watches and stops the built-in llama.cpp engine
 │   ├── models.py            ← Local model list, file sizes, switching and per-model profiles
+│   ├── downloads.py         ← Hugging Face downloads: fingerprints, resume, disk-space checks
 │   ├── personality.md       ← BEYOND's short optimized default personality
 │   ├── prompts.py           ← Custom prompts, app contract, tool notes and AI improvement
 │   ├── personas.py          ← Normal, Professional, Sarcastic, Evil and Funny chat styles
@@ -1013,13 +1024,13 @@ BEYOND is being built in **43 small phases**, each one tested before the next. T
 | | | 34b · Search history |
 | | | ✅ 34c · Natural lookup follow-ups |
 | | | 34d · Optimized and custom chat prompts (ready to try) |
+| | | ✅ 35 · Model downloads |
 
 </details>
 
 ### Coming next
 
 ```
-◇  Phase 35 — Model downloads          pick a recommended model and download it in the app
 ◇  Phase 36 — Status & health page     speed, memory and a self-test at a glance
 ◇  Phase 37 — Other AI servers         first-class support for more AI servers
 ◇  Phase 38 — Login                    accounts for safe use on shared networks

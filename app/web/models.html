@@ -53,6 +53,19 @@
     #addBox { display: grid; gap: 14px; }
     #addForm { grid-template-columns: minmax(0,1fr) auto; align-items: end; }
     #empty { text-align: center; padding: 36px 20px; display: grid; gap: 10px; }
+    .progress { height: 8px; border-radius: 999px; background: var(--bg); border: 1px solid var(--border); overflow: hidden; }
+    .progress span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .4s; }
+    .job { display: grid; gap: 10px; padding: 14px 0; border-top: 1px solid var(--border); }
+    .job:first-of-type { border-top: none; }
+    .job .card-head h3 { margin: 0; font-size: 1rem; overflow-wrap: anywhere; }
+    #dlBox, #getBox { display: grid; gap: 14px; }
+    .licence { font-size: .85rem; }
+    .licence a { color: var(--accent); }
+    #browseForm { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; align-items: end; }
+    .files { display: grid; gap: 8px; }
+    .file { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+      padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; }
+    .file .muted { font-size: .85rem; }
     [hidden] { display: none !important; }
     @media (max-width: 760px) {
       main { padding-top: 18px; }
@@ -67,7 +80,7 @@
       header .brand { font-size: 1rem; }
       header .right .ghost { padding: 10px; font-size: .8rem; }
       .card-head { flex-wrap: wrap; gap: 8px; }
-      #addForm { grid-template-columns: minmax(0,1fr); }
+      #addForm, #browseForm { grid-template-columns: minmax(0,1fr); }
       .engine > .actions { margin-left: 0; }
       .fields { grid-template-columns: minmax(0,1fr); }
     }
@@ -97,6 +110,32 @@
     </div>
     <section id="empty" hidden><h2>No chat models here yet</h2><p class="muted">Place .gguf files in the models folder on your PC, then refresh. You can also add an existing model below without making a copy.</p></section>
     <div class="grid" id="models"></div>
+    <section id="dlBox" aria-labelledby="dlHeading" hidden>
+      <div class="heading"><h2 id="dlHeading">Downloads</h2>
+        <button type="button" class="ghost" id="dlClear" hidden>Clear finished</button></div>
+      <div id="dlNotice" class="notice" role="status" hidden></div>
+      <div id="jobs"></div>
+    </section>
+    <section id="getBox" aria-labelledby="getHeading">
+      <div><h2 id="getHeading">Get more models</h2>
+        <p class="muted">Downloaded from Hugging Face into the models folder. Every file's fingerprint is checked before
+          it's kept, a broken download resumes where it stopped, and the free disk space is checked first.
+          <span id="dlSpace"></span></p></div>
+      <p class="muted" id="dlLocal" hidden>Start downloads on the PC running BEYOND. You can watch their progress from
+        here.</p>
+      <div class="grid" id="recommended"></div>
+      <div id="browseBox">
+        <h2>From Hugging Face</h2>
+        <p class="muted">Paste a model's link or name, such as <code>Qwen/Qwen3-4B-GGUF</code>, then pick a file. Q4_K_M
+          files are a good balance of size and quality on a processor.</p>
+        <form id="browseForm">
+          <label for="repo">Model on Hugging Face<input id="repo" type="text" spellcheck="false" maxlength="300"
+            placeholder="https://huggingface.co/Qwen/Qwen3-4B-GGUF" required></label>
+          <button type="submit" class="ghost">Look up</button>
+        </form>
+        <div id="browseResult" class="files"></div>
+      </div>
+    </section>
     <section id="addBox">
       <h2>Add a model from this PC</h2>
       <p class="muted">Models in the folder above appear automatically, including subfolders. To use a file stored elsewhere, add its full path. The file stays where it is.</p>
@@ -108,8 +147,9 @@
     </section>
     <p class="muted">One chat model is loaded at a time, on the processor. Loading a large model may take a few minutes.
       The next AI reply uses the loaded model; your existing chats stay saved. Each model remembers its own settings.
-      Downloads will be available in a later update.</p>
+      Download one above, or add a file you already have.</p>
   </div></main>
-  <script src="/static/models.js?v=1" defer></script>
+  <script src="/static/models.js?v=2" defer></script>
+  <script src="/static/downloads.js?v=1" defer></script>
 </body>
 </html>

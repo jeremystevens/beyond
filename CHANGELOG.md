@@ -5,6 +5,26 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **Phase 35: model downloads** (version 0.35.0). The Models page can now download models from Hugging Face.
+  - **Recommended models** for a processor (Qwen3 4B, Qwen3 1.7B, Llama 3.2 3B, Gemma 3 4B, Phi-4 mini, Qwen2.5 7B),
+    each with its size, the memory it needs, what it's good at and a licence link. Their sizes and SHA-256
+    fingerprints are pinned in `app/downloads.py`. A model you already have shows as **In Your models**.
+  - **Any GGUF model on Hugging Face:** paste a link or `owner/name`, press Look up, and pick a file. Split models
+    download every part as one item; vision projectors are left out. Fingerprints come from Hugging Face itself.
+  - **Fingerprint checks:** each file is hashed as it arrives and only kept (renamed from `.part`) when its
+    SHA-256 matches. A mismatch deletes it and says so.
+  - **Resume:** a dropped connection is retried up to five times, continuing from the last byte with an HTTP Range
+    request. Pause and Resume work the same way, and a download that was running when BEYOND closed waits with
+    Resume. If a server ignores the resume request, the file starts again rather than being stitched wrongly.
+  - **Free disk space** is checked before starting and before resuming, keeping 512 MB spare.
+  - **Licences:** models whose terms the maker asks you to accept (Llama, Gemma, or any licence that isn't a common
+    open one) need the tick box first. Gated models that need a Hugging Face sign-in are explained and linked, not
+    downloaded.
+  - Downloads go to `models/<owner>--<repo>/`, one at a time, with progress, speed and time left. A finished model
+    appears in Your models straight away with **Load now**. Starting, pausing and cancelling are for the PC BEYOND
+    runs on; other devices can watch progress. State is kept in `data/downloads.json`.
+
 ### Changed
 - **A quieter line under each answer.** 👍 👎 🔄 and Read aloud were big rounded buttons on two rows. They're now
   small, light outline icons on one line under the answer (Copy, Good answer, Bad answer, Read aloud, Try again),

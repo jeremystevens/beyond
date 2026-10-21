@@ -386,7 +386,7 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
   web tool. Extract the subject from indirect factual questions and skip prior search requests on retry.
   The exact reported exchange is covered with stand-in results; owner playtest pending.
 
-### Phase 35: Model downloads
+### Phase 35: Model downloads (implemented 2026-10-20)
 - Download models from Hugging Face inside the app, with **fingerprint checks**, resume after a broken download,
   a free-disk-space check, and license links for models that need the maker's terms accepted.
 - **Done when:** a model downloads, is verified, and can be loaded straight away.

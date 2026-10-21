@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field, StrictInt
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
                  https, memory, models, notes, notify, personas, ports, prompts, reminders, rules, search_history, settings)
 
-from app import builtin_engine, photo_jobs, image_jobs, speech_jobs, blackjack, followups, games, hangman, study_quiz, tictactoe, trivia
+from app import builtin_engine, downloads, photo_jobs, image_jobs, speech_jobs, blackjack, followups, games, hangman, study_quiz, tictactoe, trivia
 from app.tools import scan, speech, speech_to_text
 
 models.initialize()
@@ -132,12 +132,14 @@ async def lifespan(_app):
     photo_jobs.recover()
     image_jobs.recover()
     speech_jobs.recover()
+    downloads.recover()
     tasks = [asyncio.create_task(loop()) for loop in (_reminder_loop, _briefing_loop, _watch_ai,
                                                       builtin_engine.supervise)]
     try:
         yield
     finally:
-        await asyncio.gather(photo_jobs.shutdown(), image_jobs.shutdown(), speech_jobs.shutdown())
+        await asyncio.gather(photo_jobs.shutdown(), image_jobs.shutdown(), speech_jobs.shutdown(),
+                             asyncio.to_thread(downloads.shutdown))   # a running download stays resumable
         for task in tasks:
             task.cancel()
         await builtin_engine.stop()   # frees the model's memory; BEYOND starts it again next time
@@ -285,6 +287,88 @@ def register_model(body: ModelPath, request: Request):
     if not is_this_pc(request):
         return only_this_pc()
     return _model_action(models.register, body.path)
+
+
+# ---------- model downloads (Phase 35) ----------
+# Anyone at home can watch progress; starting, pausing and cancelling downloads (gigabytes on this PC's disk) is
+# for this PC only, like adding model files.
+
+class RecommendedDownload(BaseModel):
+    model_config = {'extra': 'forbid'}
+    key: str = Field(min_length=1, max_length=40)
+    accept: bool = False
+
+
+class CustomDownload(BaseModel):
+    model_config = {'extra': 'forbid'}
+    repo: str = Field(min_length=1, max_length=300)
+    name: str = Field(min_length=1, max_length=300)
+    accept: bool = False
+
+
+class DownloadJob(BaseModel):
+    model_config = {'extra': 'forbid'}
+    id: str = Field(min_length=12, max_length=12, pattern=r'^[a-f0-9]+$')
+
+
+def _download_action(request, function, *args):
+    if not is_this_pc(request):
+        return JSONResponse({'error': 'Downloads can only be started or changed on the PC BEYOND runs on.'},
+                            status_code=403)
+    try:
+        function(*args)
+        return {**downloads.view(), 'can_download': True}
+    except downloads.DownloadError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=exc.status)
+    except OSError:
+        logging.exception('A model download could not be saved')
+        return JSONResponse({'error': "The download couldn't be saved. Check the models folder's permissions and free "
+                                      'space.'}, status_code=503)
+
+
+@app.get('/api/downloads')
+def get_downloads(request: Request):
+    return {**downloads.view(), 'can_download': is_this_pc(request)}
+
+
+@app.get('/api/downloads/browse')
+def browse_downloads(request: Request, repo: str = Query(min_length=1, max_length=300)):
+    if not is_this_pc(request):
+        return only_this_pc()
+    try:
+        return downloads.browse(repo)
+    except downloads.DownloadError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=exc.status)
+
+
+@app.post('/api/downloads/recommended')
+def download_recommended(body: RecommendedDownload, request: Request):
+    return _download_action(request, downloads.start_recommended, body.key, body.accept)
+
+
+@app.post('/api/downloads/custom')
+def download_custom(body: CustomDownload, request: Request):
+    return _download_action(request, downloads.start_custom, body.repo, body.name, body.accept)
+
+
+@app.post('/api/downloads/pause')
+def pause_download(body: DownloadJob, request: Request):
+    return _download_action(request, downloads.pause, body.id)
+
+
+@app.post('/api/downloads/resume')
+def resume_download(body: DownloadJob, request: Request):
+    return _download_action(request, downloads.resume, body.id)
+
+
+@app.post('/api/downloads/cancel')
+def cancel_download(body: DownloadJob, request: Request):
+    return _download_action(request, downloads.cancel, body.id)
+
+
+@app.post('/api/downloads/clear')
+def clear_downloads(request: Request):
+    return _download_action(request, downloads.clear_finished)
 
 
 @app.get('/search-history', include_in_schema=False)
