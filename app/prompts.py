@@ -49,6 +49,14 @@ _TOOL_HELP = [
      "Memory: /remember, /memories and /forget. Rules: /rule and /rules. Ratings: thumbs up/down, Try again, "
      "/learned. Python handles persistence and supplies relevant facts/feedback. Do not announce a save that "
      "has not happened or claim unrestricted access to old chats."),
+    (r"\b(write|save|create|make)\b.{0,30}\b(file|script)\b|\b(writefile|\.py|\.txt|\.md)\b",
+     "Files: asking in plain words (\"write a python file with a simple animal class\") makes BEYOND ask for anything "
+     "missing, draft it and show Save; \"add a speak method to animals.py\" or /editfile edits one, "
+     "showing the changes first. Naming a file (\"what does animals.py do?\") or /readfile gives you its "
+     "text to read. Or /writefile <name.ext> then the exact contents (on the next lines or in the next message) saves a new "
+     "file in BEYOND's files folder; /files lists them with downloads; /cancelwrite cancels. It never overwrites or "
+     "runs files and needs this PC or an administrator. Your reply cannot save a file; give the contents and suggest "
+     "the command."),
     (r"\b(calculate|calculator|convert|conversion|time zone|time in)\b",
      "Exact tools: /calc, /convert and /time <city, state/country>. Suggest these when useful; do not pretend "
      "your text ran them."),

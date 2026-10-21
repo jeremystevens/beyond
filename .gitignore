@@ -10,6 +10,9 @@ data/
 # Local model weights (the folder is created when BEYOND starts).
 models/
 
+# Files written from chat with /writefile.
+files/
+
 # Editors and OS
 .vscode/
 .idea/

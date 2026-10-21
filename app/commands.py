@@ -22,7 +22,7 @@ from app import briefing, chats, checklists, expenses, learning, memory, notes, 
 from app.tools import dictionary, jokes, little_lookups, movies, news, qr, rewrite, weather, web_search, wikipedia
 from app.tools.calculator import calculate
 from app.tools.dice import roll_result
-from app import blackjack, engine, followups, games, hangman, study_quiz, tictactoe, trivia
+from app import blackjack, engine, files, followups, games, hangman, study_quiz, tictactoe, trivia
 from app.tools.units import convert
 from app.tools.imagine import HELP as IMAGINE_HELP
 from app.tools import speech
@@ -1015,6 +1015,143 @@ def _history(args=''):
 
 # ---------- help ----------
 
+# ---------- files (/writefile, ported from PromptetheusBot) ----------
+# Only this PC or a device signed in as administrator may use these; server.py checks before running them.
+ADMIN_ONLY = {'writefile', 'cancelwrite', 'files', 'editfile', 'fileundo', 'readfile'}
+
+
+def _download_button(name):
+    from urllib.parse import quote
+    return {'label': f'⬇ Download {name}', 'url': '/api/files/' + quote(name)}
+
+
+def _size(count):
+    return f'{count:,} bytes' if count < 1024 else f'{count / 1024:.1f} KB'
+
+
+def _written(target, size):
+    return Reply(f"📄 Saved {target.name} ({_size(size)}) in BEYOND's files folder:\n{target}\n\n"
+                 'It was only saved, never run. /files lists everything written so far.', [[_download_button(target.name)]])
+
+
+def write_pending(filename, content):
+    """The next message after /writefile <name>: its exact text becomes the file."""
+    try:
+        return _written(*files.create_file(filename, content))
+    except files.FileWriteError as exc:
+        return Reply(str(exc) + '\nTry /writefile with a new filename.')
+
+
+def _writefile(args):
+    try:
+        filename, body = files.parse(args)
+        if body.strip():
+            return _written(*files.create_file(filename, body))
+        files.check_filename(filename)
+    except files.FileWriteError as exc:
+        return Reply(str(exc))
+    return Reply(f'Send the contents of {filename} in your next message (within 10 minutes), saved exactly as you send '
+                 'them. Or describe what it should contain (for example “write a simple animal class”) and BEYOND '
+                 'writes it and shows you a draft to save. Nothing is ever run. /cancelwrite cancels.',
+                 on_saved=lambda chat_id: files.wait_for(chat_id, filename))
+
+
+def _cancelwrite(args):
+    return Reply('Cancelled: your next message goes to the AI as usual, and no file is written.', on_saved=files.cancel)
+
+
+FILE_HELP = '''Writing files with BEYOND
+
+1. Just ask, in plain words
+   write a python file with a simple animal class
+   → BEYOND writes it and shows a draft named animal.py. Press 💾 Save (or say "save it").
+     ✏️ Different name (or "call it pets"), 🔁 Change something (then e.g. "add a speak method"), or ✖ Cancel.
+
+   create a file
+   → It asks what kind of file (Python, Text, Markdown, JSON, HTML, or type an extension like .js),
+     then what should be in it.
+
+   write a file called shopping.md with my grocery list
+   save this as hello.py   (saves the last answer as it is)
+
+2. With /writefile: the filename's extension sets the type
+   Exact contents, saved straight away:
+   /writefile animals.py
+   class Animal:
+       def __init__(self, name):
+           self.name = name
+
+   Or a description, and BEYOND writes it as a draft for you to save:
+   /writefile animals.py
+   Write a simple python class for different animal types
+
+   You can also send /writefile animals.py on its own, then the contents or a description next.
+
+3. Editing a file you already have
+   add a speak method to animals.py
+   improve animals.py          (BEYOND uses its own judgement: fixes, clarity, comments)
+   edit animals.py             (it asks what to change, with a ✨ Use your judgement button)
+   → You see only the changed lines ("+" new, "-" removed). Press 💾 Save changes,
+     🔁 Change something else, or ✖ Cancel. After saving, ↩️ Undo puts the old version back.
+
+   /editfile animals.py
+   rename species to kind and add a __repr__
+
+4. Reading a file: the AI reads it and explains it, or answers your question
+   what does animals.py do?
+   read notes.md   ·   is there a bug in animals.py?   ·   summarise report.txt
+   /readfile animals.py what does speak return?
+   → The file stays open in that chat for a few follow-ups ("and what does __str__ do?").
+
+Other commands
+   /files        the files written so far, with downloads
+   /fileundo     put back the version from before the last edit (/fileundo animals.py)
+   /readfile     have the AI read a file and explain it (/readfile animals.py)
+   /cancelwrite  cancel a file that's waiting for its contents
+
+Files go in BEYOND's files folder and are never run, up to 64 KB. Writing never overwrites a file; editing replaces
+it only when you press Save changes, and keeps the old version for Undo.
+Writing, editing and reading files needs this PC or a device signed in as administrator.'''
+
+
+def _editfile(args):
+    # server.py answers /editfile itself (it may ask the AI); this is only reached without a filename.
+    return Reply('Use /editfile name.ext, then the changes on the next lines (or in your next message). '
+                 '/files lists your files.', [[send_button('📂 My files', '/files')]])
+
+
+def _readfile(args):
+    # server.py hands /readfile <name> to the AI with the file attached; this is only reached without a filename.
+    return Reply('Use /readfile name.ext, optionally followed by a question (/readfile animals.py what does speak do?). '
+                 'Or just ask: "what does animals.py do?"', [[send_button('📂 My files', '/files')]])
+
+
+def _fileundo(args):
+    name = args.strip().strip('"\'')
+    if not name:
+        return Reply('Use /fileundo name.ext to put back the version from before the last edit.')
+    try:
+        target = files.undo(name)
+    except files.FileWriteError as exc:
+        return Reply(str(exc))
+    return Reply(f'↩️ {target.name} is back to how it was before the last edit.', [[_download_button(target.name)]])
+
+
+def _filehelp(args):
+    return Reply(FILE_HELP, [[send_button('📂 My files', '/files')]])
+
+
+def _files(args):
+    items = files.listing()
+    if not items:
+        return Reply('No files yet. Create one with /writefile hello.py, then its contents on the next lines.')
+    shown = items[:20]
+    lines = [f"{item['name']} · {_size(item['bytes'])}" for item in shown]
+    more = f'\n…and {len(items) - 20} more in the folder.' if len(items) > 20 else ''
+    return Reply(f"Files written with /writefile, newest first ({files.folder()}):\n" + '\n'.join(lines) + more,
+                 rows([_download_button(item['name']) for item in shown], per_row=2))
+
+
 def _help(args=''):
     wanted = args.strip().lstrip('/').lower()
     if wanted:
@@ -1086,6 +1223,19 @@ COMMANDS = [
     Command('scan', 'Read printed text from an attached photo, entirely offline', '/scan',
             lambda _args: SCAN_HELP, group='Photos'),
     Command('help', 'List every command, or explain one', '/help calc', _help, group='Help'),
+    Command('writefile', "Create a new text or code file in BEYOND's files folder; never overwrites or runs it",
+            '/writefile hello.py', _writefile, group='Files'),
+    Command('cancelwrite', 'Cancel a /writefile that is waiting for its contents', '/cancelwrite', _cancelwrite,
+            group='Files'),
+    Command('files', 'List the files written with /writefile, with downloads', '/files', _files, group='Files'),
+    Command('editfile', 'Change a file in the files folder: say what to change, or let BEYOND improve it',
+            '/editfile animals.py', _editfile, group='Files'),
+    Command('fileundo', 'Put back the version of a file from before its last edit', '/fileundo animals.py', _fileundo,
+            group='Files'),
+    Command('readfile', 'Have the AI read a file and explain it, or answer a question about it',
+            '/readfile animals.py what does it do?', _readfile, group='Files'),
+    Command('filehelp', 'How to write and edit files, with examples', '/filehelp',
+            _filehelp, aliases=('writehelp',), group='Files'),
     Command('calc', 'Calculator: maths, percentages, tips and splitting a bill', '/calc tip 85.50 18% split 4',
             calculate),
     Command('convert', 'Convert units: temperature, distance, weight, cooking, speed and more', '/convert 72 f to c',

@@ -6,6 +6,48 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Reading files** (version 0.38.4). Name a file from the files folder in a message ("what does animals.py do?",
+  "read notes.md", "is there a bug in animals.py?", "summarise report.txt") or use `/readfile animals.py
+  [question]`, and the AI reads it and explains it or answers the question. The page shows "📖 Reading
+  animals.py…". The file stays open in that chat for up to six follow-ups ("and what does speak return?") or 30
+  minutes; "thanks" closes it. Up to 12,000 characters are read (longer files say only the first part is shown),
+  the contents are treated as data, not instructions, and the file is never changed or run. A question about a
+  file never triggers a web search. Files that aren't text are explained as unreadable. This PC or an
+  administrator only, like writing and editing.
+- **Editing files** (version 0.38.3). "Add a speak method to animals.py" or `/editfile animals.py` with the changes
+  (on the same line, the next lines or the next message) has the AI edit a file in the files folder. "Improve
+  animals.py" (or "clean up", "refactor", "fix the bugs in") lets it use its own judgement: fixes, clarity and
+  brief comments, keeping what the file does. With no changes given it asks, with a ✨ Use your judgement button.
+  You see only the changed lines ("+" new, "-" removed) with **💾 Save changes**, **🔁 Change something else**
+  (building on the draft) and **✖ Cancel**; "yes" saves too. Saving keeps the old version in
+  `files/.versions/`, and **↩️ Undo** (or `/fileundo animals.py`) puts it back, one edit at a time. A file
+  changed by something else meanwhile isn't overwritten, and Windows line endings are kept. `/filehelp` covers it.
+- An edit or a new file starts only when you ask for one: the message has to begin with the action ("add…", "can
+  you add…", "please improve…") and name a file that's there, and a new file needs "file" or "script" (or a type,
+  as in "an html page"). Everyday messages like "add 5 and 7", "I'll add animals.py to GitHub later", "make a
+  workout program" or "save it as a surprise" go to the AI as usual.
+- **Asking for a file in plain words** (version 0.38.2). "Write a python file with a simple animal class" now works
+  without a command. BEYOND works out the file type and what should be in it, and asks a short follow-up for
+  whatever is missing: the kind of file (buttons for Python, Text, Markdown, JSON and HTML, or type any extension
+  or name) or what to write. The AI then writes only the file's contents, and BEYOND shows them with a suggested
+  name (animal.py) and **💾 Save**, **✏️ Different name**, **🔁 Change something** and **✖ Cancel**. "Yes", "save
+  it", "call it pets" and "cancel" work too. Nothing is saved until you say so, and saving follows /writefile's
+  rules (never overwrite: a taken name asks for another). "Save this as hello.py" saves the last answer as it is,
+  without asking the AI again. A waiting request expires after 15 minutes, and /cancelwrite cancels it. This PC
+  or an administrator only, like /writefile.
+  - `/writefile test.py` followed by a description ("Write a simple python class for different animal types"),
+    in the same message or the next one, now writes the code from it and shows the draft, instead of saving the
+    description itself. Contents that read as real text or code are still saved exactly as sent.
+  - `/filehelp` (also `/writehelp`) explains both ways to write files, with examples and a 📂 My files button.
+- **/writefile, ported from PromptetheusBot** (version 0.38.1). `/writefile hello.py` followed by the contents on
+  the next lines (or in your next message, within 10 minutes) saves a new UTF-8 text or code file in BEYOND's
+  `files/` folder (git-ignored). Plain filenames with an extension only: no folders, paths or Windows device names.
+  An existing file is never overwritten, nothing written is ever run, and files are at most 64 KB. The reply has a
+  ⬇ Download button. `/files` lists them, newest first, with downloads; `/cancelwrite` cancels a waiting
+  /writefile. The contents are never sent to the AI. Writing, listing and downloading files need this PC or a
+  device signed in as administrator, even with sign-in switched off.
+
+### Added
 - **Phase 38: sign-in for other devices** (version 0.38.0). With "Allow other devices" on, a phone or another
   computer now signs in with BEYOND's password before it can open any page or use the API. The PC BEYOND runs on
   never signs in.

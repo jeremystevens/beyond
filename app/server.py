@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field, StrictInt
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
                  https, memory, models, notes, notify, personas, ports, prompts, reminders, rules, search_history, settings)
 
-from app import auth, builtin_engine, downloads, photo_jobs, image_jobs, speech_jobs, blackjack, followups, games, hangman, study_quiz, tictactoe, trivia
+from app import auth, builtin_engine, downloads, file_reading, file_requests, files, photo_jobs, image_jobs, speech_jobs, blackjack, followups, games, hangman, study_quiz, tictactoe, trivia
 from app.tools import scan, speech, speech_to_text
 from app import diagnostics
 
@@ -533,6 +533,17 @@ def clear_downloads(request: Request):
     return _download_action(request, downloads.clear_finished)
 
 
+@app.get('/api/files/{name}')
+def download_file(name: str, request: Request):
+    """⬇ Download under a /writefile reply. Only plain filenames in the files folder; this PC or administrators."""
+    if not can_manage(request):
+        return only_this_pc()
+    path = files.download_path(name)
+    if path is None:
+        return JSONResponse({'error': 'That file is no longer in the files folder.'}, status_code=404)
+    return FileResponse(path, filename=path.name, media_type='application/octet-stream')
+
+
 @app.get('/search-history', include_in_schema=False)
 def search_history_page():
     return FileResponse(config.WEB_DIR / 'search-history.html')
@@ -626,7 +637,7 @@ async def chat(request: ChatRequest):
 
 
 @app.post('/api/chat/stream')
-async def chat_stream(body: SendRequest):
+async def chat_stream(body: SendRequest, request: Request):
     """Send one message in a saved chat (or start a new one) and get the reply as it's written: one JSON event per
     line ({"type": "chat" | "token" | "done" | "error", ...}). The question is saved straight away and the answer
     when it's finished; if the page disconnects (Stop), what was written so far is saved, marked as stopped, and the
@@ -637,8 +648,48 @@ async def chat_stream(body: SendRequest):
     new_chat = body.chat_id is None
     if not new_chat and not chats.exists(body.chat_id):
         return JSONResponse({'error': 'That chat no longer exists. Start a new one.'}, status_code=404)
+    # "Write a python file with a simple animal class": BEYOND asks for what's missing, drafts it, and saves on request.
+    file_plan = file_requests.plan(body.chat_id, content, can_manage(request))
+    if file_plan:
+        return _command_reply(body.chat_id, content, status=file_requests.status(file_plan),
+                              runner=lambda: file_requests.run(body.chat_id, file_plan))
     if content.startswith('/'):
+        command = commands.find(content[1:].split(None, 1)[0].split('@')[0]) if len(content) > 1 else None
+        if command and command.name in commands.ADMIN_ONLY and not can_manage(request):
+            return _command_reply(body.chat_id, content, prepared=commands.Reply(
+                f'/{command.name} only works on the PC BEYOND runs on, or on a device signed in as administrator.'))
+        if command and command.name == 'readfile' and content.partition(' ')[2].strip():
+            name = content.partition(' ')[2].strip().split()[0].strip('"\'')
+            if files.download_path(name) is None:
+                return _command_reply(body.chat_id, content, prepared=commands.Reply(
+                    f"There's no {name} in BEYOND's files folder. /files lists what's there.",
+                    [[commands.send_button('📂 My files', '/files')]]))
+            return _ai_answer(body, content, request, read=files.download_path(name).name)
+        if command and command.name == 'editfile' and content.partition(' ')[2].strip():
+            plan = file_requests.edit_command(content.partition(' ')[2])
+            return _command_reply(body.chat_id, content, status=file_requests.status(plan),
+                                  runner=lambda: file_requests.run(body.chat_id, plan))
+        if command and command.name == 'writefile':   # "/writefile test.py" + a description: write it from that
+            filename, _, described = content.partition(' ')[2].partition('\n')
+            if file_requests.looks_like_instruction(described):
+                try:
+                    name = files.check_filename(filename.strip()).name
+                except files.FileWriteError:
+                    pass   # /writefile explains the problem with the name
+                else:
+                    plan = file_requests.from_description(name, described.strip())
+                    return _command_reply(body.chat_id, content, status=file_requests.status(plan),
+                                          runner=lambda: file_requests.run(body.chat_id, plan))
         return _command_reply(body.chat_id, content)
+    # After "/writefile name.ext", the next message is that file's exact contents (not sent to the AI).
+    pending_file = files.waiting(body.chat_id) if body.chat_id is not None else None
+    if pending_file and can_manage(request):
+        files.take(body.chat_id)
+        if file_requests.looks_like_instruction(content):   # a description, not the contents: draft it first
+            plan = file_requests.from_description(pending_file, content)
+            return _command_reply(body.chat_id, content, status=file_requests.status(plan),
+                                  runner=lambda: file_requests.run(body.chat_id, plan))
+        return _command_reply(body.chat_id, content, prepared=commands.write_pending(pending_file, body.content))
     recalled = search_history.recall_request(content)
     if recalled is not None:
         return _command_reply(body.chat_id, content, run_as='/searchhistory ' + recalled)
@@ -661,6 +712,13 @@ async def chat_stream(body: SendRequest):
     if followup and followup['kind'] in ('fact','clarify','clarify_search'):
         reply = await asyncio.to_thread(followups.answer,followup)
         return _command_reply(body.chat_id, content, prepared=reply)
+    return _ai_answer(body, content, request, followup=followup)
+
+
+def _ai_answer(body, content, request, followup=None, read=''):
+    """Save the question and stream the AI's answer. A file named in the message (or given by /readfile, `read`),
+    or still open in this chat, is attached to the notes so the AI can read it (app/file_reading.py)."""
+    new_chat = body.chat_id is None
     chat_id = chats.create(content) if new_chat else body.chat_id
     question_id = chats.add_message(chat_id, 'user', content)
     values = settings.load()
@@ -674,9 +732,17 @@ async def chat_stream(body: SendRequest):
 
     opening = {'type': 'chat', 'id': chat_id, 'new': new_chat, 'title': chats.title_from(content)}
     extra = followup.get('notes','') if followup else ''
+    reading, file_notes, follow_up = file_reading.for_message(None if new_chat else chat_id, content,
+                                                              can_manage(request), named=read)
+    if reading:
+        if not follow_up:
+            file_reading.open_file(chat_id, reading)   # open for a few follow-up questions in this chat
+        extra ='\n\n'.join(part for part in (extra, file_notes) if part)
     return _answer(chat_id, history, _background(content, sent_ids, values,extra), opening, undo, question=content,
                    pickup=content if values['auto_facts'] else None,
-                   prior_context=followup['state'] if followup else None, suppress_auto=bool(followup))
+                   prior_context=followup['state'] if followup else None,
+                   suppress_auto=bool(followup) or bool(reading),
+                   status=f'📖 Reading {reading}…' if reading and not follow_up else '')
 
 
 def _background(question, sent_ids, values, extra=''):
@@ -688,7 +754,7 @@ def _background(question, sent_ids, values, extra=''):
 
 
 def _answer(chat_id, history, background, opening, undo, question=None, pickup=None, retry_of=None,
-            temperature=None, prior_context=None, suppress_auto=False):
+            temperature=None, prior_context=None, suppress_auto=False, status=''):
     """Stream an AI answer to the end of `history` and save it with 👍 👎 🔄 under it. If the page disconnects
     (Stop), what was written so far is saved, marked as stopped; if nothing was written at all, undo() runs.
     `question`: checked for an automatic lookup (weather, news, web) first, whose results go in the notes."""
@@ -706,6 +772,8 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
         writing = True
         try:
             yield json.dumps(opening) + '\n'
+            if status:
+                yield json.dumps({'type': 'status', 'text': status}) + '\n'
             notes = background
             if not found:
                 notes='\n\n'.join(part for part in (background,
@@ -861,7 +929,7 @@ def _start_speech(message_id, text=None):
         return {'state': 'error', 'error': str(exc), 'engine': '', 'truncated': False, 'url': ''}
 
 
-def _command_reply(chat_id, content, run_as=None, prepared=None, follow_action=None):
+def _command_reply(chat_id, content, run_as=None, prepared=None, follow_action=None, runner=None, status=''):
     """A /command: BEYOND answers it itself. Both are saved in the chat (so they're there when you come back) but
     marked as commands, so they're never sent to the AI. Same event stream as an AI answer, so the page needs no
     special handling. A new chat is created after the command runs, so it's named from the safe version of the
@@ -873,8 +941,15 @@ def _command_reply(chat_id, content, run_as=None, prepared=None, follow_action=N
             yield json.dumps({'type':'status','text':f'Checking {label}: {argument}…'}) + '\n'
         if content.split()[0].lower() == '/trivia':
             yield json.dumps({'type': 'status', 'text': 'Getting trivia ready…'}) + '\n'
+        if status:
+            yield json.dumps({'type': 'status', 'text': status}) + '\n'
         try:
-            reply = prepared if prepared is not None else await asyncio.to_thread(commands.run, run_as or content)
+            if prepared is not None:
+                reply = prepared
+            elif runner is not None:   # e.g. a file request: answered by BEYOND, maybe after asking the AI
+                reply = await asyncio.to_thread(runner)
+            else:
+                reply = await asyncio.to_thread(commands.run, run_as or content)
             if follow_action and follow_action['kind']=='weather_day':
                 reply = followups.weather_answer(reply,follow_action['day'])
         except Exception:   # a bug in one command shouldn't break the chat

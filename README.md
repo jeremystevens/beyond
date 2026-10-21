@@ -129,6 +129,8 @@ still arrive), and lets your other devices use it over a **secure address on you
 ━━ GAMES & TOOLS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ◆  Tic-tac-toe · trivia · an adaptive study quiz · blackjack · hangman · dice
 ◆  Calculator, unit converter, world clock, dictionary, Wikipedia, movies & TV, QR codes, jokes
+◆  Ask for a file in plain words ("write a python file with a simple animal class"): BEYOND asks what's
+   missing, drafts it, and saves it when you press Save (or use /writefile); never overwrites, never runs
 
 ━━ DESKTOP & DEVICES ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ◆  Lives in the Windows tray and can start with Windows
@@ -291,6 +293,33 @@ the chat but never sent to the AI.
 | `/qr` | A QR code for a link, text or Wi-Fi (the password stays hidden) | `/qr example.com` |
 | `/rewrite` | Rewrite a message in another tone | `/rewrite polite I can't come tomorrow` |
 | `/joke` · `/quote` · `/cat` | A joke, a quote, a cat fact | `/joke cats` |
+
+### Files
+
+| Command | What it does | Example |
+|---|---|---|
+| `/writefile` | Save a new text or code file in BEYOND's `files/` folder, with the contents on the next lines or in your next message. Never overwrites or runs a file; up to 64 KB | `/writefile hello.py` |
+| `/files` | The files written so far, with downloads | `/files` |
+| `/cancelwrite` | Cancel a /writefile that's waiting for its contents | `/cancelwrite` |
+| `/editfile` | Change a file: say what to change, or let BEYOND improve it. Shows the changes before saving | `/editfile animals.py` |
+| `/fileundo` | Put back the version from before a file's last edit | `/fileundo animals.py` |
+| `/readfile` | Have the AI read a file and explain it, or answer a question about it | `/readfile animals.py what does it do?` |
+| `/filehelp` | How to write, edit and read files, with examples (also `/writehelp`) | `/filehelp` |
+
+You can also just ask: **"write a python file with a simple animal class"**. BEYOND asks for anything that's
+missing (the kind of file, or what to put in it), has the AI write the contents, and shows them with a suggested
+name and **Save**, **Different name**, **Change something** and **Cancel**. Nothing is saved until you choose Save
+(or say "save it"). "Save this as hello.py" saves the last answer as it is.
+
+To change a file, ask: **"add a speak method to animals.py"**, or **"improve animals.py"** to let BEYOND use its own
+judgement. You see only the changed lines and choose **Save changes**, **Change something else** or **Cancel**; the
+old version is kept, and **Undo** (or `/fileundo`) puts it back.
+
+To have the AI read a file, just name it: **"what does animals.py do?"**, "read notes.md", "is there a bug in
+animals.py?". It explains the file or answers the question, and the file stays open in that chat for a few
+follow-ups ("and what does speak return?").
+
+These need this PC or a device signed in as administrator.
 
 ### Games
 
@@ -924,6 +953,7 @@ BEYOND's page talks to a small JSON API, which you can use from scripts too.
 |---|---|---|
 | `GET` | `/api/reminders/fired` | Reminders and briefings that arrived since a given message |
 | `GET` | `/api/expenses.csv` | An expense report as CSV |
+| `GET` | `/api/files/{name}` | Download a file written with /writefile (this PC or an administrator) |
 | `POST` | `/api/presence` · `/api/notify/test` | "I'm looking" (no popups) · send a test popup |
 | `GET` | `/api/https/certificate` | BEYOND's certificate, to trust it on other devices |
 
@@ -969,6 +999,9 @@ beyond/
 │   ├── models.py            ← Local model list, file sizes, switching and per-model profiles
 │   ├── downloads.py         ← Hugging Face downloads: fingerprints, resume, disk-space checks
 │   ├── auth.py              ← Sign-in for other devices: password hash, sessions, slowing down guesses
+│   ├── files.py             ← /writefile: safe filenames, never overwrite, the files/ folder
+│   ├── file_requests.py     ← "Write a python file with…" and edits: follow-up questions, drafts, diffs, Save
+│   ├── file_reading.py      ← "What does animals.py do?": the file is given to the AI to read
 │   ├── personality.md       ← BEYOND's short optimized default personality
 │   ├── prompts.py           ← Custom prompts, app contract, tool notes and AI improvement
 │   ├── personas.py          ← Normal, Professional, Sarcastic, Evil and Funny chat styles
@@ -1001,6 +1034,7 @@ beyond/
 ├── screenshots/             ← Images for this README
 ├── planning/                ← Pitch, brainstorm, the 43-phase plan and test checklists
 ├── models/                  ← Local GGUF chat models (git-ignored; subfolders supported)
+├── files/                   ← Files written from chat with /writefile (git-ignored)
 └── data/                    ← Your chats, settings, logs and certificates (git-ignored)
 ```
 
