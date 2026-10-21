@@ -20,12 +20,12 @@ things up, keeps you organised, reads photos, listens, talks back and plays game
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.143-d96326?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=0d1117)
 ![License](https://img.shields.io/badge/License-MIT-d96326?style=for-the-badge&labelColor=0d1117)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-d96326?style=for-the-badge&logo=windows&logoColor=white&labelColor=0d1117)
-![Version](https://img.shields.io/badge/Version-0.36.2-d96326?style=for-the-badge&labelColor=0d1117)
+![Version](https://img.shields.io/badge/Version-0.38.0-d96326?style=for-the-badge&labelColor=0d1117)
 
 ![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local-d96326?style=for-the-badge&logo=shield&logoColor=white&labelColor=0d1117)
 ![AI](https://img.shields.io/badge/AI-OpenAI--compatible%20%C2%B7%20llama.cpp-d96326?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117)
 ![Runs on](https://img.shields.io/badge/Runs%20on-CPU%20only-d96326?style=for-the-badge&logo=intel&logoColor=white&labelColor=0d1117)
-![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2035%20of%2043-d96326?style=for-the-badge&labelColor=0d1117)
+![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2038%20of%2043-d96326?style=for-the-badge&labelColor=0d1117)
 ![Status](https://img.shields.io/badge/Status-Active%20development-d96326?style=for-the-badge&labelColor=0d1117)
 
 </div>
@@ -681,6 +681,7 @@ devices select and tune models already added on the PC.
 | **Popups & tray** | Popups per kind, quiet hours, a test popup, **Start BEYOND with Windows**. |
 | **Port** | 7770 by default; ports other AI apps rely on, and ports already in use, are refused. |
 | **Allow other devices** | Off by default. When on, BEYOND lists its addresses and offers its certificate. |
+| **Sign-in** | Require other devices to sign in (on by default; switch it off if only you use your network), the sign-in password, a separate administrator password that lets another device change settings like this PC, and the signed-in devices with Sign out. This PC never signs in. |
 
 <a id="chat-prompt"></a>
 ### Chat prompt
@@ -876,6 +877,9 @@ BEYOND's page talks to a small JSON API, which you can use from scripts too.
 | Method | Endpoint | Description |
 |---|---|---|
 | `GET` | `/api/health` | BEYOND's version, phase and secure port |
+| `GET` · `POST` | `/login` · `/api/login` · `/api/logout` | Sign in or out on another device |
+| `GET` | `/api/auth/state` | Whether this device is signed in and a password is set |
+| `GET` · `POST` | `/api/auth` · `/api/auth/password` · `…/remove` · `…/sign-out-device` · `…/sign-out-all` | The password and signed-in devices (this PC only) |
 | `GET` | `/api/ai-status` | Whether the AI server is reachable, and its model |
 | `GET` | `/api/status` | PC resources, model state and configured service/port checks |
 | `GET` | `/api/status/speed` | Saved reply timings and averages by model; `limit=1–50` |
@@ -964,6 +968,7 @@ beyond/
 │   ├── builtin_engine.py    ← Starts, watches and stops the built-in llama.cpp engine
 │   ├── models.py            ← Local model list, file sizes, switching and per-model profiles
 │   ├── downloads.py         ← Hugging Face downloads: fingerprints, resume, disk-space checks
+│   ├── auth.py              ← Sign-in for other devices: password hash, sessions, slowing down guesses
 │   ├── personality.md       ← BEYOND's short optimized default personality
 │   ├── prompts.py           ← Custom prompts, app contract, tool notes and AI improvement
 │   ├── personas.py          ← Normal, Professional, Sarcastic, Evil and Funny chat styles
@@ -1023,7 +1028,11 @@ beyond/
    change general settings or add file paths. They can edit the chat prompt, choose a persona,
    edit house rules, load or tune models already listed on the Models page, and browse/delete
    lookup history.
-   There's no login yet (Phase 38), so keep it off on shared networks.
+   They sign in with BEYOND's password first (set in Settings → Sign-in). With no
+   password set, other devices can't use BEYOND at all. You can switch sign-in off
+   there if only you use your home network. A separate administrator password lets
+   a device change settings and download models like this PC; without it, those
+   stay on this PC.
 
 ⛨  The secure address (https://…:7771) uses BEYOND's own certificate authority. It's
    name-constrained to home-network addresses and this PC's name, so even if its key
@@ -1040,7 +1049,11 @@ beyond/
 
 <br>
 
-Turn on **Allow other devices on my network** in Settings and restart BEYOND. It then serves:
+First set a password in **Settings → Sign-in** on this PC. Then turn on **Allow other devices on my network** and restart BEYOND.
+Other devices sign in with that password once (tick **Keep me signed in** to stay signed in for 30 days).
+To change settings from your phone or a work laptop too, set an **administrator password** there as well and
+choose **Sign in as administrator** on that device. Over the internet, always use the `https://` address.
+BEYOND then serves:
 
 - `http://<this PC's address>:7770` for chatting, and
 - `https://<this PC's address>:7771`, the **secure address**, needed for the 🎤 microphone (browsers only allow it
@@ -1088,6 +1101,8 @@ BEYOND is being built in **43 small phases**, each one tested before the next. T
 | | | 34d · Optimized and custom chat prompts (ready to try) |
 | | | ✅ 35 · Model downloads |
 | | | ✅ 36 · Status and health |
+| | | 37 · Other AI servers (deferred) |
+| | | ✅ 38 · Sign-in and administrator access |
 
 </details>
 
@@ -1095,7 +1110,6 @@ BEYOND is being built in **43 small phases**, each one tested before the next. T
 
 ```
 ◇  Phase 37 — Other AI servers         first-class support for more AI servers
-◇  Phase 38 — Login                    accounts for safe use on shared networks
 ◇  Phase 39 — Setup script             one command to install everything
 ◇  Phase 40 — First-run setup          a guided welcome inside the app
 ◇  Phase 41 — Guide and licenses       a full user guide and every licence in one place

@@ -4,19 +4,20 @@ import base64
 import json
 import logging
 import re
+from urllib.parse import quote
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any, Literal
 
 from fastapi import FastAPI, Query, Request
-from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, StrictInt
 
 from app import (autostart, briefing, chats, checklists, commands, config, engine, expenses, learning, lookups,
                  https, memory, models, notes, notify, personas, ports, prompts, reminders, rules, search_history, settings)
 
-from app import builtin_engine, downloads, photo_jobs, image_jobs, speech_jobs, blackjack, followups, games, hangman, study_quiz, tictactoe, trivia
+from app import auth, builtin_engine, downloads, photo_jobs, image_jobs, speech_jobs, blackjack, followups, games, hangman, study_quiz, tictactoe, trivia
 from app.tools import scan, speech, speech_to_text
 from app import diagnostics
 
@@ -168,6 +169,25 @@ async def always_check_for_updates(request: Request, call_next):
     response = await call_next(request)
     response.headers.setdefault('Cache-Control', 'no-cache')
     return response
+
+
+@app.middleware('http')
+async def require_sign_in(request: Request, call_next):
+    """Phase 38: every device except this PC signs in before it can open a page or use the API (app/auth.py)."""
+    if is_this_pc(request):
+        return await call_next(request)
+    if request.method not in ('GET', 'HEAD', 'OPTIONS') and not auth.same_site(request.headers.get('origin'),
+                                                                                request.headers.get('host')):
+        return JSONResponse({'error': 'Requests from other websites are not allowed.'}, status_code=403)
+    if not auth.needs_sign_in(request.url.path) or not settings.load()['require_sign_in']:
+        return await call_next(request)   # an open page, or sign-in is switched off in Settings
+    session = await asyncio.to_thread(auth.check, request.cookies.get(auth.COOKIE))
+    if session:
+        return await call_next(request)
+    if request.url.path.startswith('/api/'):
+        return JSONResponse({'error': 'Sign in to BEYOND first.', 'sign_in': True}, status_code=401)
+    target = request.url.path + (('?' + request.url.query) if request.url.query else '')
+    return RedirectResponse('/login?next=' + quote(target, safe=''), status_code=303)
 # Filled in by beyond.py when the server starts (port and address in use, and the server, for restarts).
 app.state.running = {'host': config.LOCAL_ONLY_HOST, 'port': config.WEB_PORT, 'allow_network': False}
 app.state.server = None
@@ -213,9 +233,146 @@ def is_this_pc(request: Request):
     return bool(request.client) and request.client.host in ('127.0.0.1', '::1', 'localhost')
 
 
+def can_manage(request: Request):
+    """This PC, or a device signed in as administrator (Phase 38), may change settings, downloads and file paths."""
+    return is_this_pc(request) or auth.is_admin(request.cookies.get(auth.COOKIE))
+
+
 def only_this_pc():
-    return JSONResponse({'error': 'Settings can only be changed on the PC BEYOND runs on, at '
-                                  'http://127.0.0.1 (not from another device).'}, status_code=403)
+    return JSONResponse({'error': 'This can only be changed on the PC BEYOND runs on, or on a device signed in as '
+                                  'administrator.'}, status_code=403)
+
+
+# ---------- signing in (Phase 38) ----------
+
+class SignIn(BaseModel):
+    model_config = {'extra': 'forbid'}
+    password: str = Field(max_length=auth.MAX_LENGTH)
+    remember: bool = True
+    admin: bool = False
+
+
+class NewPassword(BaseModel):
+    model_config = {'extra': 'forbid'}
+    new: str = Field(max_length=auth.MAX_LENGTH)
+    current: str = Field('', max_length=auth.MAX_LENGTH)
+    role: Literal['user', 'admin'] = 'user'
+
+
+class CurrentPassword(BaseModel):
+    model_config = {'extra': 'forbid'}
+    current: str = Field('', max_length=auth.MAX_LENGTH)
+    role: Literal['user', 'admin'] = 'user'
+
+
+class SignedInDevice(BaseModel):
+    model_config = {'extra': 'forbid'}
+    id: str = Field(min_length=12, max_length=12, pattern=r'^[a-f0-9]+$')
+
+
+def _safe_next(target):
+    """Only a page of BEYOND itself, never another website."""
+    return target if target.startswith('/') and not target.startswith('//') and '\\' not in target else '/'
+
+
+@app.get('/login', include_in_schema=False)
+def login_page(request: Request, next: str = Query('/', max_length=2000), admin: bool = False):
+    if can_manage(request) or (not admin and (not settings.load()['require_sign_in']
+                                              or auth.check(request.cookies.get(auth.COOKIE)))):
+        return RedirectResponse(_safe_next(next), status_code=303)
+    return FileResponse(config.WEB_DIR / 'login.html')
+
+
+@app.get('/api/auth/state')
+def sign_in_state(request: Request):
+    local = is_this_pc(request)
+    required = settings.load()['require_sign_in']
+    signed_in = local or not required or bool(auth.check(request.cookies.get(auth.COOKIE)))
+    secure = app.state.running.get('https_port')
+    host = (request.url.hostname or '').strip('[]')
+    return {'local': local, 'signed_in': signed_in, 'required': required, 'password_set': auth.has_password(),
+            'admin': can_manage(request), 'admin_set': auth.has_password('admin'),
+            'secure': request.url.scheme == 'https',
+            'secure_url': f'https://{host}:{secure}/login' if secure and request.url.scheme != 'https' else ''}
+
+
+@app.post('/api/login')
+def sign_in(body: SignIn, request: Request):
+    address = request.client.host if request.client else ''
+    try:
+        key, max_age = auth.sign_in(body.password, address, auth.device_name(request.headers.get('user-agent')),
+                                    body.remember, admin=body.admin)
+    except auth.AuthError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=exc.status)
+    logging.info('Sign-in: %s signed in%s from %s', auth.device_name(request.headers.get('user-agent')),
+                 ' as administrator' if body.admin else '', address)
+    response = JSONResponse({'ok': True})
+    response.set_cookie(auth.COOKIE, key, max_age=max_age, httponly=True, samesite='lax', path='/',
+                        secure=request.url.scheme == 'https')
+    return response
+
+
+@app.post('/api/logout')
+def sign_out(request: Request):
+    auth.sign_out(request.cookies.get(auth.COOKIE))
+    response = JSONResponse({'ok': True})
+    response.delete_cookie(auth.COOKIE, path='/')
+    return response
+
+
+@app.get('/api/auth')
+def sign_in_settings(request: Request):
+    """Settings → Sign-in. This PC and administrators see the passwords' state and the signed-in devices; another
+    device only learns whether sign-in is on and an administrator password exists."""
+    required = settings.load()['require_sign_in']
+    if not can_manage(request):
+        return {'local': False, 'manage': False, 'password_set': True, 'admin_set': auth.has_password('admin'),
+                'devices': [], 'required': required}
+    return {'local': is_this_pc(request), 'manage': True, 'required': required,
+            **auth.view(request.cookies.get(auth.COOKIE))}
+
+
+def _auth_action(request, function, *args):
+    if not can_manage(request):
+        return JSONResponse({'error': 'The passwords and signed-in devices can only be managed on the PC BEYOND runs '
+                                      'on, or by an administrator.'}, status_code=403)
+    try:
+        function(*args)
+    except auth.AuthError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=exc.status)
+    return {'local': is_this_pc(request), 'manage': True, 'required': settings.load()['require_sign_in'],
+            **auth.view(request.cookies.get(auth.COOKIE))}
+
+
+@app.post('/api/auth/password')
+def set_password(body: NewPassword, request: Request):
+    return _auth_action(request, auth.set_password, body.new, body.current, body.role)
+
+
+@app.post('/api/auth/remove')
+def remove_password(body: CurrentPassword, request: Request):
+    return _auth_action(request, auth.remove_password, body.current, body.role)
+
+
+@app.post('/api/auth/sign-out-device')
+def sign_out_device(body: SignedInDevice, request: Request):
+    return _auth_action(request, auth.sign_out_device, body.id)
+
+
+@app.post('/api/auth/sign-out-all')
+def sign_out_everywhere(request: Request):
+    return _auth_action(request, auth.sign_out_all)
+
+
+class SignInSwitch(BaseModel):
+    model_config = {'extra': 'forbid'}
+    required: bool
+
+
+@app.post('/api/auth/required')
+def switch_sign_in(body: SignInSwitch, request: Request):
+    """Settings → Sign-in → "Require other devices to sign in", saved straight away."""
+    return _auth_action(request, lambda: settings.save({'require_sign_in': body.required}))
 
 
 # ---------- pages ----------
@@ -266,7 +423,7 @@ def _model_action(function, *args):
 def get_models(request: Request):
     result = _model_action(models.view)
     if isinstance(result, dict):
-        result['can_add'] = is_this_pc(request)
+        result['can_add'] = can_manage(request)
     return result
 
 
@@ -289,7 +446,7 @@ def save_model_profile(body: ModelProfile):
 
 @app.post('/api/models/register')
 def register_model(body: ModelPath, request: Request):
-    if not is_this_pc(request):
+    if not can_manage(request):
         return only_this_pc()
     return _model_action(models.register, body.path)
 
@@ -317,7 +474,7 @@ class DownloadJob(BaseModel):
 
 
 def _download_action(request, function, *args):
-    if not is_this_pc(request):
+    if not can_manage(request):
         return JSONResponse({'error': 'Downloads can only be started or changed on the PC BEYOND runs on.'},
                             status_code=403)
     try:
@@ -333,12 +490,12 @@ def _download_action(request, function, *args):
 
 @app.get('/api/downloads')
 def get_downloads(request: Request):
-    return {**downloads.view(), 'can_download': is_this_pc(request)}
+    return {**downloads.view(), 'can_download': can_manage(request)}
 
 
 @app.get('/api/downloads/browse')
 def browse_downloads(request: Request, repo: str = Query(min_length=1, max_length=300)):
-    if not is_this_pc(request):
+    if not can_manage(request):
         return only_this_pc()
     try:
         return downloads.browse(repo)
@@ -794,7 +951,7 @@ class PopupTest(BaseModel):
 @app.post('/api/notify/test')
 def test_popup(body: PopupTest, request: Request):
     """"Send a test popup" on the Settings page. Shown even while you're looking, so you can see it."""
-    if not is_this_pc(request):
+    if not can_manage(request):
         return only_this_pc()
     examples = {'reply': ('BEYOND replied', 'This is what a popup looks like when an answer is ready.'),
                 'reminder': ('⏰ Reminder', 'This is what a reminder popup looks like.'),
@@ -983,7 +1140,7 @@ def _settings_view(request, values=None):
         'running': running,
         'restart_needed': [key for key in config.RESTART_SETTINGS if values[key] != running[key.replace('web_', '')]],
         'network_addresses': [{'adapter': a, 'address': ip} for a, ip in ports.network_addresses()],
-        'can_change': is_this_pc(request),
+        'can_change': can_manage(request),
     }
 
 
@@ -1061,7 +1218,7 @@ def save_persona(body: PersonaChoice):
 
 @app.post('/api/settings')
 def save_settings(body: SettingsChanges, request: Request):
-    if not is_this_pc(request):
+    if not can_manage(request):
         return only_this_pc()
     try:
         cleaned = settings.validate(body.changes)
@@ -1085,7 +1242,7 @@ def save_settings(body: SettingsChanges, request: Request):
 
 @app.post('/api/settings/reset')
 def reset_settings(request: Request):
-    if not is_this_pc(request):
+    if not can_manage(request):
         return only_this_pc()
     if autostart.is_on():
         autostart.apply(False)
@@ -1094,7 +1251,7 @@ def reset_settings(request: Request):
 
 @app.post('/api/settings/test')
 async def test_connection(body: ConnectionTest, request: Request):
-    if not is_this_pc(request):
+    if not can_manage(request):
         return only_this_pc()
     try:
         url = settings.validate({'ai_server_url': body.ai_server_url})['ai_server_url']
@@ -1106,7 +1263,7 @@ async def test_connection(body: ConnectionTest, request: Request):
 @app.post('/api/engine/restart')
 def restart_engine(request: Request):
     """Settings → Restart engine: start the built-in engine again (also after it gave up following crashes)."""
-    if not is_this_pc(request):
+    if not can_manage(request):
         return only_this_pc()
     if settings.load()['ai_mode'] != 'builtin':
         return JSONResponse({'error': 'The built-in engine is not chosen.'}, status_code=409)
@@ -1118,7 +1275,7 @@ def restart_engine(request: Request):
 @app.post('/api/restart')
 async def restart(request: Request):
     """Restart BEYOND so a new port or network setting takes effect (beyond.py starts it again)."""
-    if not is_this_pc(request):
+    if not can_manage(request):
         return only_this_pc()
     if app.state.server is None:
         return JSONResponse({'error': 'BEYOND was not started with beyond.py, so it can\'t restart itself.'},
@@ -1126,4 +1283,11 @@ async def restart(request: Request):
     values = settings.load()
     app.state.restart_requested = True
     asyncio.get_running_loop().call_later(0.5, setattr, app.state.server, 'should_exit', True)   # after replying
-    return {'url': f"http://127.0.0.1:{values['web_port']}/settings"}
+    if is_this_pc(request):
+        return {'url': f"http://127.0.0.1:{values['web_port']}/settings"}
+    # An administrator on another device comes back the way it came (the secure address is the port after).
+    secure = request.url.scheme == 'https'
+    host = request.url.hostname or '127.0.0.1'
+    host = f'[{host}]' if ':' in host else host
+    port = values['web_port'] + (config.HTTPS_PORT_OFFSET if secure else 0)
+    return {'url': f"{'https' if secure else 'http'}://{host}:{port}/settings"}

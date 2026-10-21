@@ -48,7 +48,7 @@ button:disabled { opacity: 0.5; cursor: default; }
          font-weight: 500; font-size: 0.85rem; border-radius: 10px; }
 .ghost:hover { border-color: var(--accent); }
 button.stop { background: var(--bad); }
-input[type=text], input[type=number], textarea {
+input[type=text], input[type=number], input[type=password], textarea {
   padding: 10px 12px; border-radius: 12px; font: inherit; color: var(--text); background: var(--bg);
   border: 1px solid var(--border);
 }
@@ -57,7 +57,7 @@ input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 
 /* ---------- phones and tablets ---------- */
 @media (max-width: 760px) {
   /* 16px or more stops iPhones from zooming in when you tap a text box */
-  input[type=text], input[type=number], textarea { font-size: 16px; }
+  input[type=text], input[type=number], input[type=password], textarea { font-size: 16px; }
 }
 @media (max-width: 520px) {
   .brand { letter-spacing: 0.1em; }

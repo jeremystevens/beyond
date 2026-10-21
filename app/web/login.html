@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#f6f4f1" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#141210" media="(prefers-color-scheme: dark)">
+  <meta name="robots" content="noindex">
+  <title>Sign in to BEYOND</title>
+  <link rel="stylesheet" href="/static/style.css?v=4">
+  <script src="/static/app-height.js?v=3" defer></script>
+  <style>
+    main { flex: 1; min-height: 0; overflow-y: auto; display: grid; place-items: center;
+      padding: 24px max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+    .card { width: min(100%, 420px); background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+      padding: 28px 24px; display: grid; gap: 16px; }
+    h1 { margin: 0; font-size: 1.4rem; }
+    p { margin: 0; line-height: 1.5; color: var(--muted); }
+    label { display: grid; gap: 6px; font-weight: 600; font-size: .9rem; }
+    input[type=password] { width: 100%; min-height: 48px; font: inherit; font-size: 16px; padding: 10px 12px;
+      color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 12px; }
+    .check { display: flex; align-items: center; gap: 10px; font-weight: 500; }
+    .check input { width: 22px; height: 22px; accent-color: var(--accent); }
+    button { min-height: 48px; font-size: 1rem; }
+    .notice { padding: 12px 14px; border-radius: 12px; line-height: 1.5; font-size: .92rem; }
+    .notice.bad { background: var(--error-bg); color: var(--bad); }
+    .notice.warn { background: var(--warn-bg); }
+    .notice a { color: var(--accent); }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <header><span class="brand">BEYOND</span></header>
+  <main>
+    <form class="card" id="form" novalidate>
+      <h1 id="title">Sign in</h1>
+      <p id="intro">Enter BEYOND's password to use it on this device.</p>
+      <div class="notice warn" id="insecure" hidden>This address isn't encrypted, so your password could be seen on the
+        network. <a id="secureLink" href="#">Use the secure address</a> instead.</div>
+      <div class="notice warn" id="noPassword" hidden>BEYOND has no password yet. On the PC running BEYOND, open
+        Settings → Sign-in and set one, then come back here.</div>
+      <label for="password">Password<input id="password" type="password" autocomplete="current-password"
+        maxlength="200" required autofocus></label>
+      <label class="check"><input type="checkbox" id="remember" checked>Keep me signed in on this device</label>
+      <div class="notice bad" id="error" role="alert" hidden></div>
+      <button type="submit" id="submit">Sign in</button>
+      <p class="small"><a id="switchMode" href="#" style="color:var(--accent)">Sign in as administrator</a></p>
+    </form>
+  </main>
+  <script src="/static/login.js?v=1" defer></script>
+</body>
+</html>

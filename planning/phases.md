@@ -427,7 +427,7 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 
 ## Stage G: Ready to share
 
-### Phase 38: Login
+### Phase 38: Login (implemented 2026-10-20)
 - A simple password or login for when network access is on.
 - **Done when:** another device must sign in before it can chat.
 

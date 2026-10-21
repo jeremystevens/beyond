@@ -6,8 +6,8 @@ which is never committed and only holds what differs from these defaults, so a n
 """
 from pathlib import Path
 
-VERSION = '0.36.2'
-PHASE = 36
+VERSION = '0.38.0'
+PHASE = 38
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / 'data'                          # settings, chats, logs: created at runtime, git-ignored
@@ -81,8 +81,11 @@ DEFAULTS = {
     'speech_piper_model': '',
     # The port BEYOND's page is on.
     'web_port': WEB_PORT,
-    # Let phones and other computers on your network open BEYOND. Off by default: there's no login yet (Phase 38).
+    # Let phones and other computers on your network open BEYOND. Off by default; they sign in first (app/auth.py).
     'allow_network': False,
+    # Other devices sign in with BEYOND's password first (Phase 38). On by default; turn it off if only you use your
+    # home network. This PC never signs in either way.
+    'require_sign_in': True,
     # Notice lasting facts you mention about yourself and save them ("🧠 Noted for next time"). Uses the AI once more
     # after a personal-sounding message.
     'auto_facts': True,
@@ -101,7 +104,7 @@ DEFAULTS = {
     # Start BEYOND (in the tray) when you sign in to Windows.
     'start_with_windows': False,
 }
-BOOLEAN_SETTINGS = ('custom_prompt_enabled', 'persona_enabled', 'engine_enabled', 'engine_thinking', 'speech_enabled', 'speech_auto', 'image_enabled', 'vision_enabled', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
+BOOLEAN_SETTINGS = ('custom_prompt_enabled', 'persona_enabled', 'engine_enabled', 'engine_thinking', 'speech_enabled', 'speech_auto', 'image_enabled', 'vision_enabled', 'allow_network', 'require_sign_in', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
                     'popup_errors', 'start_with_windows')
 TIME_SETTINGS = ('quiet_start', 'quiet_end')
 RESTART_SETTINGS = ('web_port', 'allow_network')   # these only take effect after BEYOND restarts

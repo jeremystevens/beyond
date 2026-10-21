@@ -7,6 +7,7 @@
   <meta name="theme-color" content="#141210" media="(prefers-color-scheme: dark)">
   <title>BEYOND Settings</title>
   <link rel="stylesheet" href="/static/style.css?v=4">
+  <script src="/static/auth.js?v=1"></script>
   <script src="/static/app-height.js?v=3" defer></script>
   <style>
     html, body { overflow: hidden; overscroll-behavior: none; }
@@ -91,7 +92,7 @@
 
     <div class="banner warn" id="viewOnly" hidden>
       You're on another device. Persona, chat prompt and house rules can be changed here; engine, network and other general
-      settings can only be changed on the PC BEYOND runs on.
+      settings can only be changed on the PC BEYOND runs on, or after signing in as administrator (see Sign-in below).
     </div>
     <div class="banner warn" id="restartBanner" hidden>
       <span id="restartText">Restart BEYOND for the new port or network setting to take effect.</span>
@@ -371,11 +372,69 @@
       <label class="switch">
         <input type="checkbox" id="allow_network">
         <span><b>Allow other devices on my network</b>
-          <span class="small">Lets your phone or another computer at home open BEYOND. Leave it off on shared
-            networks (work, school, shared Wi-Fi): there's no login yet. Other devices can chat, choose a persona,
+          <span class="small">Lets your phone or another computer at home open BEYOND. They sign in with the
+            password under Sign-in below first. Other devices can chat, choose a persona,
             edit house rules and manage listed models; engine paths and general settings stay on this PC.</span></span>
       </label>
       <div class="addresses" id="addresses" hidden></div>
+    </section>
+
+    <section id="signInBox" aria-labelledby="signInHeading">
+      <h2 id="signInHeading">Sign-in</h2>
+      <p class="hint">Other devices (your phone, a work laptop) sign in before they can use BEYOND; this PC never
+        needs to. There are two passwords: the <b>sign-in password</b> for using BEYOND, and the <b>administrator
+        password</b>, which also lets a device do what only this PC can: change settings, download models and manage
+        sign-in.</p>
+      <div id="signInManage" hidden>
+        <label class="switch"><input type="checkbox" id="requireSignIn"><span><b>Require other devices to sign in</b>
+          <span class="small">Saved straight away. Turn it off if only you use your network: other devices then open
+            BEYOND without a password. The administrator sign-in still works either way.</span></span></label>
+        <div class="pw-block">
+          <h3 style="font-size:.95rem;margin:18px 0 2px">Sign-in password</h3>
+          <p class="small" id="userState"></p>
+          <p class="small">For everyone who uses BEYOND from another device. Changing or removing it signs those devices out.</p>
+          <label for="userCurrent" id="userCurrentLabel">Current sign-in password
+            <input type="password" id="userCurrent" autocomplete="current-password" maxlength="200" style="width:100%"></label>
+          <label for="userNew">New sign-in password <span class="small">(at least 8 characters)</span>
+            <input type="password" id="userNew" autocomplete="new-password" maxlength="200" style="width:100%"></label>
+          <label for="userAgain">New sign-in password again
+            <input type="password" id="userAgain" autocomplete="new-password" maxlength="200" style="width:100%"></label>
+          <div class="row" style="margin-top:12px">
+            <button type="button" id="userSave">Set password</button>
+            <button type="button" class="ghost" id="userRemove" hidden>Remove password</button>
+          </div>
+          <div class="result" id="userResult" role="status" aria-live="polite"></div>
+        </div>
+
+        <div class="pw-block">
+          <h3 style="font-size:.95rem;margin:18px 0 2px">Administrator password</h3>
+          <p class="small" id="adminState"></p>
+          <p class="small">For you, to change settings from another device. Use a different, strong password. Administrator sign-ins last up to 7 days.</p>
+          <label for="adminCurrent" id="adminCurrentLabel">Current administrator password
+            <input type="password" id="adminCurrent" autocomplete="current-password" maxlength="200" style="width:100%"></label>
+          <label for="adminNew">New administrator password <span class="small">(at least 8 characters)</span>
+            <input type="password" id="adminNew" autocomplete="new-password" maxlength="200" style="width:100%"></label>
+          <label for="adminAgain">New administrator password again
+            <input type="password" id="adminAgain" autocomplete="new-password" maxlength="200" style="width:100%"></label>
+          <div class="row" style="margin-top:12px">
+            <button type="button" id="adminSave">Set password</button>
+            <button type="button" class="ghost" id="adminRemove" hidden>Remove password</button>
+          </div>
+          <div class="result" id="adminResult" role="status" aria-live="polite"></div>
+        </div>
+
+        <label>Signed-in devices</label>
+        <ul class="rules" id="devices"></ul>
+        <p class="small" id="noDevices">No other devices are signed in.</p>
+        <button type="button" class="ghost" id="signOutAll" hidden>Sign out all devices</button>
+      </div>
+      <div id="signInRemote" hidden>
+        <p class="small" id="remoteState">This device is signed in.</p>
+        <div class="row">
+          <a class="ghost button" id="adminSignIn" href="/login?admin=1&amp;next=%2Fsettings" hidden>Sign in as administrator</a>
+          <button type="button" class="ghost" id="signOutHere">Sign out on this device</button>
+        </div>
+      </div>
     </section>
 
     <div class="actions">
@@ -793,6 +852,74 @@
     }
     $('addRule').onclick = addRule;
     $('newRule').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addRule(); } });
+
+    // ---------- sign-in for other devices and administrators (Phase 38) ----------
+    const ROLE_SET = { user: 'password_set', admin: 'admin_set' };
+    function showSignIn(state) {
+      const manage = state.manage ?? state.local;
+      $('signInManage').hidden = !manage;
+      $('signInRemote').hidden = state.local;
+      $('remoteState').textContent = manage ? 'This device is signed in as administrator: it can change everything here.'
+        : state.required ? 'This device is signed in. Sign in as administrator to change settings.'
+        : 'Sign-in is off on this BEYOND. Sign in as administrator to change settings.';
+      $('adminSignIn').hidden = manage || !state.admin_set;
+      $('signOutHere').hidden = !manage && !state.required;
+      if (!manage) return;
+      $('requireSignIn').checked = state.required;
+      for (const role of ['user', 'admin']) {
+        const set = state[ROLE_SET[role]];
+        $(role + 'State').textContent = role === 'admin'
+          ? (set ? 'An administrator password is set.' : 'No administrator password: settings can only be changed on this PC.')
+          : !state.required ? 'Sign-in is off, so other devices can use BEYOND without this password.'
+          : set ? 'A sign-in password is set.' : "No sign-in password is set, so other devices can't use BEYOND.";
+        $(role + 'CurrentLabel').hidden = !set;
+        $(role + 'Save').textContent = set ? 'Change password' : 'Set password';
+        $(role + 'Remove').hidden = !set;
+      }
+      const list = $('devices');
+      list.replaceChildren();
+      for (const device of state.devices) {
+        const li = document.createElement('li'), row = document.createElement('span'), text = document.createElement('span');
+        const used = new Date(device.used * 1000);
+        text.textContent = (device.role === 'admin' ? 'Administrator · ' : '') +
+          `${device.device} · ${device.address} · last used ${used.toLocaleString()}` + (device.this ? ' · this device' : '');
+        const out = document.createElement('button');
+        out.type = 'button'; out.className = 'ghost remove'; out.textContent = 'Sign out';
+        out.ariaLabel = 'Sign out ' + device.device;
+        out.onclick = () => signInAction('/api/auth/sign-out-device', { id: device.id }, 'Signed out.', 'user');
+        row.append(text, out); li.append(row); list.append(li);
+      }
+      $('noDevices').hidden = state.devices.length > 0;
+      $('signOutAll').hidden = !state.devices.length;
+    }
+    async function signInAction(url, body, success, role) {
+      const out = $((role || 'user') + 'Result');
+      try {
+        showSignIn(await call(url, body));
+        out.textContent = success;
+        for (const r of ['user', 'admin']) for (const f of ['Current', 'New', 'Again']) $(r + f).value = '';
+      } catch (e) { out.textContent = e.message; }
+    }
+    for (const role of ['user', 'admin']) {
+      const name = role === 'admin' ? 'administrator password' : 'sign-in password';
+      $(role + 'Save').onclick = () => {
+        if ($(role + 'New').value !== $(role + 'Again').value) { $(role + 'Result').textContent = "The two new passwords don't match."; return; }
+        signInAction('/api/auth/password', { new: $(role + 'New').value, current: $(role + 'Current').value, role },
+          role === 'admin' ? 'Administrator password saved.' : 'Password saved. Other devices sign in with it now.', role);
+      };
+      $(role + 'Remove').onclick = () => {
+        if (!confirm(`Remove the ${name}? Devices signed in with it will be signed out.`)) return;
+        signInAction('/api/auth/remove', { current: $(role + 'Current').value, role }, `The ${name} is removed.`, role);
+      };
+    }
+    $('requireSignIn').onchange = () => signInAction('/api/auth/required', { required: $('requireSignIn').checked },
+      $('requireSignIn').checked ? 'Sign-in is on. Other devices sign in with the password.' : 'Sign-in is off.', 'user');
+    $('signOutAll').onclick = () => signInAction('/api/auth/sign-out-all', undefined, 'Every other device is signed out.', 'user');
+    $('signOutHere').onclick = async () => {
+      await fetch('/api/logout', { method: 'POST' }).catch(() => {});
+      location.href = '/login';
+    };
+    fetch('/api/auth').then(r => r.json()).then(showSignIn).catch(() => {});
 
     fetch('/api/settings').then(r => r.json()).then(fill).catch(() => show('bad', 'BEYOND is not responding.'));
     api('/api/rules').then(showRules).catch(() => {});

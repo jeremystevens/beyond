@@ -6,6 +6,33 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 38: sign-in for other devices** (version 0.38.0). With "Allow other devices" on, a phone or another
+  computer now signs in with BEYOND's password before it can open any page or use the API. The PC BEYOND runs on
+  never signs in.
+  - **Settings → Sign-in** (this PC only) sets, changes or removes the password (at least 8 characters) and lists
+    the signed-in devices ("Chrome on Android · 192.168.1.50 · last used …"), each with Sign out, plus Sign out all.
+    Changing or removing the password signs every device out. Another device sees "Sign out on this device".
+  - With **no password set**, other devices can't use BEYOND at all and are told to set one on the PC, so turning
+    network access on can't leave it open by accident.
+  - **Administrator sign-in:** a second, different password lets a device (a phone, a work laptop) do what only
+    this PC could: change Settings, download models, add file paths and manage sign-in. It's on the sign-in page
+    as "Sign in as administrator", and in Settings → Sign-in on a signed-in device. Administrator sign-ins last up
+    to 7 days. Each password signs out only the devices that used it when it changes. After a restart from
+    another device, Settings comes back on that device's address instead of 127.0.0.1.
+  - **Require other devices to sign in** (on by default) switches the whole feature off or on, saved straight away.
+    Off, other devices open BEYOND without a password as before; this-PC-only settings and the refusal of requests
+    from other websites still apply.
+  - A **sign-in page** (`/login`) with "Keep me signed in on this device" (30 days, renewed while used; otherwise
+    12 hours and gone when the browser closes). It returns you to the page you were opening. On the plain
+    `http://` address it warns that the password isn't encrypted and links to the secure address.
+  - **Safety:** only a salted scrypt hash of the password is stored, and only a SHA-256 of each session key, in
+    `data/auth.json`. The session cookie is HttpOnly and SameSite=Lax (and Secure on https). Wrong passwords are
+    slowed down per device after five tries, up to five minutes. Requests from other websites are refused. The
+    sign-in page only returns you to BEYOND's own pages.
+  - If a device's sign-in ends while a page is open (signed out, password changed or expired), the page goes to
+    the sign-in page instead of showing errors.
+
+### Added
 - **Error diagnosis** (version 0.36.1). Recent errors now has a Diagnose button. BEYOND gathers current health
   evidence and asks the loaded AI for likely causes, evidence and suggested next steps, with a progress message.
   Basic troubleshooting remains available when the AI is busy, unavailable or fails; no model is started for it.
