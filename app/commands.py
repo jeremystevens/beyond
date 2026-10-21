@@ -1034,7 +1034,38 @@ def _help(args=''):
     return '\n'.join(lines)
 
 
+
+def _speed(args):
+    from app import diagnostics
+    if args and (not args.isdigit() or not 1 <= int(args) <= 50):
+        return 'Use /speed or /speed <1–50> to see saved reply timings.'
+    data=diagnostics.speed_history(int(args or '10'))
+    if not data['items']:
+        return 'No saved reply timings yet. They appear after an AI answer is saved. Open Settings → Status and health.'
+    lines=['Recent AI reply timings (newest first):']
+    for row in data['items']:
+        lines.append(f"{row['at']} · {row['model']} · {row['tokens']} tokens · {row['seconds']:.1f}s total · {row['speed']:.2f} t/s")
+    lines.append('\nWriting speed excludes prompt processing. Total time includes the wait before writing. No benchmark was run.')
+    lines.append('For live status and graphs, open Settings → Status and health.')
+    return '\n'.join(lines)
+
+
+def _selftest(args):
+    import asyncio
+    from app import diagnostics
+    if args:
+        return 'Use /selftest with no arguments. It checks services and files without generating an AI answer or restarting anything.'
+    report=asyncio.run(diagnostics.self_test())
+    lines=['BEYOND self-test: '+report['summary']]
+    for check in report['checks']:
+        lines.append(f"{check['state'].upper()} · {check['name']}: {check['detail']}")
+    lines.append('\nConnections, settings and existing files only. No inference, downloads or restarts.')
+    return '\n'.join(lines)
+
 COMMANDS = [
+    Command('speed', 'Recent saved AI reply timings; no benchmark is generated', '/speed 10', _speed, group='Help'),
+    Command('selftest', 'Check BEYOND services, settings, database and files without restarting anything',
+            '/selftest', _selftest, group='Help'),
     Command('trivia', 'Play category/difficulty trivia; /trivia score shows points, accuracy and streaks',
             '/trivia science hard', _trivia, group='Games'),
     Command('tictactoe', 'Play Easy, Normal or Impossible (never loses); /tictactoe stats shows your record',

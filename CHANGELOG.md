@@ -6,6 +6,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Error diagnosis** (version 0.36.1). Recent errors now has a Diagnose button. BEYOND gathers current health
+  evidence and asks the loaded AI for likely causes, evidence and suggested next steps, with a progress message.
+  Basic troubleshooting remains available when the AI is busy, unavailable or fails; no model is started for it.
+  Only fixed summaries and allowlisted health facts are sent to the configured AI server, without chat history,
+  custom prompts, raw logs, credentials or file paths. One diagnosis runs at a time with a two-minute AI limit.
+  No automatic repairs or settings changes are performed; results are shown on the page rather than saved in chat.
+- **Simulated error for testing.** Add test error creates one clearly marked fake AI timeout without failing a
+  service; Clear test errors removes only this category. Both controls and diagnosis results work on phones.
+- Jeremy confirmed the Phase 36 Status page opens and all available self-test checks report ready.
+  He also tested AI diagnosis with the simulated entry and confirmed the real low-memory warning is shown correctly.
+
 - **Phase 35: model downloads** (version 0.35.0). The Models page can now download models from Hugging Face.
   - **Recommended models** for a processor (Qwen3 4B, Qwen3 1.7B, Llama 3.2 3B, Gemma 3 4B, Phi-4 mini, Qwen2.5 7B),
     each with its size, the memory it needs, what it's good at and a licence link. Their sizes and SHA-256
@@ -26,6 +37,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     runs on; other devices can watch progress. State is kept in `data/downloads.json`.
 
 ### Changed
+- **Low-memory warning** (0.36.2): below 1 GiB available RAM is flagged on Status, in self-test and in Diagnose.
+  Diagnosis shows a fixed warning and practical steps alongside the AI explanation, and tells the model to
+  distinguish a simulated error from real resource pressure. No automatic repair or model change is performed.
 - **A quieter line under each answer.** 👍 👎 🔄 and Read aloud were big rounded buttons on two rows. They're now
   small, light outline icons on one line under the answer (Copy, Good answer, Bad answer, Read aloud, Try again),
   with the stats on the right. The icons darken on hover, each one names itself on hover, and phones get bigger tap
@@ -107,6 +121,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 ### Added
+- **Phase 36: Status and health** (version 0.36.0); integrated after Phase 35 and playtested by Jeremy. Settings links to a responsive page with CPU/memory/disk readings, bound service ports and reachability,
+  model state, saved reply-speed history with per-model averages, recent error summaries, and a read-only self-test.
+- **/speed** (optional 1–50 count) and **/selftest**, registered in shared /help and command discovery. Checks never
+  generate an AI answer, load a model, install dependencies, download files, change settings or restart a service.
+- Local bounded diagnostic error history (200 summaries), with no chat text or raw exception messages. Timings come
+  from existing saved reply stats. Auto-refresh pauses while the page is hidden; optional disabled services are
+  marked as skipped. README, API reference, context-aware feature help and phase plan updated.
+- Validation: nine focused diagnostics checks passed, plus isolated ASGI routes/static assets/command discovery
+  and self-test. Python/JavaScript syntax, HTML IDs, README formatting and whitespace passed. Combined download/diagnostics checks used temporary
+  data and stand-in services. The live app was restarted and HTTP/HTTPS routes verified; Jeremy tested self-test,
+  simulated-error diagnosis and the low-memory warning. Seven diagnosis regression checks also passed.
 - **Custom chat prompts and AI optimization** (version 0.34.6). Settings → Chat prompt can use the optimized default
   or a user-written system prompt up to 16,000 characters, with a live word/character count, a prompt-only Save,
   default restoration and responsive phone/desktop controls. The optimized default is shown in the editor on a

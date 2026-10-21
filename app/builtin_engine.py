@@ -255,6 +255,8 @@ async def start(values):
 
 
 def _failed(problem):
+    from app import diagnostics
+    diagnostics.record_error('AI engine', 'The built-in model could not start or stopped unexpectedly. Check its files and engine log.')
     tail = _log_tail()
     _engine.state, _engine.problem = 'error', problem + (f'\n{tail}' if tail else '')
     _engine.failures += 1

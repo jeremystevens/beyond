@@ -20,7 +20,7 @@ things up, keeps you organised, reads photos, listens, talks back and plays game
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.143-d96326?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=0d1117)
 ![License](https://img.shields.io/badge/License-MIT-d96326?style=for-the-badge&labelColor=0d1117)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-d96326?style=for-the-badge&logo=windows&logoColor=white&labelColor=0d1117)
-![Version](https://img.shields.io/badge/Version-0.35.0-d96326?style=for-the-badge&labelColor=0d1117)
+![Version](https://img.shields.io/badge/Version-0.36.2-d96326?style=for-the-badge&labelColor=0d1117)
 
 ![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local-d96326?style=for-the-badge&logo=shield&logoColor=white&labelColor=0d1117)
 ![AI](https://img.shields.io/badge/AI-OpenAI--compatible%20%C2%B7%20llama.cpp-d96326?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117)
@@ -101,6 +101,7 @@ still arrive), and lets your other devices use it over a **secure address on you
 ◆  Its own built-in AI engine: pick a .gguf model and BEYOND runs it, no separate server
 ◆  A phone-friendly Models page: sizes, load/unload/switch and settings saved for each model
 ◆  Download models from Hugging Face in the app, fingerprint-checked and resumable
+◆  Status and health: PC resources, service ports, saved AI speeds and a read-only self-test
 ◆  Answers stream in as they're written, with Stop, Try again and 👍 👎 ratings
 ◆  One quiet line under each answer: copy, rate, read aloud, try again, plus model, tokens, time and speed
 ◆  A short CPU-friendly system prompt, or write and AI-optimize your own in Settings
@@ -309,6 +310,9 @@ the chat but never sent to the AI.
 ## `▸ FEATURE GUIDES`
 
 *Click a section to open it.*
+
+Health commands: **/speed** (or **/speed 1–50**) shows saved reply timings; **/selftest** runs read-only checks.
+Both appear in **/help** and the **/** command menu. Open **Settings → Status and health** for the full page.
 
 <details>
 <summary><b>⚡ The built-in AI engine</b></summary>
@@ -667,6 +671,7 @@ devices select and tune models already added on the PC.
 | **Persona** | [Optional speaking styles](#persona), off by default. Enable Use a persona to apply one. |
 | **AI engine** | BEYOND's built-in engine (`llama-server.exe` + a `.gguf` model, threads, context, cache, thinking) or an AI server you already run. |
 | **Models** | [Load, unload or switch models](#models), with CPU threads, context, cache and thinking saved per model. |
+| **Status and health** | [PC resources, ports, saved reply speeds, recent errors and self-test](#status-health); available on phones. |
 | **AI server** | The address of your OpenAI-compatible AI server, with **Test connection**. Takes effect at once. |
 | **House rules** | Add and remove the rules BEYOND follows in every chat. |
 | **Search history** | Browse dated lookup snapshots, filter them, search again or bulk-delete selected records; also available on phones. |
@@ -748,6 +753,54 @@ and compare first replies separately from later replies. No automated AI benchma
 
 </details>
 
+<a id="status-health"></a>
+### Status and health
+
+<details>
+<summary><b>Check this PC, AI speeds and connections</b></summary>
+
+<br>
+
+Open **Settings → Status and health**, or visit `/status`. The page uses the same light/dark theme as chat and
+stacks cards on phones. It shows this PC's CPU load, available memory, free space on BEYOND's drive, model state
+and how long BEYOND has been running. Available memory below 1 GiB is flagged as a warning on the page,
+in self-test and in diagnosis evidence; Diagnose also shows a separate warning alongside any AI explanation. Auto-refresh runs every 10 seconds while the page is visible and can be paused.
+
+**Services and ports** checks only the web, secure-web and configured AI endpoints that BEYOND actually uses. It
+shows their port numbers, response time and status. Disabled HTTPS and an intentionally unloaded model are labelled
+as such. External AI servers use their configured address. Photo, image and speech workers do not open listening ports.
+
+**AI speed history** reads the last 30 saved answer timings, with a writing-speed graph and averages separated by
+model. It does not ask the AI to generate a benchmark. **/speed** shows 10 recent replies in chat; **/speed 25**
+changes that count (1–50). Writing speed excludes prompt processing; total reply time includes it. Different models,
+answer lengths, cached prompts and other work on the PC affect comparisons.
+
+**Run self-test** or **/selftest** checks the service endpoints, settings JSON, SQLite integrity, free disk space and
+enabled optional model files. It uses existing files and small HTTP requests only: it does not load a model, produce
+an AI answer, install dependencies, download anything, change settings or restart services. Passed, failed, review
+and skipped checks have separate labels. A second simultaneous self-test is refused until the first finishes.
+
+**Recent errors** keeps up to 200 fixed app error summaries in `data/diagnostics.sqlite3`, newest first, across
+restarts. The page shows the latest 30. History begins with this update; it does not import old logs or expose chat
+text, credentials, raw exception messages or stack traces. Chat/engine failures and logged application errors are
+captured; the host PC's existing logs remain the place for full debugging details. Monitoring stays within BEYOND,
+so it can report a crashed AI engine while BEYOND is running, but cannot serve a page while BEYOND itself is stopped.
+
+Press **Diagnose** beside an error to gather fresh health evidence and ask the loaded AI to explain likely causes,
+what the evidence supports and steps to try. One diagnosis runs at a time, with a progress message. If the AI is
+busy, unavailable, times out or fails, basic troubleshooting is shown instead. No model is loaded automatically.
+The AI sees only the selected fixed error summary, current resource/service checks and a few feature switches;
+chat history, custom prompts, credentials, file paths and raw logs are excluded. The configured AI server is used,
+including an external server if that is your setup. Explanations are suggestions, not confirmed causes: today's
+health cannot prove what happened earlier. No settings or services are changed.
+
+**Add test error** creates one clearly labelled simulated AI timeout without breaking a service. Press **Diagnose**
+on that entry to try the feature. **Clear test errors** removes only simulated entries, keeping real error history.
+Diagnosis results stay on the open page and are not saved as chat messages.
+
+
+</details>
+
 <a id="models"></a>
 ### Models
 
@@ -824,6 +877,13 @@ BEYOND's page talks to a small JSON API, which you can use from scripts too.
 |---|---|---|
 | `GET` | `/api/health` | BEYOND's version, phase and secure port |
 | `GET` | `/api/ai-status` | Whether the AI server is reachable, and its model |
+| `GET` | `/api/status` | PC resources, model state and configured service/port checks |
+| `GET` | `/api/status/speed` | Saved reply timings and averages by model; `limit=1–50` |
+| `GET` | `/api/status/errors` | Bounded app error summaries; `limit=1–200` |
+| `POST` | `/api/status/selftest` | Read-only connection, settings, SQLite and file checks; 409 while busy |
+| `POST` | `/api/status/errors/{id}/diagnose` | Explain a retained error with current health evidence; AI or basic fallback; 404 if missing, 409 while diagnosing |
+| `POST` | `/api/status/errors/test` | Add or replace the fixed simulated timeout entry |
+| `DELETE` | `/api/status/errors/test` | Clear simulated entries only; real error history stays |
 | `GET` · `POST` | `/api/settings` | Read or change settings (changes from this PC only) |
 | `POST` | `/api/settings/test` · `/api/settings/reset` | Test an AI server address · reset to defaults |
 | `POST` | `/api/restart` | Restart BEYOND after a port or network change |
@@ -897,6 +957,8 @@ beyond/
 │   ├── server.py            ← FastAPI app · chat streaming · settings · background jobs
 │   ├── config.py            ← Defaults, version and every port number
 │   ├── ports.py             ← Ports BEYOND won't take (other AI apps, ones in use)
+│   ├── diagnostics.py       ← Status, port probes, reply-speed history, error summaries and self-test
+│   ├── error_diagnosis.py   ← On-demand AI error explanations, basic troubleshooting and simulated test errors
 │   ├── settings.py          ← Your settings (data/settings.json): check, save, reset
 │   ├── engine.py            ← The only place BEYOND talks to the AI
 │   ├── builtin_engine.py    ← Starts, watches and stops the built-in llama.cpp engine
@@ -928,7 +990,7 @@ beyond/
 │   │   └── tictactoe · trivia · blackjack · hangman · hangman_words
 │   │
 │   └── web/                 ← index.html (chat) · settings.html · models.html · models.js
-│                            · search-history.html · search-history.js · style.css · app-height.js
+│                            · search-history.html · search-history.js · status.html · status.js · style.css · app-height.js
 │
 ├── tests/                   ← python -m unittest discover -s tests
 ├── screenshots/             ← Images for this README
@@ -1025,13 +1087,13 @@ BEYOND is being built in **43 small phases**, each one tested before the next. T
 | | | ✅ 34c · Natural lookup follow-ups |
 | | | 34d · Optimized and custom chat prompts (ready to try) |
 | | | ✅ 35 · Model downloads |
+| | | ✅ 36 · Status and health |
 
 </details>
 
 ### Coming next
 
 ```
-◇  Phase 36 — Status & health page     speed, memory and a self-test at a glance
 ◇  Phase 37 — Other AI servers         first-class support for more AI servers
 ◇  Phase 38 — Login                    accounts for safe use on shared networks
 ◇  Phase 39 — Setup script             one command to install everything

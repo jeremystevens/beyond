@@ -39,11 +39,12 @@ _TOOL_HELP = [
      "Games menu: /games, /games stats. Commands: /roll, /tictactoe (/ttt), /trivia, /quizme (/quiz), /blackjack "
      "(/bj), /hangman. Python controls rules, random results, scoring, buttons and saved rounds; do not invent "
      "a game state, private answer or hidden card."),
-    (r"\b(model|models|persona|prompt|settings)\b",
+    (r"\b(model|models|persona|prompt|settings|selftest|diagnostics|health|speed)\b",
      "Settings manages preferences, optional personas (off by default) and the chat prompt. Models loads, "
      "unloads or switches local models and saves their profiles, and downloads models from Hugging Face "
      "(recommended ones, or any GGUF model) with fingerprint checks and resume. These controls work on phones; general "
-     "settings and adding file paths require the host PC. You cannot change them through your reply."),
+     "settings and adding file paths require the host PC. Status and health in Settings shows PC resources, ports, "
+     "saved reply timings (/speed), read-only checks (/selftest) and Diagnose for recent errors. You cannot change them through your reply."),
     (r"\b(remember|memory|memories|forget|house rules|rating|ratings)\b",
      "Memory: /remember, /memories and /forget. Rules: /rule and /rules. Ratings: thumbs up/down, Try again, "
      "/learned. Python handles persistence and supplies relevant facts/feedback. Do not announce a save that "

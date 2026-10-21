@@ -391,14 +391,37 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
   a free-disk-space check, and license links for models that need the maker's terms accepted.
 - **Done when:** a model downloads, is verified, and can be loaded straight away.
 
-### Phase 36: Status and health page
+### Phase 36: Status and health page (completed and playtested 2026-10-20)
 - PC status, AI speed history (`/speed`), error history, and a self-test (`/selftest`), all on one page, including
   each port BEYOND uses and whether it answers.
+- Integrated after the pushed Phase 35 model-download work; existing download routes and controls are preserved.
+- Mobile-responsive cards, Settings link, light/dark theme, 10-second optional auto-refresh that pauses when hidden.
+  Speed history reads existing saved stats; self-test only checks endpoints/settings/SQLite/files and never runs
+  inference, downloads, model loading or service restarts. Error summaries persist locally with a 200-record cap.
+- Shared /help, command discovery, README and API documentation are updated. Isolated checks use temporary data
+  and stand-in HTTP services. Nine checks and isolated ASGI route/self-test verification passed, along with static
+  syntax/HTML/documentation checks. Jeremy confirmed the page and self-test work after restart.
+- **Diagnosis follow-up (0.36.1):** Diagnose on a recent error gathers fresh health facts and asks the loaded AI
+  for likely causes, evidence and next steps. Basic advice works without a ready or idle AI; a two-minute limit and
+  a single-diagnosis guard keep requests bounded. No repair or model-loading action is performed.
+  Add test error and Clear test errors manage only a labelled simulated timeout. No chat/raw logs/private settings
+  are sent to the AI. Jeremy tested the simulated entry and confirmed diagnosis works.
+- **Low-memory follow-up (0.36.2):** RAM below 1 GiB available warns on Status, self-test and diagnosis.
+  A fixed warning stays alongside AI explanations, including for simulated errors. Jeremy verified this at 0.6 GiB
+  available. Seven focused diagnosis checks passed. No automatic action is taken.
 - **Done when:** the page shows live status and ports, and the self-test runs and reports.
 
-### Phase 37: Other AI servers
+### Phase 37: Other AI servers (deferred: come back to it later)
 - Test and polish "connect to an existing server" with Local AI Studio, LM Studio and Ollama.
 - **Done when:** chat works through each of them.
+- **Status (2026-10-20):** the connection itself already exists (Settings → AI engine → "An AI server I already
+  run") and is proven with Local AI Studio. Ollama is installed on the owner's PC; LM Studio is not, so it can't be
+  tested yet. Set aside to investigate and test later. Polish to look at then:
+  - a model dropdown filled from the server's own model list (Ollama needs a model name);
+  - a "Find servers" button that checks the usual ports (Studio 10086, LM Studio 1234, Ollama 11434);
+  - keeping a thinking model's thinking out of the answer through Ollama / LM Studio (only fixed for the built-in
+    engine so far);
+  - checking that the stats line gets the model and token counts from each server.
 
 ---
 

@@ -18,6 +18,7 @@ from app import (autostart, briefing, chats, checklists, commands, config, engin
 
 from app import builtin_engine, downloads, photo_jobs, image_jobs, speech_jobs, blackjack, followups, games, hangman, study_quiz, tictactoe, trivia
 from app.tools import scan, speech, speech_to_text
+from app import diagnostics
 
 models.initialize()
 chats.initialize()
@@ -76,6 +77,7 @@ async def _watch_ai():
             status = await engine.status()
             state = status['state']
             if state == 'unreachable' and was_ok:
+                diagnostics.record_error('AI server', 'The configured AI server stopped responding.')
                 notify.show('error', 'BEYOND: the AI stopped answering',
                             "BEYOND can't reach the AI server any more. Is it still running, with a model loaded?")
             elif state == 'error' and was_ok:
@@ -129,6 +131,7 @@ async def _reminder_loop():
 
 @asynccontextmanager
 async def lifespan(_app):
+    diagnostics.configure(_app.state.running)
     photo_jobs.recover()
     image_jobs.recover()
     speech_jobs.recover()
@@ -143,6 +146,7 @@ async def lifespan(_app):
         for task in tasks:
             task.cancel()
         await builtin_engine.stop()   # frees the model's memory; BEYOND starts it again next time
+        diagnostics.shutdown()
 
 
 app = FastAPI(title='BEYOND', version=config.VERSION, docs_url=None, redoc_url=None, lifespan=lifespan)
@@ -153,6 +157,7 @@ app.include_router(tictactoe.router)
 app.include_router(trivia.router)
 app.include_router(blackjack.router)
 app.include_router(hangman.router)
+app.include_router(diagnostics.router)
 app.mount('/static', StaticFiles(directory=config.WEB_DIR), name='static')
 
 
@@ -574,6 +579,7 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                     yield json.dumps({'type': 'token', 'text': piece}) + '\n'
                 finished = True
             except engine.EngineError as exc:
+                diagnostics.record_error('chat', 'An AI reply failed. Check AI engine status and connection settings.')
                 yield json.dumps({'type': 'error', 'message': str(exc)}) + '\n'
                 notify.show('error', 'BEYOND: the AI had a problem', str(exc), chat_id)
             text = ''.join(answer).strip()
