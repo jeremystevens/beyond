@@ -1,0 +1,37 @@
+name: Feature request
+description: Suggest an idea or an improvement for BEYOND
+title: "[Idea]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the idea! Check the [roadmap](https://github.com/jeremystevens/beyond/blob/main/planning/phases.md) and existing issues first, in case it's already planned.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: What are you trying to do, and what gets in the way today?
+      placeholder: "I keep asking BEYOND the same three questions every morning, and I'd like to..."
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like BEYOND to do?
+      description: Describe how it could work, from the user's side. A command, a button, a setting?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Other ways you've thought of
+      description: Any other approaches, or how you work around it now.
+  - type: checkboxes
+    id: fit
+    attributes:
+      label: Fits BEYOND's goals
+      description: BEYOND runs entirely on the user's own PC, on the processor, and keeps their data private.
+      options:
+        - label: This works without a cloud account or sending personal data online
+        - label: I'd be willing to help build or test it

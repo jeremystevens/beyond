@@ -1,0 +1,81 @@
+name: Bug report
+description: Something in BEYOND isn't working as it should
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this!
+        **Security problem?** Please don't report it here. See [SECURITY.md](https://github.com/jeremystevens/beyond/blob/main/SECURITY.md) to report it privately.
+        **Never paste passwords, session cookies or private chats** into an issue.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Describe the problem, and what you expected to happen instead.
+      placeholder: "When I press Snooze on a reminder, the popup closes but the reminder never comes back."
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The exact steps, from opening BEYOND, so someone else can see it happen.
+      placeholder: |
+        1. Type /remind 1m test
+        2. Wait for the popup
+        3. Press "10 min"
+        4. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: BEYOND version
+      description: Shown on the Status page, or at http://127.0.0.1:7770/api/health
+      placeholder: "0.38.4"
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where were you using it?
+      multiple: true
+      options:
+        - On the PC BEYOND runs on
+        - From a phone or tablet
+        - From another computer
+        - Over the internet
+    validations:
+      required: true
+  - type: dropdown
+    id: ai
+    attributes:
+      label: AI engine
+      options:
+        - BEYOND's built-in engine
+        - An AI server (Local AI Studio, LM Studio, Ollama…)
+        - Not related to the AI
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      description: If the AI was involved, which model was loaded?
+      placeholder: "Qwen3-4B-Q4_K_M"
+  - type: input
+    id: system
+    attributes:
+      label: Windows version and browser
+      placeholder: "Windows 11 23H2, Chrome 130 / Android Chrome"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log lines
+      description: The lines from `data\beyond.log` (and `data\engine.log` for AI engine problems) around the time it happened. Check them for anything private first.
+      render: text
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Screenshots, how often it happens, or anything you've already tried.
