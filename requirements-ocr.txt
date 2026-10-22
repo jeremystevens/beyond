@@ -1,0 +1,5 @@
+-c requirements-text-lock.txt
+-c installer/optional-constraints.txt
+rapidocr==3.10.0
+onnxruntime==1.31.0
+opencv-python-headless==5.0.0.93

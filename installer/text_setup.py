@@ -156,7 +156,7 @@ def download(asset, target):
     return target
 
 
-def extract_engine(archive, folder):
+def extract_engine(archive, folder, expected_executable="llama-server.exe"):
     """Verify all extracted files against the signed-off archive again on every reuse."""
     with zipfile.ZipFile(archive) as bundle:
         items = bundle.infolist()
@@ -190,9 +190,9 @@ def extract_engine(archive, folder):
                 with bundle.open(item) as source, temp.open("wb") as out:
                     shutil.copyfileobj(source, out, MIB)
                 temp.replace(destination)
-    matches = list(folder.rglob("llama-server.exe"))
+    matches = list(folder.rglob(expected_executable))
     if len(matches) != 1:
-        raise InstallError("Pinned engine archive did not contain exactly one llama-server.exe.")
+        raise InstallError("Pinned engine archive did not contain exactly one " + expected_executable + ".")
     return matches[0]
 
 

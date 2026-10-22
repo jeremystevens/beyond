@@ -230,3 +230,56 @@ Remaining:
 - 39E: additional recovery/user-experience hardening.
 - Phase 42: fresh-PC/no-Python validation; the disposable integration is not claimed as a clean-machine test.
 - GPU acceleration remains unimplemented; detection alone is not a compatibility guarantee.
+
+## Phase 39D preview: optional features
+
+39C is on origin/main (confirmed while the remote also included the later test-fix commit).
+Added Add-Features.cmd and the shared Python optional installer, pinned optional asset manifest, per-feature
+requirements/constraints, offline feature worker, Windows job process guard and recovery tests.
+The preview supports independent Whisper tiny/base, Kokoro, Piper, OCR, Gemma vision and DreamShaper choices.
+
+Implementation:
+- Optional package constraints preserve the text-only runtime pins; unselected packages are not installed.
+- Model download sizes, estimated free RAM and licenses are presented before each feature.
+- Each selected feature is prepared, tested and saved independently. Retry, Skip and cancel-remaining are distinct.
+- Ready records include selected configuration, package versions and file size/mtime fingerprints.
+  Changed/missing files, package changes or changed settings require verification again.
+- Model/native downloads retain the shared pinned SHA-256 and safe resume/extraction checks.
+- Source model assets are pinned to Hugging Face revisions; Kokoro uses pinned GitHub release downloads.
+  RapidOCR model URLs and SHA-256 values come from RapidAI's versioned v3.10.0 publisher manifest.
+- Kokoro release assets without publisher digest fields were fetched from the official release and their SHA-256
+  values recorded. No user model files were altered.
+- Native SD CPU release master-987-a77d362 is pinned by GitHub's published asset digest.
+- Workers deny network connections during compatibility tests and use CPU backends explicitly.
+- Whisper gets a configured local model folder and local_files_only=True. Legacy cached base remains usable
+  offline; recording never starts a new download.
+- OCR accepts a configured folder containing its three explicitly downloaded models.
+- Piper can be installed alone or as a fallback without replacing an active Kokoro selection.
+- Each feature test belongs to its own Windows job; closing the job on timeout/cancel closes its native children.
+- Settings are merged only after passing the selected feature test. Original settings are backed up and concurrent
+  changes are rejected. Test requests contain only relevant feature settings.
+
+Verification so far:
+- Optional dependency groups installed successfully in the separate Python 3.14 audit environment; working .venv untouched.
+- Disposable copy D:\temp\beyond 39d integration wf4ccuk9 completed real Whisper tiny, Kokoro, Piper and OCR tests.
+- Whisper recognized the generated local speech sample; Kokoro and Piper produced validated WAV files.
+- OCR recognized the generated HELLO WORLD 42 sample with networking denied.
+- Text-chat app health checks passed after each selected optional library installation.
+- Rerunning verified selections skipped all four without downloading/testing again.
+- The isolated copy retained Kokoro as primary when Piper was added; original owner settings were not changed.
+- Native child-process cleanup was tested with an owned parent/child pair; both stopped when their job closed.
+- Latest dedicated optional tests: 11 passed, including malformed state, failure isolation, offline Whisper and type checks.
+- Pinned CPU SD executable extraction and all command flags used by the app passed interface checks.
+- Pinned llama-mtmd-cli extraction and required vision command flags passed interface checks.
+- Add-Features.cmd --check passed without installing or activating features.
+
+Remaining before calling all of 39D validated:
+- Run real Gemma/projector and DreamShaper inference tests with the pinned engines when enough RAM is available.
+  This busy PC currently has roughly 1.5-2.3 GiB free; no large-model test was forced and neither running bot was stopped.
+- Clean-machine installation remains Phase 42. The disposable-copy integration is not a fresh-PC claim.
+- GPU acceleration remains unsupported by this installer.
+
+Final regression result for this milestone: full suite passed, 289 tests in 579 seconds.
+The latest dedicated optional tests also passed (11 checks), including the added malformed-state guard.
+Existing SQLite ResourceWarnings/debug timing output did not fail the suite.
+39D remains a preview until the two large-model inference checks above have run.

@@ -20,7 +20,7 @@ class SetupError(RuntimeError):
     pass
 
 
-def banner():
+def banner(title="text chat"):
     try:
         text = (ROOT / "README.md").read_text(encoding="utf-8")
         art = text.split("```", 2)[1].strip()
@@ -29,7 +29,7 @@ def banner():
         art = "BEYOND"
     print(art)
     print("Built Entirely on Your Own Network & Device")
-    print("\nSetup: text chat\n")
+    print("\nSetup: " + title + "\n", flush=True)
 
 
 def probe(command):

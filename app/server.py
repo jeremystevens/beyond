@@ -1151,7 +1151,7 @@ async def transcribe_recording(request: Request):
     except speech_to_text.SpeechError as exc:
         return JSONResponse({'error': str(exc)}, status_code=400)
     except ImportError:
-        return JSONResponse({'error': 'Voice input is not installed on this computer. You can continue using text chat.'}, status_code=503)
+        return JSONResponse({'error': 'Voice input is not installed. Run Add-Features.cmd to add it, or continue using text chat.'}, status_code=503)
     except Exception:
         logging.exception('Turning a recording into text failed')
         return JSONResponse({'error': "Voice input isn't working right now. Please type your message instead."},
@@ -1181,7 +1181,7 @@ async def scan_photo(request: Request, chat_id: int | None = None):
     except scan.ScanError as exc:
         return JSONResponse({'error': str(exc)}, status_code=400)
     except ImportError:
-        return JSONResponse({'error': 'Photo text recognition is not installed on this computer. You can continue using text chat.'},
+        return JSONResponse({'error': 'Photo text recognition is not installed. Run Add-Features.cmd to add it, or continue using text chat.'},
                             status_code=503)
     except Exception:
         logging.exception('Reading text from a photo failed')

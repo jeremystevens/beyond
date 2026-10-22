@@ -2,8 +2,9 @@
 Ported from PromptetheusBot's voice-note transcription (same model and settings).
 
 The browser records in its own format (WebM/Opus in Chrome and Edge, MP4/AAC in Safari); faster-whisper decodes it
-with PyAV. The Whisper model is downloaded once from Hugging Face on first use (about 145 MB for "base") and then
-works offline. One recording is transcribed at a time, so the PC isn't swamped; a short question takes a few seconds.
+with PyAV. Add-Features.cmd explicitly installs a local tiny or base model, which then works offline.
+Existing installations can reuse an already-cached base model; recording never starts a download.
+One recording is transcribed at a time, so the PC isn't swamped; a short question takes a few seconds.
 The recording is never saved: it's written to a temporary file for the decoder and deleted straight away.
 """
 import os
@@ -11,6 +12,9 @@ import tempfile
 import threading
 import time
 from functools import lru_cache
+from pathlib import Path
+
+from app import settings
 
 MODEL = 'base'                      # Whisper size: tiny, base, small… ("base" is what the bot uses)
 MAX_RECORDING_BYTES = 10 * 1024 * 1024
@@ -29,11 +33,21 @@ class SpeechBusy(SpeechError):
 @lru_cache(maxsize=1)
 def _model():
     from faster_whisper import WhisperModel
-    return WhisperModel(MODEL, device='cpu', compute_type='int8')   # processor only, small and quick
+    values = settings.load()
+    folder = values.get('whisper_model_dir', '')
+    if folder and not (Path(folder) / 'model.bin').is_file():
+        raise SpeechError('The voice input model is missing. Run Add-Features.cmd to install or repair it.')
+    try:
+        # Legacy installations may reuse the already-cached base model. Neither
+        # path is allowed to silently download files while someone is recording.
+        return WhisperModel(folder or MODEL, device='cpu', compute_type='int8',
+                            cpu_threads=values.get('whisper_threads', 2), local_files_only=True)
+    except (OSError, ValueError, RuntimeError) as exc:
+        raise SpeechError('Voice input is not ready. Run Add-Features.cmd to install and test its model.') from exc
 
 
 def warm_up():
-    """Load the model ahead of time (the first load reads ~145 MB, or downloads it once)."""
+    """Load the selected local model ahead of time without downloading."""
     _model()
 
 

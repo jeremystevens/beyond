@@ -6,6 +6,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 39D optional setup preview:** Add-Features.cmd offers Whisper tiny/base, Kokoro, a separate Piper voice,
+  OCR, vision and image generation. Selected assets use pinned sizes/checksums and license prompts. Optional
+  libraries preserve text-runtime constraints. Each feature is checked in an offline CPU worker before its
+  settings are saved; Retry/Skip and per-feature results keep independent selections moving. Windows job ownership
+  closes native child processes on test cancellation/timeouts. Verified reruns skip unchanged selections.
+  Whisper recording is now local-only, with an explicit model folder or an existing cached base model; OCR can use
+  explicitly provisioned local files. Voice and OCR integration passed; full pinned vision/image inference remains
+  pending on a PC with enough free memory.
 - **Phase 39C text-only setup:** isolated text-library lock, pinned CPU llama.cpp and Qwen3 starter/fallback
   manifests, hardware preflight, model reuse, verified resumable downloads, app startup and real chat tests,
   memory Retry/lower-context options, settings backups, and optional shortcut/launch. Only the installer's own

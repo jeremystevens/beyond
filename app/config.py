@@ -79,6 +79,10 @@ DEFAULTS = {
     'speech_kokoro_model': '',
     'speech_kokoro_voices': '',
     'speech_piper_model': '',
+    # Optional feature installer provisions these explicitly; runtime stays offline.
+    'whisper_model_dir': '',
+    'whisper_threads': 2,
+    'ocr_model_dir': '',
     # The port BEYOND's page is on.
     'web_port': WEB_PORT,
     # Let phones and other computers on your network open BEYOND. Off by default; they sign in first (app/auth.py).

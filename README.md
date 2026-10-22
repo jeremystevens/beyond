@@ -226,8 +226,39 @@ The PowerShell override applies only to that process. Python 3.8+ can launch set
 Advanced users can run `.venv\Scripts\python.exe installer\text_setup.py --model fallback` or
 `--model-path "C:\Models\your-model.gguf"` after preparing the environment.
 
-This installs **text chat only**; voice, OCR, vision and image generation remain optional (39D installer next).
-Fresh-PC validation is still tracked in Phase 42. The manual full-feature installation below remains available.
+This installs **text chat only**. Add optional features separately below.
+Fresh-PC validation is still tracked in Phase 42. Manual full-feature installation remains available.
+
+### Add Features (Phase 39D preview)
+
+After the main setup, close BEYOND and double-click **Add-Features.cmd**. Select individual features:
+
+| Feature | Model downloads, excluding missing libraries |
+|---|---|
+| Voice input: Whisper tiny / base | 75 / 141 MiB |
+| Spoken replies: Kokoro CPU int8 | 115 MiB |
+| Piper voice, also usable as Kokoro fallback | 115 MiB |
+| Photo text recognition: RapidOCR | 30 MiB |
+| Photo understanding: Gemma 3 4B + projector | 3.11 GiB, plus CPU engine if missing |
+| Image generation: DreamShaper 8 | 1.99 GiB, plus 17 MiB CPU engine |
+
+The installer refreshes hardware information, explains estimated free RAM, shows licenses, installs only selected
+packages/files, and tests each feature in its own offline CPU process. Temporary memory shortages offer Retry.
+A successful test saves that feature's settings; a failed feature can be retried or skipped while other selections
+continue. Test workers and their native children are closed together on cancellation or timeout.
+
+Whisper models and OCR assets are downloaded explicitly. Recording a voice message never starts a model download.
+Kokoro and Piper can be installed independently; adding Piper alongside active Kokoro keeps Kokoro selected.
+Reruns skip previously verified features when their files, packages and saved settings still match.
+Use `--retest` to repair/retest a selection. Existing configurations stay in effect until a replacement test passes.
+
+Examples: `Add-Features.cmd --check` for read-only status, or
+`Add-Features.cmd --features whisper kokoro --whisper-model tiny` for selected voice features.
+Logs and test outputs stay in `data/setup/optional/`; installation step logs also use `data/setup/install.log`.
+The preview has passed real Whisper, Kokoro, Piper and OCR tests; full inference validation of its pinned
+vision/image combinations is still pending. GPU acceleration is not enabled.
+
+### Manual installation
 
 ### 1 — Prerequisites
 
@@ -664,10 +695,11 @@ Set it up on the host PC in **Settings → Picture generation**: `sd-cli.exe` fr
 aloud automatically** is optional in Settings. Speech uses **Kokoro** (Piper as fallback) in a separate CPU process,
 one clip at a time. Clips are saved with the answer and play in an audio player with seek controls.
 
-**Voice input.** Tap **🎤**, speak, and tap **⏹**: your words are turned into text **on this PC** with **Whisper
-"base"** (faster-whisper, CPU) and sent like a typed message. The recording is deleted straight away. The model (about
-145 MB) is downloaded once on first use. Browsers only allow the microphone on secure pages, so on other devices use
-BEYOND's `https://` address (see [Privacy & security](#privacy)).
+**Voice input.** Install Whisper tiny or base with **Add-Features.cmd**, then tap **🎤**, speak, and tap **⏹**.
+Your words are turned into text **on this PC** (faster-whisper, CPU) and sent like a typed message. The recording
+is deleted straight away. The selected local model works offline; recording never triggers a download. Older
+installations can still reuse an already-cached base model. Browsers only allow the microphone on secure pages,
+so on other devices use BEYOND's `https://` address (see [Privacy & security](#privacy)).
 
 </details>
 

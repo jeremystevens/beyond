@@ -92,6 +92,13 @@ def validate(changes):
         elif key == 'ai_mode':
             if value not in ('builtin', 'server'):
                 raise SettingsError('Choose the built-in engine or an AI server.')
+        elif key in ('whisper_model_dir', 'ocr_model_dir'):
+            if not isinstance(value, str) or len(value) > 1024:
+                raise SettingsError('Optional model folders must be file-system paths.')
+            value = value.strip().strip('"')
+        elif key == 'whisper_threads':
+            if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= 16:
+                raise SettingsError('Whisper threads must be a whole number between 1 and 16.')
         elif key in ('engine_executable', 'engine_model'):
             if not isinstance(value, str):
                 raise SettingsError('AI engine file paths must be text.')

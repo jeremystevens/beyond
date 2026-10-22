@@ -1,6 +1,6 @@
 """Local text recognition, ported from PromptetheusBot's plugins/scan.py.
 
-RapidOCR's bundled models run on the CPU. One image is read at a time; no photo or
+RapidOCR's local models run on the CPU. One image is read at a time; no photo or
 recognized text is sent to an external service or the chat model.
 """
 import io
@@ -47,7 +47,19 @@ def _get_engine():
         if _onnxruntime is None:
             raise ImportError('Optional photo text recognition is not installed.')
         from rapidocr import RapidOCR
-        _engine = RapidOCR()
+        from app import settings
+        folder = settings.load().get('ocr_model_dir', '')
+        params = {}
+        if folder:
+            from pathlib import Path
+            names = {'Det': 'PP-OCRv6_det_small.onnx', 'Rec': 'PP-OCRv6_rec_small.onnx',
+                     'Cls': 'ch_ppocr_mobile_v2.0_cls_mobile.onnx'}
+            for stage, name in names.items():
+                path = Path(folder) / name
+                if not path.is_file():
+                    raise ImportError('Photo text models are missing. Run Add-Features.cmd to repair them.')
+                params[stage + '.model_path'] = str(path)
+        _engine = RapidOCR(params=params)
         logging.getLogger('RapidOCR').setLevel(logging.ERROR)
     return _engine
 
