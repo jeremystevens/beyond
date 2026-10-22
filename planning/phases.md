@@ -431,7 +431,11 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - A simple password or login for when network access is on.
 - **Done when:** another device must sign in before it can chat.
 
-### Phase 39: Setup script
+### Phase 39: Setup script (in progress)
+- **39B implemented:** Setup.cmd / setup.ps1 / setup.py discover or offer Python 3.14, verify the installer publisher,
+  and create/validate an isolated environment. Read-only checks and bootstrap tests pass. Clean-PC installation
+  still needs Phase 42 validation; 39C text-chat installation and 39D optional features remain.
+- Detailed design: phase39-setup-plan.md. Source audit: phase39-audit.md.
 - One script that installs Python and the libraries, downloads llama.cpp (verified), and offers model presets by PC
   (8 GB / 16 GB / good graphics card) and optional extras (voice, `/look`, `/imagine`).
 - **Done when:** the script takes a fresh folder to a working BEYOND.

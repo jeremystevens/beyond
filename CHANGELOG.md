@@ -5,6 +5,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **Phase 39B setup bootstrap:** double-click Setup.cmd, use setup.ps1 without Python, or run setup.py with an
+  existing Python 3.8+. Finds 64-bit Python 3.14, offers a per-user 3.14.8 installation after verifying the Python
+  Software Foundation's Authenticode signature and pinned SHA-256, and creates or validates the isolated environment. Existing
+  environments, other Python versions, PATH, settings, models and running apps are preserved. Read-only check,
+  cancellation, download retry and plain-text branding fallback are included. Libraries, engine/model downloads
+  and text-chat verification remain Phase 39C.
+
 ## [0.38.4] - 2026-10-21
 
 The first published release: everything from Phase 1 to Phase 38, plus the file tools.

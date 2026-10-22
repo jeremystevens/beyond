@@ -202,6 +202,23 @@ flowchart LR
 <a id="quick-start"></a>
 ## `▸ QUICK START`
 
+### Setup bootstrap preview (Phase 39B)
+
+Double-click **Setup.cmd** to find 64-bit Python 3.14 or offer to install Python 3.14.8 for your Windows account.
+It checks the pinned SHA-256 and the Python Software Foundation's installer signature before running it, leaving other Python versions
+and PATH alone, and creates or validates BEYOND's isolated `.venv`. An existing invalid environment is preserved
+with instructions; it is never replaced automatically.
+
+For a read-only check, run `Setup.cmd --check`, `py setup.py --check`, or
+`powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1 -CheckOnly`.
+The PowerShell execution-policy override applies only to that process; no machine policy is changed.
+The Python entry point supports Python 3.8+ for bootstrapping, then relaunches under Python 3.14.
+Python downloads offer Retry after failures. Cancel defaults to preserving existing installations.
+Advanced users can pass `--yes` to setup.py or `-Yes` to setup.ps1 to accept installation/environment creation.
+
+**This preview prepares Python only.** Automatic library, engine, model installation and chat testing arrive in
+39C; optional features arrive in 39D. Until then, continue with the manual installation steps below.
+
 ### 1 — Prerequisites
 
 - **Windows 10 or 11** and **Python 3.14**
