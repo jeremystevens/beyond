@@ -1,0 +1,100 @@
+[
+  {
+    "file": "llama.cpp-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/ggml-org/llama.cpp/b9668/LICENSE",
+    "sha256": "94f29bbed6a22c35b992c5c6ebf0e7c92f13b836b90f36f461c9cf2f0f1d010d"
+  },
+  {
+    "file": "stable-diffusion.cpp-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/leejet/stable-diffusion.cpp/master-987-a77d362/LICENSE",
+    "sha256": "b53fa08f515cb5a6fff7b9fd8fcd0961a4b80df29d74372d25e1f9171aa042ee"
+  },
+  {
+    "file": "Python-3.14.8-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/python/cpython/v3.14.8/LICENSE",
+    "sha256": "b0e25a78cffb43f4d92de8b61ccfa1f1f98ecbc22330b54b5251e7b6ba010231"
+  },
+  {
+    "file": "Qwen3-1.7B-LICENSE.txt",
+    "source": "https://huggingface.co/Qwen/Qwen3-1.7B-GGUF/raw/90862c4b9d2787eaed51d12237eafdfe7c5f6077/LICENSE",
+    "sha256": "5de36594c10839788a8c589443a8ef9d8b8d17c65a1b5807206ae037fc36c6bd"
+  },
+  {
+    "file": "Qwen3-0.6B-LICENSE.txt",
+    "source": "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/raw/23749fefcc72300e3a2ad315e1317431b06b590a/LICENSE",
+    "sha256": "5de36594c10839788a8c589443a8ef9d8b8d17c65a1b5807206ae037fc36c6bd"
+  },
+  {
+    "file": "Piper-Ryan-high-MODEL_CARD.txt",
+    "source": "https://huggingface.co/rhasspy/piper-voices/raw/5041a7a49ae5b3a0f30e6837769eb03fdbb231bd/en/en_US/ryan/high/MODEL_CARD",
+    "sha256": "7c3b337dd4e96c3f311f476118b15d93867aefa4bee54263e250c45f759fad0d"
+  },
+  {
+    "file": "DreamShaper-MODEL_CARD.md",
+    "source": "https://huggingface.co/Lykon/DreamShaper/raw/228d79cb20811466f5c5710aa91f05dabd0b8a14/README.md",
+    "sha256": "f5c22e0633a94e47b88b54537615936a811809df28cdb40a373b83edbe1bd5c6"
+  },
+  {
+    "file": "Gemma-GGUF-MODEL_CARD.md",
+    "source": "https://huggingface.co/bartowski/google_gemma-3-4b-it-GGUF/raw/71506238f970075ca85125cd749c28b1b0eee84e/README.md",
+    "sha256": "6e67871156c8695039c8cb3c05c987b977137f93f7c42be9cb634826ac426be5"
+  },
+  {
+    "file": "CTranslate2-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/OpenNMT/CTranslate2/d44d2d069eb88c7b7804da864c10c201501cb4a9/LICENSE",
+    "sha256": "54aa79d9fe3c09e67a16dcd95b9e88676405a6ec174efda31036983cf7672ecb"
+  },
+  {
+    "file": "flatbuffers-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/google/flatbuffers/7e163021e59cca4f8e1e35a7c828b5c6b7915953/LICENSE",
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  {
+    "file": "tokenizers-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/huggingface/tokenizers/301277072263fb3830eb66eec7e47adadf76f1dc/LICENSE",
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+  },
+  {
+    "file": "primp-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/deedy5/primp/84c1c45d614d2085192826409517e813ecf461f1/LICENSE",
+    "sha256": "64f0fdb426abd21f75b48e2ff93b9976b8c374bab3538af33d3c6d3f7c7efae7"
+  },
+  {
+    "file": "espeakng-loader-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/thewh1teagle/espeakng-loader/0ddc87adf77e5850d7eeb542ac8a87d421b64daa/LICENSE",
+    "sha256": "b05c73bb1335b4320ec97edff106b3991c12d0acdc6e899c96f061a15039119f"
+  },
+  {
+    "file": "espeak-ng-COPYING.txt",
+    "source": "https://raw.githubusercontent.com/espeak-ng/espeak-ng/ba90c8e9f440ad544f674a790bb5f53878b6ffc5/COPYING",
+    "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+  },
+  {
+    "file": "pywinrt-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/pywinrt/pywinrt/05e07373db6f324e95fb3584256a188e25266dc1/LICENSE",
+    "sha256": "6e898069e8b3c6d8d23dc70ac7067cc2b7c9db14c36df873026758db82c0891d"
+  },
+  {
+    "file": "Kokoro-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/hexgrad/kokoro/dfb907a02bba8152ca444717ca5d78747ccb4bec/LICENSE",
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+  },
+  {
+    "file": "Whisper-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/openai/whisper/main/LICENSE",
+    "sha256": "b5d65a59060e68c4ff940e1eddfa6f94b2d68fdf58ed7f4dd57721c997e35e9d",
+    "note": "Retrieved 2026-10-21; mutable upstream URL, not a release-tag snapshot."
+  },
+  {
+    "file": "Gemma-terms.txt",
+    "source": "https://ai.google.dev/gemma/terms",
+    "sha256": "0eb0b67ea20239853c121b2084c3f8704e11cd6a7685d75d0628ce354945c503",
+    "note": "Article text extracted from official HTML on 2026-10-21; mutable terms URL."
+  },
+  {
+    "file": "Gemma-prohibited-use-policy.txt",
+    "source": "https://ai.google.dev/gemma/prohibited_use_policy",
+    "sha256": "b1fab5c66a7b49cc9cd32256d73b770a355ecec9514276cde3a3d4d1fd53fbe5",
+    "note": "Article text extracted from official HTML on 2026-10-21; mutable terms URL."
+  }
+]

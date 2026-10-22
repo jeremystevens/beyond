@@ -6,6 +6,13 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 41 guide and notices:** new-user installation/use/recovery guide, third-party notice index,
+  91-package version-matched inventory with 118 shipped notice texts, upstream license/model-card snapshots
+  and provenance hashes, plus an offline notice collector. README links the guide and describes network
+  behavior accurately. Name checks distinguish this GitHub project from the unrelated PyPI package.
+  Piper's selected voice notice explicitly identifies RyanSpeech's noncommercial dataset terms.
+  Tech Jarves acknowledgment is included; a courtesy message is prepared as an unsent draft.
+  Fresh-machine acceptance and final binary-bundle notice review remain release follow-up work.
 - **Phase 40 welcome guide:** fresh installs open a responsive guide that reuses Setup's model/connection,
   reports installed versus available RAM, offers explicit CPU presets, and tests a fixed short AI greeting.
   Finishing requires a successful current-configuration test; skipping is recorded separately. Existing

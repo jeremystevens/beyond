@@ -12,7 +12,7 @@
 ### **B**uilt **E**ntirely on **Y**our **O**wn **N**etwork & **D**evice
 
 *A private AI assistant that lives on your own computer. It remembers you, learns how you like answers, looks
-things up, keeps you organised, reads photos, listens, talks back and plays games. Your data never leaves home.*
+things up, keeps you organised, reads photos, listens, talks back and plays games. Your conversations stay on your PC; online lookups and external AI connections use the network.*
 
 ---
 
@@ -29,6 +29,11 @@ things up, keeps you organised, reads photos, listens, talks back and plays game
 ![Status](https://img.shields.io/badge/Status-Active%20development-d96326?style=for-the-badge&labelColor=0d1117)
 
 </div>
+
+Install this assistant from this GitHub repository. The PyPI package named beyond is unrelated.
+
+**Start here:** [User guide](docs/USER_GUIDE.md) · [Third-party notices](THIRD_PARTY_NOTICES.md) · [Setup recovery](planning/setup-recovery.md)
+
 
 ---
 
@@ -1272,7 +1277,8 @@ New slash commands belong in the shared registry in `app/commands.py`, so they s
 ## `▸ LICENSE`
 
 BEYOND is open source under the [**MIT License**](LICENSE): you're free to use, change and share it, as long as the
-copyright and licence notice stay with it. AI models you use with BEYOND have their own licences from their makers.
+copyright and licence notice stay with it. Python packages, native engines, AI models and voices have their own terms. See the
+[third-party notices and collected license texts](THIRD_PARTY_NOTICES.md).
 
 ---
 

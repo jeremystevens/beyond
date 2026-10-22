@@ -462,9 +462,14 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
   full fresh-machine validation remains Phase 42.
 - **Done when:** a first start walks you through to a working chat.
 
-### Phase 41: Guide and licenses
-- A user guide, the README with the pitch, license notices (llama.cpp, stable-diffusion.cpp and others), the name
-  check (GitHub, PyPI), and a courtesy note to Tech Jarves.
+### Phase 41: Guide and licenses (documentation implemented 2026-10-21; clean-PC walkthrough in Phase 42)
+- Added docs/USER_GUIDE.md from download through setup, welcome, everyday use, optional features, networking,
+  backups, updates and recovery. README links the guide and third-party notice index.
+- Collected 91 version-matched Python dependency records, 118 shipped notice texts, and supplemental upstream
+  engine/model/package materials with source/hash provenance. BEYOND's MIT license remains separate from them.
+- Name checks found the unrelated PyPI beyond package; use this GitHub repository, not pip install beyond.
+  Tech Jarves is acknowledged and a courtesy note is saved as an unsent draft.
+- Details: phase41-guide-licenses.md. Final release-artifact/native-library and model-term review remains Phase 43.
 - **Done when:** a new person could install and use BEYOND from the guide alone.
 
 ### Phase 42: Test on a clean PC

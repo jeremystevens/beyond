@@ -1,0 +1,2698 @@
+{
+  "scope": "Declared pinned packages only; metadata is not a complete native-binary audit.",
+  "sources": [
+    "requirements-lock.txt",
+    "requirements-text-lock.txt",
+    "installer/optional-constraints.txt",
+    "requirements-whisper.txt",
+    "requirements-kokoro.txt",
+    "requirements-piper.txt",
+    "requirements-ocr.txt"
+  ],
+  "packages": [
+    {
+      "name": "annotated-doc",
+      "versions": [
+        "0.0.5"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/annotated-doc-0.0.5/annotated_doc-0.0.5.dist-info/licenses/LICENSE",
+          "sha256": "fff170779a6acbf65abdb405c087f1cee1786691e4a96a4034517e4a504a0cdf"
+        }
+      ],
+      "installed_version": "0.0.5",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Homepage, https://github.com/fastapi/annotated-doc",
+        "Documentation, https://github.com/fastapi/annotated-doc",
+        "Repository, https://github.com/fastapi/annotated-doc",
+        "Issues, https://github.com/fastapi/annotated-doc/issues",
+        "Changelog, https://github.com/fastapi/annotated-doc/release-notes.md"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "annotated-types",
+      "versions": [
+        "0.8.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/annotated-types-0.8.0/annotated_types-0.8.0.dist-info/licenses/LICENSE",
+          "sha256": "fe1049884b1a0d9342901e88e07f32925d24b3121d9972b6a6805fb9824b095d"
+        }
+      ],
+      "installed_version": "0.8.0",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "project_urls": [
+        "Homepage, https://github.com/annotated-types/annotated-types",
+        "Source, https://github.com/annotated-types/annotated-types",
+        "Changelog, https://github.com/annotated-types/annotated-types/releases"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "anyio",
+      "versions": [
+        "4.15.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/anyio-4.15.1/anyio-4.15.1.dist-info/licenses/LICENSE",
+          "sha256": "5361ac9dc58f2ef5fd2e9b09c68297c17f04950909bbc8023bdb82eacf22c2b0"
+        }
+      ],
+      "installed_version": "4.15.1",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://anyio.readthedocs.io/en/latest/",
+        "Changelog, https://anyio.readthedocs.io/en/stable/versionhistory.html",
+        "Source code, https://github.com/agronholm/anyio",
+        "Issue tracker, https://github.com/agronholm/anyio/issues"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "attrs",
+      "versions": [
+        "26.1.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/attrs-26.1.0/attrs-26.1.0.dist-info/licenses/LICENSE",
+          "sha256": "882115c95dfc2af1eeb6714f8ec6d5cbcabf667caff8729f42420da63f714e9f"
+        }
+      ],
+      "installed_version": "26.1.0",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://www.attrs.org/",
+        "Changelog, https://www.attrs.org/en/stable/changelog.html",
+        "GitHub, https://github.com/python-attrs/attrs",
+        "Funding, https://github.com/sponsors/hynek",
+        "Tidelift, https://tidelift.com/subscription/pkg/pypi-attrs?utm_source=pypi-attrs&utm_medium=pypi"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "av",
+      "versions": [
+        "16.0.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/av-16.0.1/av-16.0.1.dist-info/licenses/AUTHORS.rst",
+          "sha256": "d565a9edae8172e2ddb81e1da53e7837b42e89245dd87240bdf0530ce97519ce"
+        },
+        {
+          "path": "python/av-16.0.1/av-16.0.1.dist-info/licenses/LICENSE.txt",
+          "sha256": "f32ebcb6007dcc05eea369b3820e6391b0a7ef1ed763f30f1aca15dfdbacbe96"
+        }
+      ],
+      "installed_version": "16.0.1",
+      "status": "matched",
+      "license_expression": "BSD-3-Clause",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Bug Tracker, https://github.com/PyAV-Org/PyAV/discussions/new?category=4-bugs",
+        "Source Code, https://github.com/PyAV-Org/PyAV",
+        "homepage, https://pyav.basswood-io.com"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "babel",
+      "versions": [
+        "2.18.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/babel-2.18.0/babel-2.18.0.dist-info/licenses/LICENSE",
+          "sha256": "86bad5758c7859ba06251f8f12eee885eca31369923dfb2b87a7c13c3634d870"
+        },
+        {
+          "path": "python/babel-2.18.0/babel/locale-data/LICENSE.unicode",
+          "sha256": "b4c0ae8ef04f7059f96ce5bbe0467f9fe6f6d81bbe13517701dfeb961fb4d0b6"
+        }
+      ],
+      "installed_version": "2.18.0",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "BSD-3-Clause",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "project_urls": [
+        "Source, https://github.com/python-babel/babel"
+      ],
+      "homepage": "https://babel.pocoo.org/",
+      "notice_status": "copied"
+    },
+    {
+      "name": "certifi",
+      "versions": [
+        "2026.7.22",
+        "2026.10.19"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/certifi-2026.7.22/certifi-2026.7.22.dist-info/licenses/LICENSE",
+          "sha256": "e93716da6b9c0d5a4a1df60fe695b370f0695603d21f6f83f053e42cfc10caf7"
+        }
+      ],
+      "installed_version": "2026.7.22",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "MPL-2.0",
+      "license_classifiers": [
+        "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
+      ],
+      "project_urls": [
+        "Source, https://github.com/certifi/python-certifi"
+      ],
+      "homepage": "https://github.com/certifi/python-certifi",
+      "notice_status": "copied"
+    },
+    {
+      "name": "cffi",
+      "versions": [
+        "2.1.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/cffi-2.1.1/cffi-2.1.1.dist-info/licenses/LICENSE",
+          "sha256": "5ba24ddc57067f9249add644c3afc41a5d6dc37e23433ef759d95df370b0af63"
+        }
+      ],
+      "installed_version": "2.1.1",
+      "status": "matched",
+      "license_expression": "MIT-0",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://cffi.readthedocs.io/",
+        "Changelog, https://cffi.readthedocs.io/en/latest/whatsnew.html",
+        "Download, https://github.com/python-cffi/cffi/releases",
+        "Contact, https://groups.google.com/forum/#!forum/python-cffi",
+        "Source Code, https://github.com/python-cffi/cffi",
+        "Issue Tracker, https://github.com/python-cffi/cffi/issues"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "charset-normalizer",
+      "versions": [
+        "3.5.2"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/charset-normalizer-3.5.2/charset_normalizer-3.5.2.dist-info/licenses/LICENSE",
+          "sha256": "18577485d3704f1a479ded8e573c0976cfed315fd2fd17983fa988da4c2f70d1"
+        }
+      ],
+      "installed_version": "3.5.2",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "MIT",
+      "license_classifiers": [],
+      "project_urls": [
+        "Changelog, https://github.com/jawah/charset_normalizer/blob/master/CHANGELOG.md",
+        "Documentation, https://charset-normalizer.readthedocs.io/",
+        "Code, https://github.com/jawah/charset_normalizer",
+        "Issue tracker, https://github.com/jawah/charset_normalizer/issues"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "click",
+      "versions": [
+        "8.5.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/click-8.5.0/click-8.5.0.dist-info/licenses/LICENSE.txt",
+          "sha256": "9a8ad106a394e853bfe21f42f4e72d592819a22805d991b5f3275029292b658d"
+        }
+      ],
+      "installed_version": "8.5.0",
+      "status": "matched",
+      "license_expression": "BSD-3-Clause",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Changes, https://click.palletsprojects.com/page/changes/",
+        "Chat, https://discord.gg/pallets",
+        "Documentation, https://click.palletsprojects.com/",
+        "Donate, https://palletsprojects.com/donate",
+        "Source, https://github.com/pallets/click/"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "cloudpickle",
+      "versions": [
+        "3.1.2"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/cloudpickle-3.1.2/cloudpickle-3.1.2.dist-info/licenses/LICENSE",
+          "sha256": "3029ea34173e9fdc233ad315dc6b100bd1ea71f529b1c1af97664a272fdc55f5"
+        }
+      ],
+      "installed_version": "3.1.2",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "BSD-3-Clause",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "project_urls": [],
+      "homepage": "https://github.com/cloudpipe/cloudpickle",
+      "notice_status": "copied"
+    },
+    {
+      "name": "colorama",
+      "versions": [
+        "0.4.6"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/colorama-0.4.6/colorama-0.4.6.dist-info/licenses/LICENSE.txt",
+          "sha256": "cac35c02686e5d04a5a7140bfb3b36e73aed496656e891102e428886d7930318"
+        }
+      ],
+      "installed_version": "0.4.6",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "project_urls": [
+        "Homepage, https://github.com/tartley/colorama"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "colorlog",
+      "versions": [
+        "6.12.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/colorlog-6.12.0/colorlog-6.12.0.dist-info/licenses/LICENSE",
+          "sha256": "b1d9082bc483623fd59fc7279b457f0e40d942a76426cde257239e04dfe4125a"
+        }
+      ],
+      "installed_version": "6.12.0",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "MIT License",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "project_urls": [],
+      "homepage": "https://github.com/borntyping/python-colorlog",
+      "notice_status": "copied"
+    },
+    {
+      "name": "cryptography",
+      "versions": [
+        "46.0.7"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/cryptography-46.0.7/cryptography-46.0.7.dist-info/licenses/LICENSE",
+          "sha256": "3e0c7c091a948b82533ba98fd7cbb40432d6f1a9acbf85f5922d2f99a93ae6bb"
+        },
+        {
+          "path": "python/cryptography-46.0.7/cryptography-46.0.7.dist-info/licenses/LICENSE.APACHE",
+          "sha256": "aac73b3148f6d1d7111dbca32099f68d26c644c6813ae1e4f05f6579aa2663fe"
+        },
+        {
+          "path": "python/cryptography-46.0.7/cryptography-46.0.7.dist-info/licenses/LICENSE.BSD",
+          "sha256": "602c4c7482de6479dd2e9793cda275e5e63d773dacd1eca689232ab7008fb4fb"
+        }
+      ],
+      "installed_version": "46.0.7",
+      "status": "matched",
+      "license_expression": "Apache-2.0 OR BSD-3-Clause",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "homepage, https://github.com/pyca/cryptography",
+        "documentation, https://cryptography.io/",
+        "source, https://github.com/pyca/cryptography/",
+        "issues, https://github.com/pyca/cryptography/issues",
+        "changelog, https://cryptography.io/en/latest/changelog/"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "csvw",
+      "versions": [
+        "4.1.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/csvw-4.1.1/csvw-4.1.1.dist-info/LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ],
+      "installed_version": "4.1.1",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "Apache 2.0",
+      "license_classifiers": [
+        "License :: OSI Approved :: Apache Software License"
+      ],
+      "project_urls": [
+        "Bug Tracker, https://github.com/cldf/csvw/issues"
+      ],
+      "homepage": "https://github.com/cldf/csvw",
+      "notice_status": "copied"
+    },
+    {
+      "name": "ctranslate2",
+      "versions": [
+        "4.8.2"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [],
+      "installed_version": "4.8.2",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "MIT",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://opennmt.net/CTranslate2",
+        "Forum, https://forum.opennmt.net",
+        "Gitter, https://gitter.im/OpenNMT/CTranslate2",
+        "Source, https://github.com/OpenNMT/CTranslate2"
+      ],
+      "homepage": "https://opennmt.net",
+      "notice_status": "no_notice_in_distribution"
+    },
+    {
+      "name": "dateparser",
+      "versions": [
+        "1.4.3"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/dateparser-1.4.3/dateparser-1.4.3.dist-info/licenses/AUTHORS.rst",
+          "sha256": "c7261e4f6006295aec1d8c683b180313c5e648aed536d24da85cf0db924b1368"
+        },
+        {
+          "path": "python/dateparser-1.4.3/dateparser-1.4.3.dist-info/licenses/LICENSE",
+          "sha256": "b75db655bb7a42a8e8561d0db873158bb9dab9d468af244000f02d7dd83e97f4"
+        }
+      ],
+      "installed_version": "1.4.3",
+      "status": "matched",
+      "license_expression": "BSD-3-Clause",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Source, https://github.com/scrapinghub/dateparser",
+        "History, https://dateparser.readthedocs.io/en/latest/history.html"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "ddgs",
+      "versions": [
+        "9.16.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/ddgs-9.16.0/ddgs-9.16.0.dist-info/licenses/LICENSE.md",
+          "sha256": "767a763769d3c3dcd2b8947e4bdc57f04151f7ea4adbc0bf13e052c77e600427"
+        }
+      ],
+      "installed_version": "9.16.0",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Homepage, https://github.com/deedy5/ddgs",
+        "Source, https://github.com/deedy5/ddgs",
+        "Bug Tracker, https://github.com/deedy5/ddgs/issues",
+        "Documentation, https://github.com/deedy5/ddgs/blob/main/README.md"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "dlinfo",
+      "versions": [
+        "2.0.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/dlinfo-2.0.0/dlinfo-2.0.0.dist-info/LICENSE",
+          "sha256": "1fd86a529dead7ed5730b366080bbd10665d588913fd2d9ce50eb3a161095fb9"
+        }
+      ],
+      "installed_version": "2.0.0",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "MIT",
+      "license_classifiers": [],
+      "project_urls": [],
+      "homepage": "https://github.com/fphammerle/python-dlinfo",
+      "notice_status": "copied"
+    },
+    {
+      "name": "espeakng-loader",
+      "versions": [
+        "0.2.4"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [],
+      "installed_version": "0.2.4",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [],
+      "homepage": "",
+      "notice_status": "no_notice_in_distribution"
+    },
+    {
+      "name": "fastapi",
+      "versions": [
+        "0.143.3"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/fastapi-0.143.3/fastapi-0.143.3.dist-info/licenses/LICENSE",
+          "sha256": "4ec89ffc81485b97fec584b2d4a961032eeffe834453894fd9c1274906cc744e"
+        }
+      ],
+      "installed_version": "0.143.3",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Homepage, https://github.com/fastapi/fastapi",
+        "Documentation, https://fastapi.tiangolo.com/",
+        "Repository, https://github.com/fastapi/fastapi",
+        "Issues, https://github.com/fastapi/fastapi/issues",
+        "Changelog, https://fastapi.tiangolo.com/release-notes/"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "faster-whisper",
+      "versions": [
+        "1.2.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt",
+        "requirements-whisper.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/faster-whisper-1.2.1/faster_whisper-1.2.1.dist-info/LICENSE",
+          "sha256": "af6798135e729f8aa6c853936d037dfdea449734d26b8ea6a89805fca758c0d5"
+        }
+      ],
+      "installed_version": "1.2.1",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "MIT",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "project_urls": [],
+      "homepage": "https://github.com/SYSTRAN/faster-whisper",
+      "notice_status": "copied"
+    },
+    {
+      "name": "filelock",
+      "versions": [
+        "4.2.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/filelock-4.2.1/filelock-4.2.1.dist-info/licenses/LICENSE",
+          "sha256": "608c89d5060ae9921adccf3236695bc654a9946e12323ef6c021dfa04e294d48"
+        }
+      ],
+      "installed_version": "4.2.1",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "project_urls": [
+        "Documentation, https://py-filelock.readthedocs.io",
+        "Homepage, https://github.com/tox-dev/py-filelock",
+        "Source, https://github.com/tox-dev/py-filelock",
+        "Tracker, https://github.com/tox-dev/py-filelock/issues"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "flatbuffers",
+      "versions": [
+        "25.12.19"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [],
+      "installed_version": "25.12.19",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "Apache 2.0",
+      "license_classifiers": [
+        "License :: OSI Approved :: Apache Software License"
+      ],
+      "project_urls": [
+        "Documentation, https://google.github.io/flatbuffers/",
+        "Source, https://github.com/google/flatbuffers"
+      ],
+      "homepage": "https://google.github.io/flatbuffers/",
+      "notice_status": "no_notice_in_distribution"
+    },
+    {
+      "name": "fsspec",
+      "versions": [
+        "2026.9.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/fsspec-2026.9.0/fsspec-2026.9.0.dist-info/licenses/LICENSE",
+          "sha256": "2dc35496ce53a7307915c008a844aad53e772b49b34cdd00445067691407ec94"
+        }
+      ],
+      "installed_version": "2026.9.0",
+      "status": "matched",
+      "license_expression": "BSD-3-Clause",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Changelog, https://filesystem-spec.readthedocs.io/en/latest/changelog.html",
+        "Documentation, https://filesystem-spec.readthedocs.io/en/latest/",
+        "Homepage, https://github.com/fsspec/filesystem_spec"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "h11",
+      "versions": [
+        "0.16.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/h11-0.16.0/h11-0.16.0.dist-info/licenses/LICENSE.txt",
+          "sha256": "37db5bb85926db28a427a25867f10b1232003aea1be69ccb851138adb8e6f361"
+        }
+      ],
+      "installed_version": "0.16.0",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "MIT",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "project_urls": [],
+      "homepage": "https://github.com/python-hyper/h11",
+      "notice_status": "copied"
+    },
+    {
+      "name": "hf-xet",
+      "versions": [
+        "1.7.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/hf-xet-1.7.0/hf_xet-1.7.0.dist-info/licenses/LICENSE",
+          "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6"
+        }
+      ],
+      "installed_version": "1.7.0",
+      "status": "matched",
+      "license_expression": "Apache-2.0",
+      "license_metadata": "",
+      "license_classifiers": [
+        "License :: OSI Approved :: Apache Software License"
+      ],
+      "project_urls": [
+        "Documentation, https://huggingface.co/docs/hub/xet/index",
+        "Homepage, https://github.com/huggingface/xet-core",
+        "Issues, https://github.com/huggingface/xet-core/issues",
+        "Repository, https://github.com/huggingface/xet-core.git"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "httpcore",
+      "versions": [
+        "1.0.9"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/httpcore-1.0.9/httpcore-1.0.9.dist-info/licenses/LICENSE.md",
+          "sha256": "fdcb59154c74cbaba16a11242f7740bea9f23d6feb5547917d8c5f94a80392a5"
+        }
+      ],
+      "installed_version": "1.0.9",
+      "status": "matched",
+      "license_expression": "BSD-3-Clause",
+      "license_metadata": "",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "project_urls": [
+        "Documentation, https://www.encode.io/httpcore",
+        "Homepage, https://www.encode.io/httpcore/",
+        "Source, https://github.com/encode/httpcore"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "httpcore2",
+      "versions": [
+        "2.13.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/httpcore2-2.13.1/httpcore2-2.13.1.dist-info/licenses/LICENSE.md",
+          "sha256": "c4df125c807b0613501e943a5c92496dd11d2c16604ce396097a8dde396304d9"
+        }
+      ],
+      "installed_version": "2.13.1",
+      "status": "matched",
+      "license_expression": "BSD-3-Clause",
+      "license_metadata": "",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "project_urls": [
+        "Changelog, https://github.com/pydantic/httpx2/blob/main/src/httpcore2/CHANGELOG.md",
+        "Homepage, https://github.com/pydantic/httpx2",
+        "Source, https://github.com/pydantic/httpx2/blob/main/src/httpcore2"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "httpx",
+      "versions": [
+        "0.28.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/httpx-0.28.1/httpx-0.28.1.dist-info/licenses/LICENSE.md",
+          "sha256": "4ec59d544f12b5f539a3a716fd321ac58ccd8030b465221f2c880200cdf28d8d"
+        }
+      ],
+      "installed_version": "0.28.1",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "BSD-3-Clause",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "project_urls": [
+        "Changelog, https://github.com/encode/httpx/blob/master/CHANGELOG.md",
+        "Documentation, https://www.python-httpx.org",
+        "Homepage, https://github.com/encode/httpx",
+        "Source, https://github.com/encode/httpx"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "httpx2",
+      "versions": [
+        "2.13.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/httpx2-2.13.1/httpx2-2.13.1.dist-info/licenses/LICENSE.md",
+          "sha256": "7e7d6dbaf7fe160d39fd6e84fd02c33cab96bcbea34d36998d545bceb4a19c30"
+        }
+      ],
+      "installed_version": "2.13.1",
+      "status": "matched",
+      "license_expression": "BSD-3-Clause",
+      "license_metadata": "",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "project_urls": [
+        "Changelog, https://github.com/pydantic/httpx2/blob/main/src/httpx2/CHANGELOG.md",
+        "Homepage, https://github.com/pydantic/httpx2",
+        "Source, https://github.com/pydantic/httpx2"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "huggingface_hub",
+      "versions": [
+        "2.2.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/huggingface-hub-2.2.0/huggingface_hub-2.2.0.dist-info/licenses/LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ],
+      "installed_version": "2.2.0",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "Apache-2.0",
+      "license_classifiers": [
+        "License :: OSI Approved :: Apache Software License"
+      ],
+      "project_urls": [],
+      "homepage": "https://github.com/huggingface/huggingface_hub",
+      "notice_status": "copied"
+    },
+    {
+      "name": "idna",
+      "versions": [
+        "3.20"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/idna-3.20/idna-3.20.dist-info/licenses/LICENSE.md",
+          "sha256": "1a9a4f0e3d479a27240ddd59a9137a66ab4a0f9dfdc8ca6188cc0bfd85187f04"
+        }
+      ],
+      "installed_version": "3.20",
+      "status": "matched",
+      "license_expression": "BSD-3-Clause",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Changelog, https://github.com/kjd/idna/blob/master/HISTORY.md",
+        "Issue tracker, https://github.com/kjd/idna/issues",
+        "Source, https://github.com/kjd/idna"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "isodate",
+      "versions": [
+        "0.7.2"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/isodate-0.7.2/isodate-0.7.2.dist-info/LICENSE",
+          "sha256": "ce5fe4893fb6ab843de77b367bfa9db974d7b00ab9033fcca8d7760a97fe1b43"
+        }
+      ],
+      "installed_version": "0.7.2",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "Copyright (c) 2021, Hugo van Kemenade and contributors\nCopyright (c) 2009-2018, Gerhard Weis and contributors\nCopyright (c) 2009, Gerhard Weis\nAll rights reserved.\n\nRedistribution and use in source and binary forms, with or without\nmodification, are permitted provided that the following conditions are met:\n    * Redistributions of source code must retain the above copyright\n      notice, this list of conditions and the following disclaimer.\n    * Redistributions in binary form must reproduce the above copyright\n      notice, this list of conditions and the following disclaimer in the\n      documentation and/or other materials provided with the distribution.\n    * Neither the name of the <organization> nor the\n      names of its contributors may be used to endorse or promote products\n      derived from this software without specific prior written permission.\n\nTHIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\" AND\nANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\nWARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE\nDISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY\nDIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES\n(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;\nLOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND\nON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS\nSOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "project_urls": [
+        "Homepage, https://github.com/gweis/isodate/"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "joblib",
+      "versions": [
+        "1.6.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/joblib-1.6.0/joblib-1.6.0.dist-info/licenses/LICENSE.txt",
+          "sha256": "42612911c1872c5e4b43f6ae0e8ee59467cd350332241cf72ce90640264fae6a"
+        }
+      ],
+      "installed_version": "1.6.0",
+      "status": "matched",
+      "license_expression": "BSD-3-Clause",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Homepage, https://joblib.readthedocs.io",
+        "Source, https://github.com/joblib/joblib"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "jsonschema",
+      "versions": [
+        "4.26.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/jsonschema-4.26.0/jsonschema-4.26.0.dist-info/licenses/COPYING",
+          "sha256": "4f92a015a13c4d1a040bef018aa13430b4f1bc73b41b16bb846c346766de7439"
+        }
+      ],
+      "installed_version": "4.26.0",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Homepage, https://github.com/python-jsonschema/jsonschema",
+        "Documentation, https://python-jsonschema.readthedocs.io/",
+        "Issues, https://github.com/python-jsonschema/jsonschema/issues/",
+        "Funding, https://github.com/sponsors/Julian",
+        "Tidelift, https://tidelift.com/subscription/pkg/pypi-jsonschema?utm_source=pypi-jsonschema&utm_medium=referral&utm_campaign=pypi-link",
+        "Changelog, https://github.com/python-jsonschema/jsonschema/blob/main/CHANGELOG.rst",
+        "Source, https://github.com/python-jsonschema/jsonschema"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "jsonschema-specifications",
+      "versions": [
+        "2025.9.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/jsonschema-specifications-2025.9.1/jsonschema_specifications-2025.9.1.dist-info/licenses/COPYING",
+          "sha256": "42dcd63495f87b4eb7c7757afa379bb55a53f94afd7a5f657d9adf57236e515c"
+        }
+      ],
+      "installed_version": "2025.9.1",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://jsonschema-specifications.readthedocs.io/",
+        "Homepage, https://github.com/python-jsonschema/jsonschema-specifications",
+        "Issues, https://github.com/python-jsonschema/jsonschema-specifications/issues/",
+        "Funding, https://github.com/sponsors/Julian",
+        "Tidelift, https://tidelift.com/subscription/pkg/pypi-jsonschema-specifications?utm_source=pypi-jsonschema-specifications&utm_medium=referral&utm_campaign=pypi-link",
+        "Source, https://github.com/python-jsonschema/jsonschema-specifications"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "kokoro-onnx",
+      "versions": [
+        "0.4.7"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt",
+        "requirements-kokoro.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/kokoro-onnx-0.4.7/kokoro_onnx-0.4.7.dist-info/licenses/LICENSE",
+          "sha256": "f61fdd0217de9ece8fa699912848d91187d84879fc2e689f0906d0c1299e955e"
+        }
+      ],
+      "installed_version": "0.4.7",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Homepage, https://github.com/thewh1teagle/kokoro-onnx",
+        "Repository, https://github.com/thewh1teagle/kokoro-onnx",
+        "Issues, https://github.com/thewh1teagle/kokoro-onnx/issues"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "language-tags",
+      "versions": [
+        "1.3.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/language-tags-1.3.1/language_tags-1.3.1.dist-info/licenses/LICENSE",
+          "sha256": "9e07b99a50ee9d0b3bba384236a34763dbb85b555919bf0d20b4c4b37cc715aa"
+        }
+      ],
+      "installed_version": "1.3.1",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "History, https://github.com/OnroerendErfgoed/language-tags/blob/master/HISTORY.rst",
+        "Tracker, https://github.com/OnroerendErfgoed/language-tags/issues",
+        "Source, https://github.com/OnroerendErfgoed/language-tags",
+        "Documentation, https://language-tags.readthedocs.io/en/latest/"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "lxml",
+      "versions": [
+        "6.1.3"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/lxml-6.1.3/lxml-6.1.3.dist-info/licenses/LICENSE.txt",
+          "sha256": "e7c3ce8d76331b0101cc46790ab43958ea90a364bcf962ed8763d5a818340e69"
+        }
+      ],
+      "installed_version": "6.1.3",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "BSD-3-Clause",
+      "license_classifiers": [],
+      "project_urls": [
+        "Source, https://github.com/lxml/lxml",
+        "Bug Tracker, https://bugs.launchpad.net/lxml"
+      ],
+      "homepage": "https://lxml.de/",
+      "notice_status": "copied"
+    },
+    {
+      "name": "numpy",
+      "versions": [
+        "2.5.4"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/numpy-2.5.4/numpy-2.5.4.dist-info/licenses/LICENSE.txt",
+          "sha256": "a804dff0ead9fadc5293456410bcbfc32bf024be9c4513459663fb7b442d2341"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy-2.5.4.dist-info/licenses/numpy/_core/include/numpy/libdivide/LICENSE.txt",
+          "sha256": "d544761558b510866c21f7e8a2d5716fca76e0b98117e3b6b86314db7244d150"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy-2.5.4.dist-info/licenses/numpy/_core/src/common/pythoncapi-compat/COPYING",
+          "sha256": "aea41976c720f91bd19725c16916a1ace40eb1ea42620d340e587a5de4bbcea0"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy-2.5.4.dist-info/licenses/numpy/_core/src/highway/LICENSE",
+          "sha256": "d208152e2777ffd0126eacc1bd21c0320d69e4e6b622d21a2a12a47e8ef73763"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy-2.5.4.dist-info/licenses/numpy/_core/src/npysort/x86-simd-sort/LICENSE.md",
+          "sha256": "a732977853530066790c42817087f4829b518dd98d340c916acbfd227e39d3cb"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy-2.5.4.dist-info/licenses/numpy/_core/src/umath/svml/LICENSE",
+          "sha256": "585483905b13d4b42f800c55ba99e89d6e2e33ccd5f503e201c07531d148ff41"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy-2.5.4.dist-info/licenses/numpy/fft/pocketfft/LICENSE.md",
+          "sha256": "8db000e158c162e7249787852d8c69764706502ccee725c06641b31c1e95c8af"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy-2.5.4.dist-info/licenses/numpy/linalg/lapack_lite/LICENSE.txt",
+          "sha256": "19060ef465e1797d682ee0fc3081bd25ab1395e995e43d25c9d13c95d9a3cd6b"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy-2.5.4.dist-info/licenses/numpy/ma/LICENSE",
+          "sha256": "d78dbb208b80d92b4d333e41a4baae50d12444f46e53199fa7726a91de6e2da7"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy-2.5.4.dist-info/licenses/numpy/random/LICENSE.md",
+          "sha256": "b4bc2f4fa1c95778f1ed3dd8f14706bece399475b978f9f34b5d3cd72521b48a"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy-2.5.4.dist-info/licenses/numpy/random/src/distributions/LICENSE.md",
+          "sha256": "cf5619f25b112d5ce7c896efffc8e610bcb345dfadcc19f2c1460aa48fff2c9e"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy-2.5.4.dist-info/licenses/numpy/random/src/mt19937/LICENSE.md",
+          "sha256": "92c10699884321f1c2947fe2a70ab23b0fbf1507f756d89dd08f38c61fc3d4fa"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy-2.5.4.dist-info/licenses/numpy/random/src/pcg64/LICENSE.md",
+          "sha256": "41190663b77bee5302386495a07b7eabfbfa571aa0ae2f11da6764162062fc4f"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy-2.5.4.dist-info/licenses/numpy/random/src/philox/LICENSE.md",
+          "sha256": "322ac46d870c8aeead6c53adcccc839296fb3c8e456eae155081297daf7f8013"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy-2.5.4.dist-info/licenses/numpy/random/src/sfc64/LICENSE.md",
+          "sha256": "28cad82ce1379dc529df30da78ec012d7d0d1d576b03ddcb93388aee53659f59"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy-2.5.4.dist-info/licenses/numpy/random/src/splitmix64/LICENSE.md",
+          "sha256": "454ec7350e478e037061850b67395753b425b1cb0a34bbc26290b020bf89d763"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy/_core/include/numpy/random/LICENSE.txt",
+          "sha256": "d544761558b510866c21f7e8a2d5716fca76e0b98117e3b6b86314db7244d150"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy/ma/LICENSE",
+          "sha256": "d78dbb208b80d92b4d333e41a4baae50d12444f46e53199fa7726a91de6e2da7"
+        },
+        {
+          "path": "python/numpy-2.5.4/numpy/random/LICENSE.md",
+          "sha256": "b4bc2f4fa1c95778f1ed3dd8f14706bece399475b978f9f34b5d3cd72521b48a"
+        }
+      ],
+      "installed_version": "2.5.4",
+      "status": "matched",
+      "license_expression": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "homepage, https://numpy.org",
+        "documentation, https://numpy.org/doc/",
+        "source, https://github.com/numpy/numpy",
+        "download, https://pypi.org/project/numpy/#files",
+        "tracker, https://github.com/numpy/numpy/issues",
+        "release notes, https://numpy.org/doc/stable/release"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "omegaconf",
+      "versions": [
+        "2.4.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/omegaconf-2.4.0/omegaconf-2.4.0.dist-info/licenses/ATTRIBUTION/LICENSE-antlr4",
+          "sha256": "3db1fb3ee79a4b4f9918fc4d0f6133bf18a3cf787f126cd22f8aa9b862281c0c"
+        },
+        {
+          "path": "python/omegaconf-2.4.0/omegaconf-2.4.0.dist-info/licenses/LICENSE",
+          "sha256": "b31375ed5d5cbe7ec2d0c4c14df8afa7a8e5501bbe25f70b6cbc461685f4b91a"
+        }
+      ],
+      "installed_version": "2.4.0",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "project_urls": [],
+      "homepage": "https://github.com/hydra-ecosystem/omegaconf",
+      "notice_status": "copied"
+    },
+    {
+      "name": "onnxruntime",
+      "versions": [
+        "1.31.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt",
+        "requirements-ocr.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/onnxruntime-1.31.0/onnxruntime/LICENSE",
+          "sha256": "c250d6278f0b47a6439fb7592b08b58a55eb9f535aa49a1db63211c3f982b674"
+        }
+      ],
+      "installed_version": "1.31.0",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "MIT License",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "project_urls": [],
+      "homepage": "https://onnxruntime.ai",
+      "notice_status": "copied"
+    },
+    {
+      "name": "opencv-python-headless",
+      "versions": [
+        "5.0.0.93"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt",
+        "requirements-ocr.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/opencv-python-headless-5.0.0.93/cv2/LICENSE-3RD-PARTY.txt",
+          "sha256": "c1d60169b55cee56452b227c2fd2a7b9ddda3dd3741065f1c6201072be73fadb"
+        },
+        {
+          "path": "python/opencv-python-headless-5.0.0.93/cv2/LICENSE.txt",
+          "sha256": "edef0fac1eb08d29d34563f724742e078da2513e196133a12c6ad9ff01e26107"
+        },
+        {
+          "path": "python/opencv-python-headless-5.0.0.93/opencv_python_headless-5.0.0.93.dist-info/LICENSE-3RD-PARTY.txt",
+          "sha256": "c1d60169b55cee56452b227c2fd2a7b9ddda3dd3741065f1c6201072be73fadb"
+        },
+        {
+          "path": "python/opencv-python-headless-5.0.0.93/opencv_python_headless-5.0.0.93.dist-info/LICENSE.txt",
+          "sha256": "edef0fac1eb08d29d34563f724742e078da2513e196133a12c6ad9ff01e26107"
+        }
+      ],
+      "installed_version": "5.0.0.93",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "Apache 2.0",
+      "license_classifiers": [
+        "License :: OSI Approved :: Apache Software License"
+      ],
+      "project_urls": [],
+      "homepage": "https://github.com/opencv/opencv-python",
+      "notice_status": "copied"
+    },
+    {
+      "name": "opentelemetry-api",
+      "versions": [
+        "1.45.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/opentelemetry-api-1.45.1/opentelemetry_api-1.45.1.dist-info/licenses/LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ],
+      "installed_version": "1.45.1",
+      "status": "matched",
+      "license_expression": "Apache-2.0",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Homepage, https://github.com/open-telemetry/opentelemetry-python/tree/main/opentelemetry-api",
+        "Repository, https://github.com/open-telemetry/opentelemetry-python"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "packaging",
+      "versions": [
+        "26.3"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/packaging-26.3/packaging-26.3.dist-info/licenses/LICENSE",
+          "sha256": "cad1ef5bd340d73e074ba614d26f7deaca5c7940c3d8c34852e65c4909686c48"
+        },
+        {
+          "path": "python/packaging-26.3/packaging-26.3.dist-info/licenses/LICENSE.APACHE",
+          "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+        },
+        {
+          "path": "python/packaging-26.3/packaging-26.3.dist-info/licenses/LICENSE.BSD",
+          "sha256": "b70e7e9b742f1cc6f948b34c16aa39ffece94196364bc88ff0d2180f0028fac5"
+        }
+      ],
+      "installed_version": "26.3",
+      "status": "matched",
+      "license_expression": "Apache-2.0 OR BSD-2-Clause",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://packaging.pypa.io/",
+        "Source, https://github.com/pypa/packaging"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "pathvalidate",
+      "versions": [
+        "3.3.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/pathvalidate-3.3.1/pathvalidate-3.3.1.dist-info/licenses/LICENSE",
+          "sha256": "130a35b917df1951aefbf366120491d5124045a87ded123f20ded21521f4e3a2"
+        }
+      ],
+      "installed_version": "3.3.1",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "MIT License",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "project_urls": [
+        "Changelog, https://github.com/thombashi/pathvalidate/blob/master/CHANGELOG.md",
+        "Documentation, https://pathvalidate.rtfd.io/",
+        "Source, https://github.com/thombashi/pathvalidate",
+        "Tracker, https://github.com/thombashi/pathvalidate/issues"
+      ],
+      "homepage": "https://github.com/thombashi/pathvalidate",
+      "notice_status": "copied"
+    },
+    {
+      "name": "phonemizer-fork",
+      "versions": [
+        "3.3.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/phonemizer-fork-3.3.1/phonemizer_fork-3.3.1.dist-info/licenses/LICENSE",
+          "sha256": "d62f065830aa3739cc031156b9690805c7b2e811b4a178c8b4acd8725d561c94"
+        }
+      ],
+      "installed_version": "3.3.1",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "GNU GENERAL PUBLIC LICENSE\n                       Version 3, 29 June 2007\n\n Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>\n Everyone is permitted to copy and distribute verbatim copies\n of this license document, but changing it is not allowed.\n\n                            Preamble\n\n  The GNU General Public License is a free, copyleft license for\nsoftware and other kinds of works.\n\n  The licenses for most software and other practical works are designed\nto take away your freedom to share and change the works.  By contrast,\nthe GNU General Public License is intended to guarantee your freedom to\nshare and change all versions of a program--to make sure it remains free\nsoftware for all its users.  We, the Free Software Foundation, use the\nGNU General Public License for most of our software; it applies also to\nany other work released this way by its authors.  You can apply it to\nyour programs, too.\n\n  When we speak of free software, we are referring to freedom, not\nprice.  Our General Public Licenses are designed to make sure that you\nhave the freedom to distribute copies of free software (and charge for\nthem if you wish), that you receive source code or can get it if you\nwant it, that you can change the software or use pieces of it in new\nfree programs, and that you know you can do these things.\n\n  To protect your rights, we need to prevent others from denying you\nthese rights or asking you to surrender the rights.  Therefore, you have\ncertain responsibilities if you distribute copies of the software, or if\nyou modify it: responsibilities to respect the freedom of others.\n\n  For example, if you distribute copies of such a program, whether\ngratis or for a fee, you must pass on to the recipients the same\nfreedoms that you received.  You must make sure that they, too, receive\nor can get the source code.  And you must show them these terms so they\nknow their rights.\n\n  Developers that use the GNU GPL protect your rights with two steps:\n(1) assert copyright on the software, and (2) offer you this License\ngiving you legal permission to copy, distribute and/or modify it.\n\n  For the developers' and authors' protection, the GPL clearly explains\nthat there is no warranty for this free software.  For both users' and\nauthors' sake, the GPL requires that modified versions be marked as\nchanged, so that their problems will not be attributed erroneously to\nauthors of previous versions.\n\n  Some devices are designed to deny users access to install or run\nmodified versions of the software inside them, although the manufacturer\ncan do so.  This is fundamentally incompatible with the aim of\nprotecting users' freedom to change the software.  The systematic\npattern of such abuse occurs in the area of products for individuals to\nuse, which is precisely where it is most unacceptable.  Therefore, we\nhave designed this version of the GPL to prohibit the practice for those\nproducts.  If such problems arise substantially in other domains, we\nstand ready to extend this provision to those domains in future versions\nof the GPL, as needed to protect the freedom of users.\n\n  Finally, every program is threatened constantly by software patents.\nStates should not allow patents to restrict development and use of\nsoftware on general-purpose computers, but in those that do, we wish to\navoid the special danger that patents applied to a free program could\nmake it effectively proprietary.  To prevent this, the GPL assures that\npatents cannot be used to render the program non-free.\n\n  The precise terms and conditions for copying, distribution and\nmodification follow.\n\n                       TERMS AND CONDITIONS\n\n  0. Definitions.\n\n  \"This License\" refers to version 3 of the GNU General Public License.\n\n  \"Copyright\" also means copyright-like laws that apply to other kinds of\nworks, such as semiconductor masks.\n\n  \"The Program\" refers to any copyrightable work licensed under this\nLicense.  Each licensee is addressed as \"you\".  \"Licensees\" and\n\"recipients\" may be individuals or organizations.\n\n  To \"modify\" a work means to copy from or adapt all or part of the work\nin a fashion requiring copyright permission, other than the making of an\nexact copy.  The resulting work is called a \"modified version\" of the\nearlier work or a work \"based on\" the earlier work.\n\n  A \"covered work\" means either the unmodified Program or a work based\non the Program.\n\n  To \"propagate\" a work means to do anything with it that, without\npermission, would make you directly or secondarily liable for\ninfringement under applicable copyright law, except executing it on a\ncomputer or modifying a private copy.  Propagation includes copying,\ndistribution (with or without modification), making available to the\npublic, and in some countries other activities as well.\n\n  To \"convey\" a work means any kind of propagation that enables other\nparties to make or receive copies.  Mere interaction with a user through\na computer network, with no transfer of a copy, is not conveying.\n\n  An interactive user interface displays \"Appropriate Legal Notices\"\nto the extent that it includes a convenient and prominently visible\nfeature that (1) displays an appropriate copyright notice, and (2)\ntells the user that there is no warranty for the work (except to the\nextent that warranties are provided), that licensees may convey the\nwork under this License, and how to view a copy of this License.  If\nthe interface presents a list of user commands or options, such as a\nmenu, a prominent item in the list meets this criterion.\n\n  1. Source Code.\n\n  The \"source code\" for a work means the preferred form of the work\nfor making modifications to it.  \"Object code\" means any non-source\nform of a work.\n\n  A \"Standard Interface\" means an interface that either is an official\nstandard defined by a recognized standards body, or, in the case of\ninterfaces specified for a particular programming language, one that\nis widely used among developers working in that language.\n\n  The \"System Libraries\" of an executable work include anything, other\nthan the work as a whole, that (a) is included in the normal form of\npackaging a Major Component, but which is not part of that Major\nComponent, and (b) serves only to enable use of the work with that\nMajor Component, or to implement a Standard Interface for which an\nimplementation is available to the public in source code form.  A\n\"Major Component\", in this context, means a major essential component\n(kernel, window system, and so on) of the specific operating system\n(if any) on which the executable work runs, or a compiler used to\nproduce the work, or an object code interpreter used to run it.\n\n  The \"Corresponding Source\" for a work in object code form means all\nthe source code needed to generate, install, and (for an executable\nwork) run the object code and to modify the work, including scripts to\ncontrol those activities.  However, it does not include the work's\nSystem Libraries, or general-purpose tools or generally available free\nprograms which are used unmodified in performing those activities but\nwhich are not part of the work.  For example, Corresponding Source\nincludes interface definition files associated with source files for\nthe work, and the source code for shared libraries and dynamically\nlinked subprograms that the work is specifically designed to require,\nsuch as by intimate data communication or control flow between those\nsubprograms and other parts of the work.\n\n  The Corresponding Source need not include anything that users\ncan regenerate automatically from other parts of the Corresponding\nSource.\n\n  The Corresponding Source for a work in source code form is that\nsame work.\n\n  2. Basic Permissions.\n\n  All rights granted under this License are granted for the term of\ncopyright on the Program, and are irrevocable provided the stated\nconditions are met.  This License explicitly affirms your unlimited\npermission to run the unmodified Program.  The output from running a\ncovered work is covered by this License only if the output, given its\ncontent, constitutes a covered work.  This License acknowledges your\nrights of fair use or other equivalent, as provided by copyright law.\n\n  You may make, run and propagate covered works that you do not\nconvey, without conditions so long as your license otherwise remains\nin force.  You may convey covered works to others for the sole purpose\nof having them make modifications exclusively for you, or provide you\nwith facilities for running those works, provided that you comply with\nthe terms of this License in conveying all material for which you do\nnot control copyright.  Those thus making or running the covered works\nfor you must do so exclusively on your behalf, under your direction\nand control, on terms that prohibit them from making any copies of\nyour copyrighted material outside their relationship with you.\n\n  Conveying under any other circumstances is permitted solely under\nthe conditions stated below.  Sublicensing is not allowed; section 10\nmakes it unnecessary.\n\n  3. Protecting Users' Legal Rights From Anti-Circumvention Law.\n\n  No covered work shall be deemed part of an effective technological\nmeasure under any applicable law fulfilling obligations under article\n11 of the WIPO copyright treaty adopted on 20 December 1996, or\nsimilar laws prohibiting or restricting circumvention of such\nmeasures.\n\n  When you convey a covered work, you waive any legal power to forbid\ncircumvention of technological measures to the extent such circumvention\nis effected by exercising rights under this License with respect to\nthe covered work, and you disclaim any intention to limit operation or\nmodification of the work as a means of enforcing, against the work's\nusers, your or third parties' legal rights to forbid circumvention of\ntechnological measures.\n\n  4. Conveying Verbatim Copies.\n\n  You may convey verbatim copies of the Program's source code as you\nreceive it, in any medium, provided that you conspicuously and\nappropriately publish on each copy an appropriate copyright notice;\nkeep intact all notices stating that this License and any\nnon-permissive terms added in accord with section 7 apply to the code;\nkeep intact all notices of the absence of any warranty; and give all\nrecipients a copy of this License along with the Program.\n\n  You may charge any price or no price for each copy that you convey,\nand you may offer support or warranty protection for a fee.\n\n  5. Conveying Modified Source Versions.\n\n  You may convey a work based on the Program, or the modifications to\nproduce it from the Program, in the form of source code under the\nterms of section 4, provided that you also meet all of these conditions:\n\n    a) The work must carry prominent notices stating that you modified\n    it, and giving a relevant date.\n\n    b) The work must carry prominent notices stating that it is\n    released under this License and any conditions added under section\n    7.  This requirement modifies the requirement in section 4 to\n    \"keep intact all notices\".\n\n    c) You must license the entire work, as a whole, under this\n    License to anyone who comes into possession of a copy.  This\n    License will therefore apply, along with any applicable section 7\n    additional terms, to the whole of the work, and all its parts,\n    regardless of how they are packaged.  This License gives no\n    permission to license the work in any other way, but it does not\n    invalidate such permission if you have separately received it.\n\n    d) If the work has interactive user interfaces, each must display\n    Appropriate Legal Notices; however, if the Program has interactive\n    interfaces that do not display Appropriate Legal Notices, your\n    work need not make them do so.\n\n  A compilation of a covered work with other separate and independent\nworks, which are not by their nature extensions of the covered work,\nand which are not combined with it such as to form a larger program,\nin or on a volume of a storage or distribution medium, is called an\n\"aggregate\" if the compilation and its resulting copyright are not\nused to limit the access or legal rights of the compilation's users\nbeyond what the individual works permit.  Inclusion of a covered work\nin an aggregate does not cause this License to apply to the other\nparts of the aggregate.\n\n  6. Conveying Non-Source Forms.\n\n  You may convey a covered work in object code form under the terms\nof sections 4 and 5, provided that you also convey the\nmachine-readable Corresponding Source under the terms of this License,\nin one of these ways:\n\n    a) Convey the object code in, or embodied in, a physical product\n    (including a physical distribution medium), accompanied by the\n    Corresponding Source fixed on a durable physical medium\n    customarily used for software interchange.\n\n    b) Convey the object code in, or embodied in, a physical product\n    (including a physical distribution medium), accompanied by a\n    written offer, valid for at least three years and valid for as\n    long as you offer spare parts or customer support for that product\n    model, to give anyone who possesses the object code either (1) a\n    copy of the Corresponding Source for all the software in the\n    product that is covered by this License, on a durable physical\n    medium customarily used for software interchange, for a price no\n    more than your reasonable cost of physically performing this\n    conveying of source, or (2) access to copy the\n    Corresponding Source from a network server at no charge.\n\n    c) Convey individual copies of the object code with a copy of the\n    written offer to provide the Corresponding Source.  This\n    alternative is allowed only occasionally and noncommercially, and\n    only if you received the object code with such an offer, in accord\n    with subsection 6b.\n\n    d) Convey the object code by offering access from a designated\n    place (gratis or for a charge), and offer equivalent access to the\n    Corresponding Source in the same way through the same place at no\n    further charge.  You need not require recipients to copy the\n    Corresponding Source along with the object code.  If the place to\n    copy the object code is a network server, the Corresponding Source\n    may be on a different server (operated by you or a third party)\n    that supports equivalent copying facilities, provided you maintain\n    clear directions next to the object code saying where to find the\n    Corresponding Source.  Regardless of what server hosts the\n    Corresponding Source, you remain obligated to ensure that it is\n    available for as long as needed to satisfy these requirements.\n\n    e) Convey the object code using peer-to-peer transmission, provided\n    you inform other peers where the object code and Corresponding\n    Source of the work are being offered to the general public at no\n    charge under subsection 6d.\n\n  A separable portion of the object code, whose source code is excluded\nfrom the Corresponding Source as a System Library, need not be\nincluded in conveying the object code work.\n\n  A \"User Product\" is either (1) a \"consumer product\", which means any\ntangible personal property which is normally used for personal, family,\nor household purposes, or (2) anything designed or sold for incorporation\ninto a dwelling.  In determining whether a product is a consumer product,\ndoubtful cases shall be resolved in favor of coverage.  For a particular\nproduct received by a particular user, \"normally used\" refers to a\ntypical or common use of that class of product, regardless of the status\nof the particular user or of the way in which the particular user\nactually uses, or expects or is expected to use, the product.  A product\nis a consumer product regardless of whether the product has substantial\ncommercial, industrial or non-consumer uses, unless such uses represent\nthe only significant mode of use of the product.\n\n  \"Installation Information\" for a User Product means any methods,\nprocedures, authorization keys, or other information required to install\nand execute modified versions of a covered work in that User Product from\na modified version of its Corresponding Source.  The information must\nsuffice to ensure that the continued functioning of the modified object\ncode is in no case prevented or interfered with solely because\nmodification has been made.\n\n  If you convey an object code work under this section in, or with, or\nspecifically for use in, a User Product, and the conveying occurs as\npart of a transaction in which the right of possession and use of the\nUser Product is transferred to the recipient in perpetuity or for a\nfixed term (regardless of how the transaction is characterized), the\nCorresponding Source conveyed under this section must be accompanied\nby the Installation Information.  But this requirement does not apply\nif neither you nor any third party retains the ability to install\nmodified object code on the User Product (for example, the work has\nbeen installed in ROM).\n\n  The requirement to provide Installation Information does not include a\nrequirement to continue to provide support service, warranty, or updates\nfor a work that has been modified or installed by the recipient, or for\nthe User Product in which it has been modified or installed.  Access to a\nnetwork may be denied when the modification itself materially and\nadversely affects the operation of the network or violates the rules and\nprotocols for communication across the network.\n\n  Corresponding Source conveyed, and Installation Information provided,\nin accord with this section must be in a format that is publicly\ndocumented (and with an implementation available to the public in\nsource code form), and must require no special password or key for\nunpacking, reading or copying.\n\n  7. Additional Terms.\n\n  \"Additional permissions\" are terms that supplement the terms of this\nLicense by making exceptions from one or more of its conditions.\nAdditional permissions that are applicable to the entire Program shall\nbe treated as though they were included in this License, to the extent\nthat they are valid under applicable law.  If additional permissions\napply only to part of the Program, that part may be used separately\nunder those permissions, but the entire Program remains governed by\nthis License without regard to the additional permissions.\n\n  When you convey a copy of a covered work, you may at your option\nremove any additional permissions from that copy, or from any part of\nit.  (Additional permissions may be written to require their own\nremoval in certain cases when you modify the work.)  You may place\nadditional permissions on material, added by you to a covered work,\nfor which you have or can give appropriate copyright permission.\n\n  Notwithstanding any other provision of this License, for material you\nadd to a covered work, you may (if authorized by the copyright holders of\nthat material) supplement the terms of this License with terms:\n\n    a) Disclaiming warranty or limiting liability differently from the\n    terms of sections 15 and 16 of this License; or\n\n    b) Requiring preservation of specified reasonable legal notices or\n    author attributions in that material or in the Appropriate Legal\n    Notices displayed by works containing it; or\n\n    c) Prohibiting misrepresentation of the origin of that material, or\n    requiring that modified versions of such material be marked in\n    reasonable ways as different from the original version; or\n\n    d) Limiting the use for publicity purposes of names of licensors or\n    authors of the material; or\n\n    e) Declining to grant rights under trademark law for use of some\n    trade names, trademarks, or service marks; or\n\n    f) Requiring indemnification of licensors and authors of that\n    material by anyone who conveys the material (or modified versions of\n    it) with contractual assumptions of liability to the recipient, for\n    any liability that these contractual assumptions directly impose on\n    those licensors and authors.\n\n  All other non-permissive additional terms are considered \"further\nrestrictions\" within the meaning of section 10.  If the Program as you\nreceived it, or any part of it, contains a notice stating that it is\ngoverned by this License along with a term that is a further\nrestriction, you may remove that term.  If a license document contains\na further restriction but permits relicensing or conveying under this\nLicense, you may add to a covered work material governed by the terms\nof that license document, provided that the further restriction does\nnot survive such relicensing or conveying.\n\n  If you add terms to a covered work in accord with this section, you\nmust place, in the relevant source files, a statement of the\nadditional terms that apply to those files, or a notice indicating\nwhere to find the applicable terms.\n\n  Additional terms, permissive or non-permissive, may be stated in the\nform of a separately written license, or stated as exceptions;\nthe above requirements apply either way.\n\n  8. Termination.\n\n  You may not propagate or modify a covered work except as expressly\nprovided under this License.  Any attempt otherwise to propagate or\nmodify it is void, and will automatically terminate your rights under\nthis License (including any patent licenses granted under the third\nparagraph of section 11).\n\n  However, if you cease all violation of this License, then your\nlicense from a particular copyright holder is reinstated (a)\nprovisionally, unless and until the copyright holder explicitly and\nfinally terminates your license, and (b) permanently, if the copyright\nholder fails to notify you of the violation by some reasonable means\nprior to 60 days after the cessation.\n\n  Moreover, your license from a particular copyright holder is\nreinstated permanently if the copyright holder notifies you of the\nviolation by some reasonable means, this is the first time you have\nreceived notice of violation of this License (for any work) from that\ncopyright holder, and you cure the violation prior to 30 days after\nyour receipt of the notice.\n\n  Termination of your rights under this section does not terminate the\nlicenses of parties who have received copies or rights from you under\nthis License.  If your rights have been terminated and not permanently\nreinstated, you do not qualify to receive new licenses for the same\nmaterial under section 10.\n\n  9. Acceptance Not Required for Having Copies.\n\n  You are not required to accept this License in order to receive or\nrun a copy of the Program.  Ancillary propagation of a covered work\noccurring solely as a consequence of using peer-to-peer transmission\nto receive a copy likewise does not require acceptance.  However,\nnothing other than this License grants you permission to propagate or\nmodify any covered work.  These actions infringe copyright if you do\nnot accept this License.  Therefore, by modifying or propagating a\ncovered work, you indicate your acceptance of this License to do so.\n\n  10. Automatic Licensing of Downstream Recipients.\n\n  Each time you convey a covered work, the recipient automatically\nreceives a license from the original licensors, to run, modify and\npropagate that work, subject to this License.  You are not responsible\nfor enforcing compliance by third parties with this License.\n\n  An \"entity transaction\" is a transaction transferring control of an\norganization, or substantially all assets of one, or subdividing an\norganization, or merging organizations.  If propagation of a covered\nwork results from an entity transaction, each party to that\ntransaction who receives a copy of the work also receives whatever\nlicenses to the work the party's predecessor in interest had or could\ngive under the previous paragraph, plus a right to possession of the\nCorresponding Source of the work from the predecessor in interest, if\nthe predecessor has it or can get it with reasonable efforts.\n\n  You may not impose any further restrictions on the exercise of the\nrights granted or affirmed under this License.  For example, you may\nnot impose a license fee, royalty, or other charge for exercise of\nrights granted under this License, and you may not initiate litigation\n(including a cross-claim or counterclaim in a lawsuit) alleging that\nany patent claim is infringed by making, using, selling, offering for\nsale, or importing the Program or any portion of it.\n\n  11. Patents.\n\n  A \"contributor\" is a copyright holder who authorizes use under this\nLicense of the Program or a work on which the Program is based.  The\nwork thus licensed is called the contributor's \"contributor version\".\n\n  A contributor's \"essential patent claims\" are all patent claims\nowned or controlled by the contributor, whether already acquired or\nhereafter acquired, that would be infringed by some manner, permitted\nby this License, of making, using, or selling its contributor version,\nbut do not include claims that would be infringed only as a\nconsequence of further modification of the contributor version.  For\npurposes of this definition, \"control\" includes the right to grant\npatent sublicenses in a manner consistent with the requirements of\nthis License.\n\n  Each contributor grants you a non-exclusive, worldwide, royalty-free\npatent license under the contributor's essential patent claims, to\nmake, use, sell, offer for sale, import and otherwise run, modify and\npropagate the contents of its contributor version.\n\n  In the following three paragraphs, a \"patent license\" is any express\nagreement or commitment, however denominated, not to enforce a patent\n(such as an express permission to practice a patent or covenant not to\nsue for patent infringement).  To \"grant\" such a patent license to a\nparty means to make such an agreement or commitment not to enforce a\npatent against the party.\n\n  If you convey a covered work, knowingly relying on a patent license,\nand the Corresponding Source of the work is not available for anyone\nto copy, free of charge and under the terms of this License, through a\npublicly available network server or other readily accessible means,\nthen you must either (1) cause the Corresponding Source to be so\navailable, or (2) arrange to deprive yourself of the benefit of the\npatent license for this particular work, or (3) arrange, in a manner\nconsistent with the requirements of this License, to extend the patent\nlicense to downstream recipients.  \"Knowingly relying\" means you have\nactual knowledge that, but for the patent license, your conveying the\ncovered work in a country, or your recipient's use of the covered work\nin a country, would infringe one or more identifiable patents in that\ncountry that you have reason to believe are valid.\n\n  If, pursuant to or in connection with a single transaction or\narrangement, you convey, or propagate by procuring conveyance of, a\ncovered work, and grant a patent license to some of the parties\nreceiving the covered work authorizing them to use, propagate, modify\nor convey a specific copy of the covered work, then the patent license\nyou grant is automatically extended to all recipients of the covered\nwork and works based on it.\n\n  A patent license is \"discriminatory\" if it does not include within\nthe scope of its coverage, prohibits the exercise of, or is\nconditioned on the non-exercise of one or more of the rights that are\nspecifically granted under this License.  You may not convey a covered\nwork if you are a party to an arrangement with a third party that is\nin the business of distributing software, under which you make payment\nto the third party based on the extent of your activity of conveying\nthe work, and under which the third party grants, to any of the\nparties who would receive the covered work from you, a discriminatory\npatent license (a) in connection with copies of the covered work\nconveyed by you (or copies made from those copies), or (b) primarily\nfor and in connection with specific products or compilations that\ncontain the covered work, unless you entered into that arrangement,\nor that patent license was granted, prior to 28 March 2007.\n\n  Nothing in this License shall be construed as excluding or limiting\nany implied license or other defenses to infringement that may\notherwise be available to you under applicable patent law.\n\n  12. No Surrender of Others' Freedom.\n\n  If conditions are imposed on you (whether by court order, agreement or\notherwise) that contradict the conditions of this License, they do not\nexcuse you from the conditions of this License.  If you cannot convey a\ncovered work so as to satisfy simultaneously your obligations under this\nLicense and any other pertinent obligations, then as a consequence you may\nnot convey it at all.  For example, if you agree to terms that obligate you\nto collect a royalty for further conveying from those to whom you convey\nthe Program, the only way you could satisfy both those terms and this\nLicense would be to refrain entirely from conveying the Program.\n\n  13. Use with the GNU Affero General Public License.\n\n  Notwithstanding any other provision of this License, you have\npermission to link or combine any covered work with a work licensed\nunder version 3 of the GNU Affero General Public License into a single\ncombined work, and to convey the resulting work.  The terms of this\nLicense will continue to apply to the part which is the covered work,\nbut the special requirements of the GNU Affero General Public License,\nsection 13, concerning interaction through a network will apply to the\ncombination as such.\n\n  14. Revised Versions of this License.\n\n  The Free Software Foundation may publish revised and/or new versions of\nthe GNU General Public License from time to time.  Such new versions will\nbe similar in spirit to the present version, but may differ in detail to\naddress new problems or concerns.\n\n  Each version is given a distinguishing version number.  If the\nProgram specifies that a certain numbered version of the GNU General\nPublic License \"or any later version\" applies to it, you have the\noption of following the terms and conditions either of that numbered\nversion or of any later version published by the Free Software\nFoundation.  If the Program does not specify a version number of the\nGNU General Public License, you may choose any version ever published\nby the Free Software Foundation.\n\n  If the Program specifies that a proxy can decide which future\nversions of the GNU General Public License can be used, that proxy's\npublic statement of acceptance of a version permanently authorizes you\nto choose that version for the Program.\n\n  Later license versions may give you additional or different\npermissions.  However, no additional obligations are imposed on any\nauthor or copyright holder as a result of your choosing to follow a\nlater version.\n\n  15. Disclaimer of Warranty.\n\n  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY\nAPPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT\nHOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM \"AS IS\" WITHOUT WARRANTY\nOF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,\nTHE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR\nPURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM\nIS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF\nALL NECESSARY SERVICING, REPAIR OR CORRECTION.\n\n  16. Limitation of Liability.\n\n  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING\nWILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS\nTHE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY\nGENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE\nUSE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF\nDATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD\nPARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),\nEVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF\nSUCH DAMAGES.\n\n  17. Interpretation of Sections 15 and 16.\n\n  If the disclaimer of warranty and limitation of liability provided\nabove cannot be given local legal effect according to their terms,\nreviewing courts shall apply local law that most closely approximates\nan absolute waiver of all civil liability in connection with the\nProgram, unless a warranty or assumption of liability accompanies a\ncopy of the Program in return for a fee.\n\n                     END OF TERMS AND CONDITIONS\n\n            How to Apply These Terms to Your New Programs\n\n  If you develop a new program, and you want it to be of the greatest\npossible use to the public, the best way to achieve this is to make it\nfree software which everyone can redistribute and change under these terms.\n\n  To do so, attach the following notices to the program.  It is safest\nto attach them to the start of each source file to most effectively\nstate the exclusion of warranty; and each file should have at least\nthe \"copyright\" line and a pointer to where the full notice is found.\n\n    {one line to give the program's name and a brief idea of what it does.}\n    Copyright (C) {year}  {name of author}\n\n    This program is free software: you can redistribute it and/or modify\n    it under the terms of the GNU General Public License as published by\n    the Free Software Foundation, either version 3 of the License, or\n    (at your option) any later version.\n\n    This program is distributed in the hope that it will be useful,\n    but WITHOUT ANY WARRANTY; without even the implied warranty of\n    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n    GNU General Public License for more details.\n\n    You should have received a copy of the GNU General Public License\n    along with this program.  If not, see <http://www.gnu.org/licenses/>.\n\nAlso add information on how to contact you by electronic and paper mail.\n\n  If the program does terminal interaction, make it output a short\nnotice like this when it starts in an interactive mode:\n\n    {project}  Copyright (C) {year}  {fullname}\n    This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'.\n    This is free software, and you are welcome to redistribute it\n    under certain conditions; type `show c' for details.\n\nThe hypothetical commands `show w' and `show c' should show the appropriate\nparts of the General Public License.  Of course, your program's commands\nmight be different; for a GUI interface, you would use an \"about box\".\n\n  You should also get your employer (if you work as a programmer) or school,\nif any, to sign a \"copyright disclaimer\" for the program, if necessary.\nFor more information on this, and how to apply and follow the GNU GPL, see\n<http://www.gnu.org/licenses/>.\n\n  The GNU General Public License does not permit incorporating your program\ninto proprietary programs.  If your program is a subroutine library, you\nmay consider it more useful to permit linking proprietary applications with\nthe library.  If this is what you want to do, use the GNU Lesser General\nPublic License instead of this License.  But first, please read\n<http://www.gnu.org/philosophy/why-not-lgpl.html>.\n",
+      "license_classifiers": [
+        "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)"
+      ],
+      "project_urls": [
+        "Documentation, https://bootphon.github.io/phonemizer/",
+        "Repository, https://github.com/bootphon/phonemizer",
+        "Issues, https://github.com/bootphon/phonemizer",
+        "Changelog, https://github.com/bootphon/phonemizer/blob/master/docs/source/changelog.rst"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "pillow",
+      "versions": [
+        "12.3.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/pillow-12.3.0/pillow-12.3.0.dist-info/licenses/LICENSE",
+          "sha256": "4f7866a74802c6326f81faff59a56546b6aec2b10b91973e0e9308de95e79857"
+        }
+      ],
+      "installed_version": "12.3.0",
+      "status": "matched",
+      "license_expression": "MIT-CMU",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Release notes, https://pillow.readthedocs.io/en/stable/releasenotes/index.html",
+        "Changelog, https://github.com/python-pillow/Pillow/releases",
+        "Documentation, https://pillow.readthedocs.io",
+        "Funding, https://tidelift.com/subscription/pkg/pypi-pillow?utm_source=pypi-pillow&utm_medium=pypi",
+        "Homepage, https://python-pillow.github.io",
+        "Mastodon, https://fosstodon.org/@pillow",
+        "Source, https://github.com/python-pillow/Pillow"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "piper-tts",
+      "versions": [
+        "1.8.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt",
+        "requirements-piper.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/piper-tts-1.8.0/piper/hebrew/LICENSE",
+          "sha256": "5879d18846e4760288e88664bf0ca170af53a2009bbc41dc9bfd4b665dec51d4"
+        },
+        {
+          "path": "python/piper-tts-1.8.0/piper_tts-1.8.0.dist-info/licenses/COPYING",
+          "sha256": "5f631fae467c82b8cd28fd1ec425c816895a35f9d94e36bee0e0164570e8e0f6"
+        },
+        {
+          "path": "python/piper-tts-1.8.0/piper_tts-1.8.0.dist-info/licenses/licenses/LICENSE.g2pW-Apache-2.0",
+          "sha256": "8d1f32544c26f4cbfee59ec9d5c273427f68d1af5b56a6dd5864a36846fe2565"
+        }
+      ],
+      "installed_version": "1.8.0",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "GPL-3.0-or-later",
+      "license_classifiers": [],
+      "project_urls": [],
+      "homepage": "http://github.com/OHF-voice/piper1-gpl",
+      "notice_status": "copied"
+    },
+    {
+      "name": "primp",
+      "versions": [
+        "2.0.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [],
+      "installed_version": "2.0.1",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "MIT License",
+      "license_classifiers": [],
+      "project_urls": [
+        "repository, https://github.com/deedy5/primp"
+      ],
+      "homepage": "",
+      "notice_status": "no_notice_in_distribution"
+    },
+    {
+      "name": "protobuf",
+      "versions": [
+        "7.36.2"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/protobuf-7.36.2/protobuf-7.36.2.dist-info/LICENSE",
+          "sha256": "6e5e117324afd944dcf67f36cf329843bc1a92229a8cd9bb573d7a83130fea7d"
+        }
+      ],
+      "installed_version": "7.36.2",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "3-Clause BSD License",
+      "license_classifiers": [],
+      "project_urls": [],
+      "homepage": "https://developers.google.com/protocol-buffers/",
+      "notice_status": "copied"
+    },
+    {
+      "name": "psutil",
+      "versions": [
+        "7.2.2"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/psutil-7.2.2/psutil-7.2.2.dist-info/LICENSE",
+          "sha256": "c7adc4d5d1337a548b967421f1fbe258b93033a0417708fd6f4e38f8ecbceb80"
+        }
+      ],
+      "installed_version": "7.2.2",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "BSD-3-Clause",
+      "license_classifiers": [],
+      "project_urls": [],
+      "homepage": "https://github.com/giampaolo/psutil",
+      "notice_status": "copied"
+    },
+    {
+      "name": "pyclipper",
+      "versions": [
+        "1.4.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/pyclipper-1.4.0/pyclipper-1.4.0.dist-info/licenses/LICENSE",
+          "sha256": "73c25539e7fb486b834c33747d579e0bc56c0f984294c88f3cb2329420ba300f"
+        }
+      ],
+      "installed_version": "1.4.0",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "MIT",
+      "license_classifiers": [
+        "License :: OSI Approved",
+        "License :: OSI Approved :: MIT License"
+      ],
+      "project_urls": [],
+      "homepage": "https://github.com/fonttools/pyclipper",
+      "notice_status": "copied"
+    },
+    {
+      "name": "pycparser",
+      "versions": [
+        "3.11"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/pycparser-3.11/pycparser-3.11.dist-info/licenses/LICENSE",
+          "sha256": "0a9e78156ae8b96caf1b4f11ac2df424b83de29736f9e757630548a6272fdf90"
+        }
+      ],
+      "installed_version": "3.11",
+      "status": "matched",
+      "license_expression": "BSD-3-Clause",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Homepage, https://github.com/eliben/pycparser"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "pydantic",
+      "versions": [
+        "2.14.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/pydantic-2.14.1/pydantic-2.14.1.dist-info/licenses/LICENSE",
+          "sha256": "a9e186f3ca16b5eef84318e7a701721351a00cb7b8ae3a4394b67b49e3529ef3"
+        }
+      ],
+      "installed_version": "2.14.1",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Homepage, https://github.com/pydantic/pydantic",
+        "Documentation, https://pydantic.dev/docs/validation/latest/get-started/",
+        "Funding, https://github.com/sponsors/samuelcolvin",
+        "Source, https://github.com/pydantic/pydantic",
+        "Changelog, https://pydantic.dev/docs/validation/latest/get-started/changelog/"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "pydantic_core",
+      "versions": [
+        "2.50.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/pydantic-core-2.50.1/pydantic_core-2.50.1.dist-info/licenses/LICENSE",
+          "sha256": "fbe7f615f18d135c07000e5a86325db27f42c7729699ef166ac1f7a3f4586bf4"
+        }
+      ],
+      "installed_version": "2.50.1",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Funding, https://github.com/sponsors/samuelcolvin",
+        "Homepage, https://github.com/pydantic",
+        "Source, https://github.com/pydantic/pydantic/tree/main/pydantic-core"
+      ],
+      "homepage": "https://github.com/pydantic/pydantic",
+      "notice_status": "copied"
+    },
+    {
+      "name": "pyparsing",
+      "versions": [
+        "3.3.3"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/pyparsing-3.3.3/pyparsing-3.3.3.dist-info/licenses/LICENSE",
+          "sha256": "a5425f9dc14ac74d4c5f0b679e941f2442e32cca7452a4418d5b1a49893ebe4e"
+        }
+      ],
+      "installed_version": "3.3.3",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://pyparsing-docs.readthedocs.io/en/latest/",
+        "Homepage, https://github.com/pyparsing/pyparsing/",
+        "Source, https://github.com/pyparsing/pyparsing.git"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "pystray",
+      "versions": [
+        "0.19.5"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/pystray-0.19.5/pystray-0.19.5.dist-info/COPYING",
+          "sha256": "1e4d0c2eb111b851de12d7b2737195b950fae3620d2a23a474ce8d46e1d2e4b6"
+        },
+        {
+          "path": "python/pystray-0.19.5/pystray-0.19.5.dist-info/COPYING.LGPL",
+          "sha256": "e583ee8a64cd2ae744422bf76a1295838acae3698347f3a2af07462ddfaf0d2d"
+        }
+      ],
+      "installed_version": "0.19.5",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "LGPLv3",
+      "license_classifiers": [
+        "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)"
+      ],
+      "project_urls": [],
+      "homepage": "https://github.com/moses-palmer/pystray",
+      "notice_status": "copied"
+    },
+    {
+      "name": "python-dateutil",
+      "versions": [
+        "2.9.0.post0",
+        "3.0.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/python-dateutil-2.9.0.post0/python_dateutil-2.9.0.post0.dist-info/LICENSE",
+          "sha256": "ba00f51a0d92823b5a1cde27d8b5b9d2321e67ed8da9bc163eff96d5e17e577e"
+        }
+      ],
+      "installed_version": "2.9.0.post0",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "Dual License",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License",
+        "License :: OSI Approved :: Apache Software License"
+      ],
+      "project_urls": [
+        "Documentation, https://dateutil.readthedocs.io/en/stable/",
+        "Source, https://github.com/dateutil/dateutil"
+      ],
+      "homepage": "https://github.com/dateutil/dateutil",
+      "notice_status": "copied"
+    },
+    {
+      "name": "pytz",
+      "versions": [
+        "2026.5"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/pytz-2026.5/pytz-2026.5.dist-info/LICENSE.txt",
+          "sha256": "be8b1a37ebe26c592a90f6c0eb33103a7f383ce2f4d7498c0af9a526990a07b8"
+        }
+      ],
+      "installed_version": "2026.5",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "MIT",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "project_urls": [
+        "Source, https://github.com/stub42/pytz.git",
+        "Issues, https://github.com/stub42/pytz/issues"
+      ],
+      "homepage": "http://pythonhosted.org/pytz",
+      "notice_status": "copied"
+    },
+    {
+      "name": "PyYAML",
+      "versions": [
+        "6.0.3"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/pyyaml-6.0.3/pyyaml-6.0.3.dist-info/licenses/LICENSE",
+          "sha256": "8d3928f9dc4490fd635707cb88eb26bd764102a7282954307d3e5167a577e8a4"
+        }
+      ],
+      "installed_version": "6.0.3",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "MIT",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "project_urls": [
+        "Bug Tracker, https://github.com/yaml/pyyaml/issues",
+        "CI, https://github.com/yaml/pyyaml/actions",
+        "Documentation, https://pyyaml.org/wiki/PyYAMLDocumentation",
+        "Mailing lists, http://lists.sourceforge.net/lists/listinfo/yaml-core",
+        "Source Code, https://github.com/yaml/pyyaml"
+      ],
+      "homepage": "https://pyyaml.org/",
+      "notice_status": "copied"
+    },
+    {
+      "name": "rapidocr",
+      "versions": [
+        "3.10.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt",
+        "requirements-ocr.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/rapidocr-3.10.0/rapidocr-3.10.0.dist-info/licenses/LICENSE",
+          "sha256": "3e0af25fdd06aa9586ae97adb00ea927ebe5a3805ac77d2d3a81ce5f55693333"
+        }
+      ],
+      "installed_version": "3.10.0",
+      "status": "matched",
+      "license_expression": "Apache-2.0",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://rapidai.github.io/RapidOCRDocs",
+        "Changelog, https://github.com/RapidAI/RapidOCR/releases"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "rdflib",
+      "versions": [
+        "7.6.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/rdflib-7.6.0/rdflib-7.6.0.dist-info/LICENSE",
+          "sha256": "53a705e51bfd199e8c97d0442376cb4bbd4ffcf13ba4f2c4c2794211400e4012"
+        }
+      ],
+      "installed_version": "7.6.0",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "BSD-3-Clause",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "project_urls": [
+        "Documentation, https://rdflib.readthedocs.org/",
+        "Repository, https://github.com/RDFLib/rdflib"
+      ],
+      "homepage": "https://github.com/RDFLib/rdflib",
+      "notice_status": "copied"
+    },
+    {
+      "name": "referencing",
+      "versions": [
+        "0.37.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/referencing-0.37.0/referencing-0.37.0.dist-info/licenses/COPYING",
+          "sha256": "42dcd63495f87b4eb7c7757afa379bb55a53f94afd7a5f657d9adf57236e515c"
+        }
+      ],
+      "installed_version": "0.37.0",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://referencing.readthedocs.io/",
+        "Homepage, https://github.com/python-jsonschema/referencing",
+        "Issues, https://github.com/python-jsonschema/referencing/issues/",
+        "Funding, https://github.com/sponsors/Julian",
+        "Tidelift, https://tidelift.com/subscription/pkg/pypi-referencing?utm_source=pypi-referencing&utm_medium=referral&utm_campaign=pypi-link",
+        "Changelog, https://referencing.readthedocs.io/en/stable/changes/",
+        "Source, https://github.com/python-jsonschema/referencing"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "regex",
+      "versions": [
+        "2026.9.29"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/regex-2026.9.29/regex-2026.9.29.dist-info/licenses/LICENSE.txt",
+          "sha256": "3d220c06594b826bbabf110312f60f385f99e57e529fa4b9e536f79091f8b4c7"
+        }
+      ],
+      "installed_version": "2026.9.29",
+      "status": "matched",
+      "license_expression": "Apache-2.0 AND CNRI-Python",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Homepage, https://github.com/mrabarnett/mrab-regex"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "requests",
+      "versions": [
+        "2.34.2"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/requests-2.34.2/requests-2.34.2.dist-info/licenses/LICENSE",
+          "sha256": "09e8a9bcec8067104652c168685ab0931e7868f9c8284b66f5ae6edae5f1130b"
+        },
+        {
+          "path": "python/requests-2.34.2/requests-2.34.2.dist-info/licenses/NOTICE",
+          "sha256": "f5110972dedad2b4e9d314518daf3b7d72d6e02e499acd802181de6f74571dcc"
+        }
+      ],
+      "installed_version": "2.34.2",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "Apache-2.0",
+      "license_classifiers": [
+        "License :: OSI Approved :: Apache Software License"
+      ],
+      "project_urls": [
+        "Documentation, https://requests.readthedocs.io",
+        "Source, https://github.com/psf/requests"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "rfc3986",
+      "versions": [
+        "1.5.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/rfc3986-1.5.0/rfc3986-1.5.0.dist-info/AUTHORS.rst",
+          "sha256": "42394374c1e235e42fd653ea1de190e0eb6210f0b015a7c92eeeeddb70170c7a"
+        },
+        {
+          "path": "python/rfc3986-1.5.0/rfc3986-1.5.0.dist-info/LICENSE",
+          "sha256": "c0ddce33bfac480a66bde40c590ede2647a4c8a729dcb0d2ce46c014473d5dd8"
+        }
+      ],
+      "installed_version": "1.5.0",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "Apache 2.0",
+      "license_classifiers": [
+        "License :: OSI Approved :: Apache Software License"
+      ],
+      "project_urls": [],
+      "homepage": "http://rfc3986.readthedocs.io",
+      "notice_status": "copied"
+    },
+    {
+      "name": "rpds-py",
+      "versions": [
+        "2026.9.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/rpds-py-2026.9.1/rpds_py-2026.9.1.dist-info/licenses/LICENSE",
+          "sha256": "8bcb72c82ea8ae74802293c41d93ad7d51434001b0ae45a603a5af0f507aee0a"
+        }
+      ],
+      "installed_version": "2026.9.1",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://rpds.readthedocs.io/",
+        "Funding, https://github.com/sponsors/Julian",
+        "Homepage, https://github.com/crate-py/rpds",
+        "Issues, https://github.com/crate-py/rpds/issues/",
+        "Source, https://github.com/crate-py/rpds",
+        "Tidelift, https://tidelift.com/subscription/pkg/pypi-rpds-py?utm_source=pypi-rpds-py&utm_medium=referral&utm_campaign=pypi-link",
+        "Upstream, https://github.com/orium/rpds"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "segments",
+      "versions": [
+        "2.4.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/segments-2.4.0/segments-2.4.0.dist-info/LICENSE",
+          "sha256": "cb5e8e7e5f4a3988e1063c142c60dc2df75605f4c46515e776e3aca6df976e14"
+        }
+      ],
+      "installed_version": "2.4.0",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "Apache 2.0",
+      "license_classifiers": [
+        "License :: OSI Approved :: Apache Software License"
+      ],
+      "project_urls": [
+        "Bug Tracker, https://github.com/cldf/segments/issues"
+      ],
+      "homepage": "https://github.com/cldf/segments",
+      "notice_status": "copied"
+    },
+    {
+      "name": "segno",
+      "versions": [
+        "1.6.6"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/segno-1.6.6/segno-1.6.6.dist-info/licenses/LICENSE",
+          "sha256": "de6c85fccf5d52902aa13dfe2dc6d2a2a106fc3419ed438f3460f0d4b76a6935"
+        }
+      ],
+      "installed_version": "1.6.6",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "",
+      "license_classifiers": [
+        "License :: OSI Approved :: BSD License"
+      ],
+      "project_urls": [
+        "Changes, https://github.com/heuer/segno/blob/master/CHANGES.rst",
+        "Documentation, https://segno.readthedocs.io/",
+        "Homepage, https://github.com/heuer/segno/",
+        "Issue tracker, https://github.com/heuer/segno/issues/"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "shapely",
+      "versions": [
+        "2.2.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/shapely-2.2.0/shapely-2.2.0.dist-info/licenses/LICENSE.txt",
+          "sha256": "e8cd7d34604d2758ff589f0f34d6ed79c3f7fb14aaf5e12fb09221421391a3bf"
+        },
+        {
+          "path": "python/shapely-2.2.0/shapely-2.2.0.dist-info/licenses/LICENSE_GEOS",
+          "sha256": "7233baa9a7d4a17257b357706b7dbdc4b675e5ca45425b3418673b16990cf239"
+        },
+        {
+          "path": "python/shapely-2.2.0/shapely-2.2.0.dist-info/licenses/LICENSE_win32",
+          "sha256": "fdbb2abb8c598c8888755b52340bddcee38668a2def23e51e7d9e3f187bb8d51"
+        }
+      ],
+      "installed_version": "2.2.0",
+      "status": "matched",
+      "license_expression": "BSD-3-Clause",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://shapely.readthedocs.io/",
+        "Repository, https://github.com/shapely/shapely"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "six",
+      "versions": [
+        "1.17.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/six-1.17.0/six-1.17.0.dist-info/LICENSE",
+          "sha256": "4375ba20e2b9c6c4e7cad2940a628fd90e95cc3d50ee92aae755715d8ba1fbd0"
+        }
+      ],
+      "installed_version": "1.17.0",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "MIT",
+      "license_classifiers": [
+        "License :: OSI Approved :: MIT License"
+      ],
+      "project_urls": [],
+      "homepage": "https://github.com/benjaminp/six",
+      "notice_status": "copied"
+    },
+    {
+      "name": "starlette",
+      "versions": [
+        "1.8.0",
+        "1.9.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/starlette-1.8.0/starlette-1.8.0.dist-info/licenses/LICENSE.md",
+          "sha256": "dcb95677a02240243187e964f941847d19b17821cf99e5afae684fab328c19bf"
+        }
+      ],
+      "installed_version": "1.8.0",
+      "status": "matched",
+      "license_expression": "BSD-3-Clause",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Homepage, https://github.com/Kludex/starlette",
+        "Documentation, https://starlette.dev/",
+        "Changelog, https://starlette.dev/release-notes/",
+        "Funding, https://github.com/sponsors/Kludex",
+        "Source, https://github.com/Kludex/starlette"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "termcolor",
+      "versions": [
+        "3.3.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/termcolor-3.3.0/termcolor-3.3.0.dist-info/licenses/COPYING.txt",
+          "sha256": "e79b6bd82962c1330caaa7c42278567b08667777673f8e2371a624d5715d4c0e"
+        }
+      ],
+      "installed_version": "3.3.0",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Changelog, https://github.com/termcolor/termcolor/releases",
+        "Homepage, https://github.com/termcolor/termcolor",
+        "Source, https://github.com/termcolor/termcolor"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "tokenizers",
+      "versions": [
+        "0.23.3"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [],
+      "installed_version": "0.23.3",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "",
+      "license_classifiers": [
+        "License :: OSI Approved :: Apache Software License"
+      ],
+      "project_urls": [
+        "Homepage, https://github.com/huggingface/tokenizers",
+        "Source, https://github.com/huggingface/tokenizers"
+      ],
+      "homepage": "",
+      "notice_status": "no_notice_in_distribution"
+    },
+    {
+      "name": "tqdm",
+      "versions": [
+        "4.70.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/tqdm-4.70.1/tqdm-4.70.1.dist-info/licenses/LICENCE",
+          "sha256": "fcff87c3a47ce8028a8512aa182d4fcf0ad1c90544ee75cf9b343684cac194de"
+        }
+      ],
+      "installed_version": "4.70.1",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "MPL-2.0 AND MIT",
+      "license_classifiers": [],
+      "project_urls": [
+        "homepage, https://tqdm.github.io",
+        "repository, https://github.com/tqdm/tqdm",
+        "changelog, https://tqdm.github.io/releases",
+        "wiki, https://github.com/tqdm/tqdm/wiki"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "truststore",
+      "versions": [
+        "0.10.5"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/truststore-0.10.5/truststore-0.10.5.dist-info/licenses/LICENSE",
+          "sha256": "33be7b7e8fa4fd19b1760e1a8ed8a668bdab852c91b692dd41424bcb725a9fca"
+        }
+      ],
+      "installed_version": "0.10.5",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://truststore.readthedocs.io",
+        "Source, https://github.com/sethmlarson/truststore"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "typing_extensions",
+      "versions": [
+        "4.16.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/typing-extensions-4.16.0/typing_extensions-4.16.0.dist-info/licenses/LICENSE",
+          "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf"
+        }
+      ],
+      "installed_version": "4.16.0",
+      "status": "matched",
+      "license_expression": "PSF-2.0",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Bug Tracker, https://github.com/python/typing_extensions/issues",
+        "Changes, https://github.com/python/typing_extensions/blob/main/CHANGELOG.md",
+        "Documentation, https://typing-extensions.readthedocs.io/",
+        "Home, https://github.com/python/typing_extensions",
+        "Q & A, https://github.com/python/typing/discussions",
+        "Repository, https://github.com/python/typing_extensions"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "typing-inspection",
+      "versions": [
+        "0.4.4"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/typing-inspection-0.4.4/typing_inspection-0.4.4.dist-info/licenses/LICENSE",
+          "sha256": "804b59b25f2c31bd278f9202a19ae49a3945aa2664387e2d0a128c7cacc61ec3"
+        }
+      ],
+      "installed_version": "0.4.4",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Homepage, https://github.com/pydantic/typing-inspection",
+        "Documentation, https://pydantic.github.io/typing-inspection/dev/",
+        "Source, https://github.com/pydantic/typing-inspection",
+        "Changelog, https://github.com/pydantic/typing-inspection/blob/main/HISTORY.md"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "tzdata",
+      "versions": [
+        "2026.5"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/tzdata-2026.5/tzdata-2026.5.dist-info/licenses/LICENSE",
+          "sha256": "df58f69ea88683035d720b5375bcef0cf5aeaa98a1d098d572e0992c378deb46"
+        },
+        {
+          "path": "python/tzdata-2026.5/tzdata-2026.5.dist-info/licenses/licenses/LICENSE_APACHE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ],
+      "installed_version": "2026.5",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "Apache-2.0",
+      "license_classifiers": [],
+      "project_urls": [
+        "Bug Reports, https://github.com/python/tzdata/issues",
+        "Source, https://github.com/python/tzdata",
+        "Documentation, https://tzdata.python.org"
+      ],
+      "homepage": "https://github.com/python/tzdata",
+      "notice_status": "copied"
+    },
+    {
+      "name": "tzlocal",
+      "versions": [
+        "5.4.4"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/tzlocal-5.4.4/tzlocal-5.4.4.dist-info/licenses/LICENSE.txt",
+          "sha256": "d99ab209aeb16aad2c25c90ffd83c1a981e290ffff76a420a2ab03e03f041b8c"
+        }
+      ],
+      "installed_version": "5.4.4",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Source code, https://github.com/regebro/tzlocal",
+        "Changelog, https://github.com/regebro/tzlocal/blob/master/CHANGES.txt",
+        "Issue tracker, https://github.com/regebro/tzlocal/issues"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "uritemplate",
+      "versions": [
+        "4.2.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "installer/optional-constraints.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/uritemplate-4.2.0/uritemplate-4.2.0.dist-info/licenses/LICENSE",
+          "sha256": "3cfc9f01cdeec92900f228cf5677ffa57e7ed304c4263532bcad9cbd9969e46c"
+        }
+      ],
+      "installed_version": "4.2.0",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "BSD 3-Clause OR Apache-2.0",
+      "license_classifiers": [],
+      "project_urls": [
+        "Source, https://github.com/python-hyper/uritemplate"
+      ],
+      "homepage": "https://uritemplate.readthedocs.org",
+      "notice_status": "copied"
+    },
+    {
+      "name": "urllib3",
+      "versions": [
+        "2.8.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/urllib3-2.8.0/urllib3-2.8.0.dist-info/licenses/LICENSE.txt",
+          "sha256": "130e3a64d5fdd5d096a752694634a7d9df284469de86e5732100268041e3d686"
+        }
+      ],
+      "installed_version": "2.8.0",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Changelog, https://github.com/urllib3/urllib3/blob/main/CHANGES.rst",
+        "Documentation, https://urllib3.readthedocs.io",
+        "Code, https://github.com/urllib3/urllib3",
+        "Issue tracker, https://github.com/urllib3/urllib3/issues",
+        "Security policy, https://urllib3.readthedocs.io/en/latest/security.html"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "uvicorn",
+      "versions": [
+        "0.54.0"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/uvicorn-0.54.0/uvicorn-0.54.0.dist-info/licenses/LICENSE.md",
+          "sha256": "efe1acf3e62fb99c288b0ec73e5a773b7268ef4320fe757ea994214e4b63c371"
+        }
+      ],
+      "installed_version": "0.54.0",
+      "status": "matched",
+      "license_expression": "BSD-3-Clause",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Changelog, https://uvicorn.dev/release-notes",
+        "Funding, https://github.com/sponsors/Kludex",
+        "Homepage, https://uvicorn.dev/",
+        "Source, https://github.com/Kludex/uvicorn"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
+      "name": "Windows-Toasts",
+      "versions": [
+        "1.3.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/windows-toasts-1.3.1/windows_toasts-1.3.1.dist-info/licenses/LICENSE",
+          "sha256": "5ad8c213095c573921d7388edf93f6a9f54490b8ebf3b165ae8ef1947cf70846"
+        }
+      ],
+      "installed_version": "1.3.1",
+      "status": "matched",
+      "license_expression": "",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://windows-toasts.readthedocs.io",
+        "Source, https://github.com/DatGuy1/Windows-Toasts"
+      ],
+      "homepage": "https://github.com/DatGuy1/Windows-Toasts",
+      "notice_status": "copied"
+    },
+    {
+      "name": "winrt-runtime",
+      "versions": [
+        "3.2.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [],
+      "installed_version": "3.2.1",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://pywinrt.readthedocs.io",
+        "Repository, https://github.com/pywinrt/pywinrt",
+        "Changelog, https://github.com/pywinrt/pywinrt/blob/main/CHANGELOG.md"
+      ],
+      "homepage": "",
+      "notice_status": "no_notice_in_distribution"
+    },
+    {
+      "name": "winrt-Windows.Data.Xml.Dom",
+      "versions": [
+        "3.2.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [],
+      "installed_version": "3.2.1",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://pywinrt.readthedocs.io",
+        "Repository, https://github.com/pywinrt/pywinrt",
+        "Changelog, https://github.com/pywinrt/pywinrt/blob/main/CHANGELOG.md"
+      ],
+      "homepage": "",
+      "notice_status": "no_notice_in_distribution"
+    },
+    {
+      "name": "winrt-Windows.Foundation",
+      "versions": [
+        "3.2.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [],
+      "installed_version": "3.2.1",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://pywinrt.readthedocs.io",
+        "Repository, https://github.com/pywinrt/pywinrt",
+        "Changelog, https://github.com/pywinrt/pywinrt/blob/main/CHANGELOG.md"
+      ],
+      "homepage": "",
+      "notice_status": "no_notice_in_distribution"
+    },
+    {
+      "name": "winrt-Windows.Foundation.Collections",
+      "versions": [
+        "3.2.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [],
+      "installed_version": "3.2.1",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://pywinrt.readthedocs.io",
+        "Repository, https://github.com/pywinrt/pywinrt",
+        "Changelog, https://github.com/pywinrt/pywinrt/blob/main/CHANGELOG.md"
+      ],
+      "homepage": "",
+      "notice_status": "no_notice_in_distribution"
+    },
+    {
+      "name": "winrt-Windows.UI.Notifications",
+      "versions": [
+        "3.2.1"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [],
+      "installed_version": "3.2.1",
+      "status": "matched",
+      "license_expression": "MIT",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Documentation, https://pywinrt.readthedocs.io",
+        "Repository, https://github.com/pywinrt/pywinrt",
+        "Changelog, https://github.com/pywinrt/pywinrt/blob/main/CHANGELOG.md"
+      ],
+      "homepage": "",
+      "notice_status": "no_notice_in_distribution"
+    }
+  ]
+}
