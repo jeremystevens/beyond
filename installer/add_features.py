@@ -106,15 +106,16 @@ def repeat(label, action):
 def libraries(feature):
     if feature in ("vision", "image"):
         return
-    result = subprocess.run([sys.executable, "-I", "-m", "pip", "install", "--quiet",
-                             "--disable-pip-version-check", "--only-binary=:all:",
-                             "--timeout", "30", "--retries", "2",
-                             "-r", str(ROOT / ("requirements-" + feature + ".txt"))], cwd=ROOT)
-    if result.returncode:
-        raise shared.InstallError("Optional library installation failed. Check memory and connection, then Retry.")
-    result = subprocess.run([sys.executable, "-I", "-m", "pip", "check"], cwd=ROOT)
-    if result.returncode:
-        raise shared.InstallError("Libraries have a version conflict. No existing optional libraries were removed.")
+    shared.check_space(ROOT, shared.GIB)
+    shared.run_logged([sys.executable, "-I", "-m", "pip", "install", "--quiet",
+                       "--disable-pip-version-check", "--only-binary=:all:",
+                       "--timeout", "30", "--retries", "2",
+                       "-r", str(ROOT / ("requirements-" + feature + ".txt"))],
+                      "Install " + FEATURES[feature][0] + " libraries",
+                      ROOT / "data/setup/optional" / (feature + "-libraries.log"))
+    shared.run_logged([sys.executable, "-I", "-m", "pip", "check"],
+                      "Check library compatibility",
+                      ROOT / "data/setup/optional" / (feature + "-libraries-check.log"), timeout=120)
 
 
 def acquire(asset, target, candidate=None):
@@ -216,8 +217,10 @@ def select_features(names, values, state):
     if not raw:
         return []
     try:
-        selected = list(dict.fromkeys(names[int(n.strip()) - 1] for n in raw.split(",")
-                                     if 1 <= int(n.strip()) <= len(names)))
+        numbers = [int(n.strip()) for n in raw.split(",")]
+        if any(not 1 <= number <= len(names) for number in numbers):
+            raise ValueError("Unknown feature number.")
+        selected = list(dict.fromkeys(names[number - 1] for number in numbers))
     except (ValueError, IndexError):
         raise shared.InstallError("Enter feature numbers separated by commas.")
     if not selected:

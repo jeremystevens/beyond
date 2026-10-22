@@ -1,7 +1,7 @@
 # Phase 39: Setup script implementation plan
 
 **Date:** 2026-10-21
-**Status:** 39B/39C implemented and verified. 39D optional setup preview implemented; voice and OCR integration verified, full pinned vision/image inference pending. Clean-PC validation remains Phase 42.
+**Status:** 39E recovery/documentation implemented and locally verified; fresh-machine acceptance deferred to Phase 42. 39B/39C implemented and verified. 39D optional setup preview implemented; voice and OCR integration verified, full pinned vision/image inference pending. Clean-PC validation remains Phase 42.
 **Project:** D:\AI\beyond
 **Related roadmap:** planning/phases.md, Phase 39
 **Goal:** A new user downloads BEYOND, double-clicks Setup, and reaches verified text chat without manually installing Python, libraries, an engine, or a model.

@@ -441,6 +441,9 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - **39D preview implemented:** Add-Features.cmd selects independent Whisper, Kokoro, Piper, OCR, vision and image
   components with pinned downloads and isolated offline tests. Real Whisper/Kokoro/Piper/OCR integration and
   rerun skipping passed. Owner approved deferring full pinned vision/image inference to the fresh-machine Phase 42 test; keep existing apps and connected work sessions running. 39D remains a preview until those checks pass.
+- **39E implemented:** recoverable interrupted transfers, bounded/logged library workers, cancellation cleanup,
+  strict optional menu choices, and setup recovery documentation. Local recovery acceptance is verified;
+  no-Python/fresh-PC and pinned vision/image inference acceptance remain deferred to Phase 42.
 - Detailed design: phase39-setup-plan.md. Source audit: phase39-audit.md.
 - One script that installs Python and the libraries, downloads llama.cpp (verified), and offers model presets by PC
   (8 GB / 16 GB / good graphics card) and optional extras (voice, `/look`, `/imagine`).

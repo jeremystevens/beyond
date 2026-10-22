@@ -6,6 +6,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 39E setup recovery:** interrupted HTTP transfers return to Retry with partial downloads preserved.
+  Library installation and dependency checks use bounded, logged workers whose owned processes stop on
+  cancellation or timeout. Invalid optional-feature numbers are rejected rather than partially accepted.
+  Added a recovery guide and automated interrupted-transfer, rerun, timeout and cancellation checks.
+  Fresh-PC/no-Python acceptance and pinned vision/image inference remain deferred to Phase 42.
 - **Phase 39D optional setup preview:** Add-Features.cmd offers Whisper tiny/base, Kokoro, a separate Piper voice,
   OCR, vision and image generation. Selected assets use pinned sizes/checksums and license prompts. Optional
   libraries preserve text-runtime constraints. Each feature is checked in an offline CPU worker before its

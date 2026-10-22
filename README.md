@@ -258,6 +258,9 @@ Advanced users can run `.venv\Scripts\python.exe installer\text_setup.py --model
 This installs **text chat only**. Add optional features separately below.
 Fresh-PC validation is still tracked in Phase 42. Manual full-feature installation remains available.
 
+For interrupted downloads, library failures, or an existing environment that needs attention, see the
+[setup recovery guide](planning/setup-recovery.md). You can cancel and rerun either installer.
+
 ### Add Features (Phase 39D preview)
 
 After the main setup, close BEYOND and double-click **Add-Features.cmd**. Select individual features:

@@ -3,6 +3,7 @@ import argparse
 import contextlib
 import ctypes
 import hashlib
+import http.client
 import json
 import os
 from pathlib import Path
@@ -102,6 +103,18 @@ def check_space(folder, needed):
 
 
 def download(asset, target):
+    """Keep transport failures inside the normal retry flow, with partial bytes intact."""
+    try:
+        return _download(asset, target)
+    except urllib.error.HTTPError as exc:
+        raise InstallError("Download server returned HTTP %s. Check your connection or try later; "
+                           "partial downloads are preserved." % exc.code) from exc
+    except (urllib.error.URLError, http.client.HTTPException, TimeoutError) as exc:
+        raise InstallError("Download interrupted. Check your Internet connection and choose Retry; "
+                           "partial downloads are preserved.") from exc
+
+
+def _download(asset, target):
     """Pinned assets only. Safe Range resume; never replace an invalid existing final file."""
     target.parent.mkdir(parents=True, exist_ok=True)
     if target.exists():
@@ -263,16 +276,32 @@ def ensure_app_closed(values):
                                "No process has been stopped." % port)
 
 
+def run_logged(command, label, log_path, timeout=1800):
+    """Bound package work and own its children; cancellation never leaves pip running."""
+    from installer.process_guard import JobProcess
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    print(label + ". This may take several minutes.\nLog: " + str(log_path), flush=True)
+    try:
+        with log_path.open("w", encoding="utf-8") as log:
+            with JobProcess(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT,
+                            stdin=subprocess.DEVNULL, creationflags=FLAGS) as process:
+                code = process.wait(timeout=timeout)
+    except subprocess.TimeoutExpired as exc:
+        raise InstallError(label + " timed out. Its worker was stopped. Retry when ready. See " +
+                           str(log_path)) from exc
+    if code:
+        raise InstallError(label + " failed. Check free memory, Internet access and the log: " +
+                           str(log_path) + ". Then Retry; installed packages are rechecked.")
+
+
 def install_dependencies():
     check_space(ROOT, GIB)
-    result = subprocess.run([sys.executable, "-I", "-m", "pip", "install", "--only-binary=:all:",
-                             "--disable-pip-version-check", "--quiet", "--timeout", "30", "--retries", "2",
-                             "-r", str(ROOT / "requirements-text-lock.txt")])
-    if result.returncode:
-        raise InstallError("Library installation failed. Check memory and Internet access, then Retry.")
-    result = subprocess.run([sys.executable, "-I", "-m", "pip", "check"])
-    if result.returncode:
-        raise InstallError("Installed libraries have a dependency conflict. Existing optional libraries were not removed.")
+    run_logged([sys.executable, "-I", "-m", "pip", "install", "--only-binary=:all:",
+                "--disable-pip-version-check", "--quiet", "--timeout", "30", "--retries", "2",
+                "-r", str(ROOT / "requirements-text-lock.txt")],
+               "Install text-chat libraries", ROOT / "data/setup/libraries.log")
+    run_logged([sys.executable, "-I", "-m", "pip", "check"],
+               "Check library compatibility", ROOT / "data/setup/libraries-check.log", timeout=120)
 
 
 def check_runtime():

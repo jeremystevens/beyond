@@ -293,3 +293,13 @@ Run the remaining pinned Gemma/projector vision and DreamShaper image-generation
 inference checks on the owner's fresh-machine installation as part of Phase 42.
 39D remains a preview with these checks pending; this deferral is not a passing result.
 The installer must still pass each feature's compatibility test before enabling it.
+
+## Phase 39E: recovery, documentation and local acceptance
+
+Implemented recoverable HTTP transport failures, including truncated responses, without discarding useful partial downloads. Package installation and dependency checks now use the shared Windows job ownership guard, bounded waits, per-step logs and actionable Retry messages. Cancellation/timeouts close only installer-owned workers. Optional feature input rejects unknown numbers instead of silently accepting a subset.
+
+Added planning/setup-recovery.md, linked it from README, and updated CHANGELOG and roadmap status. The guide covers memory/disk limits, existing environments, settings conflicts, interrupted downloads, locks, ports, optional failures, logs and private settings backups. Package installation is explicitly not described as transactional rollback.
+
+Validation: 41 targeted checks passed (11 bootstrap, 13 text setup, 11 optional setup, 6 new recovery checks). Tests include a real truncated local HTTP download followed by Range resume and verified rerun, existing settings preservation, real worker timeout, injected KeyboardInterrupt through a real owned process, failed-command logs and successful retry, invalid menu selection, existing/invalid environments, and a real virtual environment created/reused in a path with spaces. No external model downloads or large inference tests were needed. Both launcher --check commands passed from D:/temp; a read-only pip --version worker passed using the new job/log path.
+
+39E local recovery work is complete. Fresh-PC/no-Python installer execution, complete clean installation and the pinned vision/DreamShaper inference checks remain Phase 42 acceptance items, as approved by Jeremy. These are not marked passed. Running apps, connected work sessions, owner settings and the active environment's packages were not changed by this validation.
