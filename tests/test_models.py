@@ -11,7 +11,8 @@ from app import builtin_engine, config, engine, models, settings
 class ModelsTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
-        self.root = Path(self.temp.name)
+        # The real path, as BEYOND stores it: Windows can give the temp folder a short name (C:\Users\RUNNER~1\...).
+        self.root = Path(self.temp.name).resolve()
         self.old = config.MODELS_DIR, settings.FILE, builtin_engine._engine
         config.MODELS_DIR, settings.FILE = self.root / 'models', self.root / 'settings.json'
         builtin_engine._engine = builtin_engine._Engine()
