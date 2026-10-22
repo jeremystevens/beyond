@@ -1,0 +1,40 @@
+# Runs BEYOND's whole test suite on Windows for every push to main and every pull request, so each change shows a
+# ✓ or ✗ before it's merged. The tests use stand-ins for the AI, the web and Hugging Face, so no model is needed.
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:        # "Run workflow" button on the Actions tab
+
+permissions:
+  contents: read
+
+concurrency:                # a newer push to the same branch or pull request replaces a run still going
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Windows, Python 3.14
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: requirements-lock.txt
+
+      - name: Install the exact versions BEYOND is tested with
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-lock.txt
+
+      - name: Run the tests
+        env:
+          PYTHONIOENCODING: utf-8
+        run: python -m unittest discover -s tests -v

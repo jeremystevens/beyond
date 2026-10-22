@@ -45,7 +45,9 @@ git-ignored, so they never end up in a commit.
 
 The tests use temporary folders and stand-ins for the AI, the web and Hugging Face, so they don't need a model or
 an internet connection and never touch your own data. Run the tests for the area you changed while you work, for
-example `python -m unittest tests.test_files`, and the whole suite before opening a pull request.
+example `python -m unittest tests.test_files`, and the whole suite before opening a pull request. GitHub also runs
+the whole suite on Windows for every pull request and every push to `main` (the **Tests** workflow), and shows
+the result on the pull request.
 
 ## How the code is organised
 
