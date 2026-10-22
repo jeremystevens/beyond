@@ -14,7 +14,12 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 # Load ONNX's native DLLs before Windows Runtime's toast bindings. The opposite
 # order crashes this Windows/Python build during the first OCR import. Models
 # remain lazy; this only initializes the already-required runtime.
-import onnxruntime as _onnxruntime  # noqa: F401
+try:
+    import onnxruntime as _onnxruntime
+except ImportError:
+    # A text-only installation must still start. When installed, keep the early
+    # ONNX preload above Windows toast imports to avoid the native DLL conflict.
+    _onnxruntime = None
 
 MAX_PHOTO_BYTES = 10 * 1024 * 1024
 MAX_PIXELS = 25_000_000
@@ -39,6 +44,8 @@ class ScanBusy(ScanError):
 def _get_engine():
     global _engine
     if _engine is None:
+        if _onnxruntime is None:
+            raise ImportError('Optional photo text recognition is not installed.')
         from rapidocr import RapidOCR
         _engine = RapidOCR()
         logging.getLogger('RapidOCR').setLevel(logging.ERROR)

@@ -434,7 +434,10 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 ### Phase 39: Setup script (in progress)
 - **39B implemented:** Setup.cmd / setup.ps1 / setup.py discover or offer Python 3.14, verify the installer publisher,
   and create/validate an isolated environment. Read-only checks and bootstrap tests pass. Clean-PC installation
-  still needs Phase 42 validation; 39C text-chat installation and 39D optional features remain.
+  still needs Phase 42 validation.
+- **39C implemented:** text-only dependency lock, verified CPU engine/model setup, hardware and available-memory
+  checks with Retry, isolated app startup and real chat tests, preserved settings and optional shortcut/launch.
+  Disposable-copy integration passed with Qwen3 0.6B; 39D optional features remain.
 - Detailed design: phase39-setup-plan.md. Source audit: phase39-audit.md.
 - One script that installs Python and the libraries, downloads llama.cpp (verified), and offers model presets by PC
   (8 GB / 16 GB / good graphics card) and optional extras (voice, `/look`, `/imagine`).

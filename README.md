@@ -202,22 +202,32 @@ flowchart LR
 <a id="quick-start"></a>
 ## `▸ QUICK START`
 
-### Setup bootstrap preview (Phase 39B)
+### Automatic text-only setup (Phase 39C)
 
-Double-click **Setup.cmd** to find 64-bit Python 3.14 or offer to install Python 3.14.8 for your Windows account.
-It checks the pinned SHA-256 and the Python Software Foundation's installer signature before running it, leaving other Python versions
-and PATH alone, and creates or validates BEYOND's isolated `.venv`. An existing invalid environment is preserved
-with instructions; it is never replaced automatically.
+Download/extract BEYOND, then double-click **Setup.cmd**. Close an already-running BEYOND before continuing.
+Setup finds Python 3.14 or offers a verified per-user installation, prepares its isolated environment, installs
+the text-only libraries, checks the app starts, and downloads a pinned CPU build of llama.cpp.
 
-For a read-only check, run `Setup.cmd --check`, `py setup.py --check`, or
+Choose **Qwen3 1.7B Q8_0** (1.71 GiB), the smaller **Qwen3 0.6B Q8_0** fallback (610 MiB / 639 MB),
+or an existing local GGUF model. Setup recommends from installed RAM, rechecks available memory before testing,
+and generates a short reply before saving the configuration. If other apps are using memory, choose **Retry**;
+a temporary shortage does not label the computer incompatible. Smaller models and lower context are offered for
+memory-related problems. GPU acceleration is not enabled; both bundled recommendations run on the CPU.
+
+Downloads show progress, resume safely when supported, and must match pinned SHA-256 hashes. Python also needs a
+valid Python Software Foundation signature. Existing settings are backed up, changed settings are never silently
+overwritten, and an existing external AI connection stays selected unless you agree to switch.
+Setup stops only its own test engine. It offers a desktop shortcut and opening BEYOND after successful testing.
+Logs, hardware details and compatibility results remain locally in `data/setup/`.
+
+For a read-only Python/environment/hardware check, use `Setup.cmd --check`, `py setup.py --check`, or
 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1 -CheckOnly`.
-The PowerShell execution-policy override applies only to that process; no machine policy is changed.
-The Python entry point supports Python 3.8+ for bootstrapping, then relaunches under Python 3.14.
-Python downloads offer Retry after failures. Cancel defaults to preserving existing installations.
-Advanced users can pass `--yes` to setup.py or `-Yes` to setup.ps1 to accept installation/environment creation.
+The PowerShell override applies only to that process. Python 3.8+ can launch setup.py; it then uses Python 3.14.
+Advanced users can run `.venv\Scripts\python.exe installer\text_setup.py --model fallback` or
+`--model-path "C:\Models\your-model.gguf"` after preparing the environment.
 
-**This preview prepares Python only.** Automatic library, engine, model installation and chat testing arrive in
-39C; optional features arrive in 39D. Until then, continue with the manual installation steps below.
+This installs **text chat only**; voice, OCR, vision and image generation remain optional (39D installer next).
+Fresh-PC validation is still tracked in Phase 42. The manual full-feature installation below remains available.
 
 ### 1 — Prerequisites
 

@@ -29,7 +29,7 @@ def banner():
         art = "BEYOND"
     print(art)
     print("Built Entirely on Your Own Network & Device")
-    print("\nSetup: Python bootstrap (Phase 39B)\n")
+    print("\nSetup: text chat\n")
 
 
 def probe(command):
@@ -172,10 +172,16 @@ def main(argv=None):
             "powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass",
             "-File", str(ROOT / "setup.ps1"), "-Yes"])
     print("Python " + ".".join(map(str, sys.version_info[:3])) + " (64-bit)")
-    prepare_environment(ROOT / ".venv", args.check, args.yes)
-    print("\nBootstrap check finished. Libraries, engine and model installation arrive in Phase 39C.")
-    print("This result does not mean text chat has been installed or tested.")
-    return 0
+    ready = prepare_environment(ROOT / ".venv", args.check, args.yes)
+    sys.stdout.flush()
+    if args.check:
+        return subprocess.call([sys.executable, "-I", str(ROOT / "installer" / "text_setup.py"), "--check"])
+    if not ready:
+        return 0
+    # Run in the exact isolated environment. The installer imports no app code
+    # until after its own checks and never uses an unqualified pip.
+    return subprocess.call([str(ROOT / ".venv" / "Scripts" / "python.exe"), "-I",
+                            str(ROOT / "installer" / "text_setup.py")])
 
 
 if __name__ == "__main__":

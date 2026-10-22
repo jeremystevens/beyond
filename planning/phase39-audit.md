@@ -184,3 +184,49 @@ Validation:
 - Setup.cmd --check passed when launched from a different working directory.
 - No Python installer was run: per-user installation on a machine lacking Python remains a clean-PC test.
 - Full app installation/startup is intentionally deferred to 39C; optional features to 39D.
+
+## Phase 39C: text-only setup implemented
+
+Added installer/text_setup.py, installer/assets.json, requirements-text-lock.txt and installer recovery tests.
+Setup.cmd/setup.ps1/setup.py now continue into the shared text installer. --check remains read-only and reports hardware.
+Only CPU execution is supported by this stage; NVIDIA acceleration was never attempted on the owner's MSI.
+
+Behavior:
+- Exact text-only dependency pins exclude ONNX/OCR, Whisper, Kokoro, Piper and image engines.
+- Installed RAM informs starter/fallback recommendations; currently available RAM is rechecked at expensive steps.
+- Temporary shortages offer Retry, explicit Try anyway, and an optional smaller-model choice without misclassifying hardware.
+- Existing matching models are hash-verified and reused. User-selected local GGUFs are tested without modification.
+- Hugging Face model revisions and CPU engine archive are pinned by size/SHA-256.
+- Range resume is validated; ignored Range safely restarts; complete corrupt partials cannot loop forever on Retry.
+- Extraction rejects traversal/links and verifies existing engine files against the pinned archive.
+- An install lock prevents simultaneous installers; a running app/occupied configured port must be resolved before library changes.
+- Startup verification runs the real app against disposable stores. Inference runs an installer-owned engine on a free loopback port.
+- Engine failures only offer a smaller model/lower context when memory-related; other failures retain the actual diagnosis.
+- Only successful settings are merged, existing settings are backed up, and changes made during setup are not overwritten.
+- Existing external connections require agreement before activation of the tested built-in model.
+- Shortcut creation and launching are optional; existing shortcuts are not overwritten.
+- Hardware, step logs and successful results are kept locally under data/setup.
+- app/tools/scan.py permits missing ONNX while retaining early native preloading when installed.
+- Optional OCR/voice endpoints now explain that text chat remains available.
+
+Verification:
+- 24 bootstrap/installer unit tests passed.
+- Existing scan (8), voice-input (7) and built-in-engine (11) tests passed: 50 tests in total.
+  Existing SQLite ResourceWarnings in engine tests did not fail assertions.
+- The pinned text lock installed successfully in the separate Python 3.14 audit environment; working .venv was untouched.
+- That environment has no onnxruntime, faster_whisper or kokoro_onnx; real app startup/page request passed.
+- Installer app-health verification also passed in that environment with disposable data.
+- Full installer integration ran in D:\temp\beyond 39c integration e97odppr, with a junction to the audit environment
+  and read-only reuse of the existing model folder. Its settings used a separate free web port.
+- The integration downloaded/verified/extracted llama.cpp b9668, reused the verified Qwen3 0.6B file, generated
+  "Hello! How can I assist you today?", stopped its own engine and saved tested settings only in the disposable copy.
+- Launch and shortcut were intentionally skipped in the integration; both running bots and owner settings were preserved.
+- On this busy PC the integration explicitly chose Try anyway for the known small model after checking >1.25 GiB free.
+  Normal installations retain their conservative memory prompts.
+- Setup.cmd --check reports Python/environment/hardware without installation or settings changes.
+
+Remaining:
+- 39D: separate optional-feature installer.
+- 39E: additional recovery/user-experience hardening.
+- Phase 42: fresh-PC/no-Python validation; the disposable integration is not claimed as a clean-machine test.
+- GPU acceleration remains unimplemented; detection alone is not a compatibility guarantee.

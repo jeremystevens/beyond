@@ -6,12 +6,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 39C text-only setup:** isolated text-library lock, pinned CPU llama.cpp and Qwen3 starter/fallback
+  manifests, hardware preflight, model reuse, verified resumable downloads, app startup and real chat tests,
+  memory Retry/lower-context options, settings backups, and optional shortcut/launch. Only the installer's own
+  engine is stopped; existing external AI connections require agreement before switching. OCR no longer blocks
+  a text-only app startup. Setup results and logs stay in data/setup. Optional feature installation is 39D.
 - **Phase 39B setup bootstrap:** double-click Setup.cmd, use setup.ps1 without Python, or run setup.py with an
   existing Python 3.8+. Finds 64-bit Python 3.14, offers a per-user 3.14.8 installation after verifying the Python
   Software Foundation's Authenticode signature and pinned SHA-256, and creates or validates the isolated environment. Existing
   environments, other Python versions, PATH, settings, models and running apps are preserved. Read-only check,
-  cancellation, download retry and plain-text branding fallback are included. Libraries, engine/model downloads
-  and text-chat verification remain Phase 39C.
+  cancellation, download retry and plain-text branding fallback are included. The shared installer now continues
+  into the Phase 39C text-chat installation.
 
 ## [0.38.4] - 2026-10-21
 

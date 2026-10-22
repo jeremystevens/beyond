@@ -1,7 +1,7 @@
 # Phase 39: Setup script implementation plan
 
 **Date:** 2026-10-21
-**Status:** Plan approved. Phase 39B bootstrap implemented and locally verified; 39C text-chat installation is next.
+**Status:** Phase 39B bootstrap and 39C text-chat installation implemented and locally verified. Phase 39D optional features are next; clean-PC validation remains Phase 42.
 **Project:** D:\AI\beyond
 **Related roadmap:** planning/phases.md, Phase 39
 **Goal:** A new user downloads BEYOND, double-clicks Setup, and reaches verified text chat without manually installing Python, libraries, an engine, or a model.
