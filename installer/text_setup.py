@@ -598,7 +598,11 @@ def main(argv=None):
                 save_configuration(changes, initial)
             atomic_json(state_dir / "result.json", {"status": "passed", "time": time.time(),
                         "model": str(model), "engine": str(executable), "backend": "cpu",
-                        "threads": threads, "context": context, "activated": use_builtin})
+                        "threads": threads, "context": context, "activated": use_builtin,
+                        "welcome_pending": initial is None})
+            welcome_path = config.DATA_DIR / "welcome.json"
+            if initial is None and not welcome_path.exists():
+                atomic_json(welcome_path, {"status": "pending"})
             print("\nText chat compatibility passed. Existing chats and optional features are preserved.")
             finish(values)
         finally:

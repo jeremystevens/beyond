@@ -261,6 +261,20 @@ Fresh-PC validation is still tracked in Phase 42. Manual full-feature installati
 For interrupted downloads, library failures, or an existing environment that needs attention, see the
 [setup recovery guide](planning/setup-recovery.md). You can cancel and rerun either installer.
 
+### Your first start (Phase 40)
+
+On a fresh installation, BEYOND opens a **Welcome guide** before chat. It shows installed and available RAM,
+keeps the model and connection chosen in Setup, and offers **Keep current**, **Lighter**, or **Balanced**
+CPU presets. Your existing AI server keeps its own hardware settings. No downloads or GPU tests run from this page.
+
+Choose **Test my AI** to generate one short greeting. A successful test unlocks **Open chat** for that configuration.
+Loading models, occupied engines, connection failures and timeouts explain how to retry. **Set up later** lets you
+continue without claiming the test passed. Reopen the guide from Settings whenever you want.
+
+Existing configured installations continue opening chat normally. Welcome progress is local in data/welcome.json;
+it does not change chats, memories, network access or optional-feature choices. CPU remains the supported mode;
+graphics-card testing and clean-machine acceptance are deferred.
+
 ### Add Features (Phase 39D preview)
 
 After the main setup, close BEYOND and double-click **Add-Features.cmd**. Select individual features:

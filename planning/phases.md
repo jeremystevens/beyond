@@ -449,9 +449,17 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
   (8 GB / 16 GB / good graphics card) and optional extras (voice, `/look`, `/imagine`).
 - **Done when:** the script takes a fresh folder to a working BEYOND.
 
-### Phase 40: First-run setup in the app
-- A welcome page for new users: pick a preset, test the AI, optional graphics-card test (processor stays the safe
-  default).
+### Phase 40: First-run setup in the app (implemented 2026-10-21; fresh-machine acceptance in Phase 42)
+- A responsive welcome guide for fresh installations reuses Setup's model and connection, shows installed versus
+  available RAM, and offers Keep current, Lighter and Balanced CPU presets. Existing configured users are not
+  forced through it; Settings can reopen it.
+- A fixed short greeting verifies the current AI before Open chat; failures, loading, occupied AI, timeouts and
+  changed settings permit retry. Set up later is an explicit skip, not a passing result. Progress is local and
+  separate from chats. Settings, tests and completion are restricted to the PC owner/administrator.
+- CPU remains the supported mode. The optional graphics-card test is deferred until a compatible GPU backend
+  exists; no GPU inference or large-model tests run on the busy development PC.
+- Validation details: phase40-welcome.md. Browser flow uses a disposable server and simulated AI response;
+  full fresh-machine validation remains Phase 42.
 - **Done when:** a first start walks you through to a working chat.
 
 ### Phase 41: Guide and licenses

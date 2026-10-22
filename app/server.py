@@ -19,7 +19,7 @@ from app import (autostart, briefing, chats, checklists, commands, config, engin
 
 from app import auth, builtin_engine, downloads, file_reading, file_requests, files, photo_jobs, image_jobs, speech_jobs, blackjack, followups, games, hangman, study_quiz, tictactoe, trivia
 from app.tools import scan, speech, speech_to_text
-from app import diagnostics
+from app import diagnostics, welcome
 
 models.initialize()
 chats.initialize()
@@ -380,6 +380,70 @@ def switch_sign_in(body: SignInSwitch, request: Request):
 @app.get('/', include_in_schema=False)
 def home():
     return FileResponse(config.WEB_DIR / 'index.html')
+
+
+@app.get('/welcome', include_in_schema=False)
+def welcome_page():
+    return FileResponse(config.WEB_DIR / 'welcome.html')
+
+
+class WelcomePreset(BaseModel):
+    model_config = {'extra': 'forbid'}
+    preset: Literal['keep', 'light', 'balanced']
+
+
+class WelcomeFinish(BaseModel):
+    model_config = {'extra': 'forbid'}
+    skip: bool = False
+
+
+def _welcome_action(function, *args):
+    try:
+        return function(*args)
+    except welcome.WelcomeError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=exc.status)
+    except (OSError, settings.SettingsError):
+        logging.exception('Welcome configuration could not be saved')
+        return JSONResponse({'error': 'Could not save the welcome progress. Check file permissions and try again.'},
+                            status_code=503)
+
+
+@app.get('/api/welcome')
+def welcome_state(request: Request):
+    if not can_manage(request):
+        return {'can_manage': False, 'offer': False}
+    result = _welcome_action(welcome.view)
+    if isinstance(result, dict):
+        result['can_manage'] = True
+    return result
+
+
+@app.post('/api/welcome/preset')
+def welcome_preset(body: WelcomePreset, request: Request):
+    if not can_manage(request):
+        return only_this_pc()
+    return _welcome_action(welcome.apply_preset, body.preset)
+
+
+@app.post('/api/welcome/test')
+async def welcome_test(request: Request):
+    if not can_manage(request):
+        return only_this_pc()
+    try:
+        return await welcome.test_ai()
+    except welcome.WelcomeError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=exc.status)
+    except OSError:
+        logging.exception('Welcome test progress could not be saved')
+        return JSONResponse({'error': 'The test result could not be saved. Check file permissions and retry.'},
+                            status_code=503)
+
+
+@app.post('/api/welcome/finish')
+def welcome_finish(body: WelcomeFinish, request: Request):
+    if not can_manage(request):
+        return only_this_pc()
+    return _welcome_action(welcome.finish, body.skip)
 
 
 @app.get('/settings', include_in_schema=False)

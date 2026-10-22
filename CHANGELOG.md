@@ -6,6 +6,13 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Phase 40 welcome guide:** fresh installs open a responsive guide that reuses Setup's model/connection,
+  reports installed versus available RAM, offers explicit CPU presets, and tests a fixed short AI greeting.
+  Finishing requires a successful current-configuration test; skipping is recorded separately. Existing
+  configured installations continue to chat and can reopen the guide from Settings. Tests are bounded,
+  reject concurrent requests and busy engines, and never include chats, memories or house rules.
+  Manager permissions protect configuration and test endpoints. GPU testing remains unavailable; CPU stays
+  the supported default. Fresh-machine and large-model acceptance remain Phase 42 work.
 - **Phase 39E setup recovery:** interrupted HTTP transfers return to Retry with partial downloads preserved.
   Library installation and dependency checks use bounded, logged workers whose owned processes stop on
   cancellation or timeout. Invalid optional-feature numbers are rejected rather than partially accepted.

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f4f1" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#141210" media="(prefers-color-scheme: dark)">
+  <title>Welcome to BEYOND</title>
+  <link rel="stylesheet" href="/static/style.css?v=4">
+  <script src="/static/auth.js?v=1"></script>
+  <script src="/static/app-height.js?v=3" defer></script>
+  <script src="/static/welcome.js?v=1" defer></script>
+  <style>
+    main { flex:1; min-height:0; overflow:auto; padding:32px max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left)); }
+    .inner { max-width:780px; margin:auto; display:grid; gap:20px; }
+    .intro { padding:4px 0 8px; }
+    .eyebrow { color:var(--accent); font-weight:650; font-size:.8rem; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { font-size:clamp(1.8rem,5vw,2.5rem); line-height:1.15; margin:12px 0; letter-spacing:-.04em; }
+    h2 { font-size:1.15rem; margin:0 0 8px; }
+    p { line-height:1.55; margin:8px 0; }
+    .hint { color:var(--muted); font-size:.9rem; }
+    section { border:1px solid var(--border); border-radius:18px; background:var(--panel); padding:24px; min-width:0; }
+    .step { display:inline-flex; align-items:center; justify-content:center; width:27px; height:27px; border-radius:50%; background:var(--warn-bg); color:var(--accent); margin-right:8px; font-size:.85rem; }
+    .facts { display:flex; gap:10px; flex-wrap:wrap; margin:16px 0; }
+    .fact { padding:8px 12px; border:1px solid var(--border); border-radius:10px; font-size:.85rem; }
+    #model, #reply, #message { overflow-wrap:anywhere; }
+    fieldset { padding:0; border:0; margin:20px 0 12px; min-width:0; }
+    legend { font-weight:600; margin-bottom:10px; }
+    .choices { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .choice { display:block; border:1px solid var(--border); border-radius:12px; padding:14px; cursor:pointer; }
+    .choice:has(input:checked) { border-color:var(--accent); background:var(--warn-bg); }
+    .choice input { accent-color:var(--accent); }
+    .choice strong { display:block; margin:8px 0 4px; }
+    .choice small { display:block; color:var(--muted); line-height:1.4; }
+    .actions { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top:16px; }
+    button,.button { min-height:44px; }
+    .note { border-radius:12px; padding:12px 14px; background:var(--warn-bg); }
+    .result { border-radius:12px; padding:12px 14px; background:var(--ok-bg); white-space:pre-wrap; }
+    #message { margin:0; }
+    #message:not(:empty) { padding:14px; border:1px solid var(--border); border-radius:12px; background:var(--panel); }
+    #message.error { background:var(--error-bg); color:var(--bad); }
+    a:not(.button):not(.brand) { color:var(--accent); }
+    code { overflow-wrap:anywhere; }
+    [hidden] { display:none !important; }
+    @media(max-width:540px) { main { padding-top:20px; } section { padding:18px; } .choices { grid-template-columns:1fr; } header .right { gap:6px; } }
+  </style>
+</head>
+<body>
+<header>
+  <a class="brand" href="/">BEYOND</a>
+  <div class="right"><a class="ghost button" href="/settings">Settings</a></div>
+</header>
+<main><div class="inner">
+  <div class="intro">
+    <div class="eyebrow">Your own AI, on your own device</div>
+    <h1>Make yourself at home.</h1>
+    <p class="hint">A quick check, then your first conversation. Keep the choices from Setup or choose a lighter starting point.</p>
+  </div>
+  <p id="message" role="status" aria-live="polite" tabindex="-1">Checking your setup…</p>
+  <div id="restricted" hidden>
+    <p>Open this guide on the PC running BEYOND, or sign in as administrator to manage setup.</p>
+    <a class="button" href="/">Back to chat</a>
+  </div>
+  <section id="configuration" hidden>
+    <h2><span class="step">1</span>Your starting point</h2>
+    <div class="facts" id="hardware"></div>
+    <p><strong id="connection">CPU · Built-in AI</strong></p>
+    <p class="hint" id="model"></p>
+    <p class="note" id="memory" hidden>Other apps are using most of your memory right now. Retry later if the test struggles. You can keep essential apps running.</p>
+    <p class="note" id="missing" hidden>Your AI still needs an engine and a model. Run <code>Setup.cmd</code> on this PC for automatic text setup, or choose your connection in <a href="/settings">Settings</a>. You can also visit <a href="/models">Models</a>.</p>
+    <fieldset id="presets">
+      <legend>How would you like to start?</legend>
+      <div class="choices">
+        <label class="choice"><input type="radio" name="preset" value="keep" checked><strong>Keep current</strong><small>Use the configuration you already chose. Recommended after Setup.</small></label>
+        <label class="choice"><input type="radio" name="preset" value="light"><strong>Lighter</strong><small>Shorter conversations and fewer CPU threads. A gentle starting point.</small></label>
+        <label class="choice"><input type="radio" name="preset" value="balanced"><strong>Balanced</strong><small>A modest conversation window with up to eight CPU threads.</small></label>
+      </div>
+      <div class="actions"><button id="apply" class="ghost">Use selected preset</button><span class="hint" id="current"></span></div>
+    </fieldset>
+    <p class="hint" id="external" hidden>Your existing server manages its own hardware settings. Its address and model stay as you configured them in Settings.</p>
+    <p class="hint">CPU is the supported starting mode. Graphics-card testing is not available in this version.</p>
+  </section>
+  <section id="verification" hidden>
+    <h2><span class="step">2</span>Say hello to your AI</h2>
+    <p class="hint">This sends one short test message to your configured AI. It does not use or save a conversation, memories, or house rules.</p>
+    <p class="hint" id="aiState">Checking AI status…</p>
+    <div class="actions"><button id="test">Test my AI</button><span class="hint" id="progress"></span></div>
+    <p id="reply" class="result" hidden></p>
+    <div class="actions"><button id="finish" disabled>Open chat</button></div>
+  </section>
+  <section id="extras" hidden>
+    <h2>Make it yours, whenever you’re ready.</h2>
+    <p class="hint">Text chat is enough to get started. Later, close BEYOND normally and run <code>Add-Features.cmd</code> to choose voice input, spoken replies, reading text in photos, vision, or image generation. Each feature tests compatibility before it is enabled.</p>
+    <p class="hint">Vision and image setup are still a preview awaiting fresh-machine validation.</p>
+    <div class="actions"><button id="skip" class="ghost">Set up later · continue without testing</button></div>
+    <p class="hint">You can reopen this guide from Settings at any time.</p>
+  </section>
+</div></main>
+</body>
+</html>
