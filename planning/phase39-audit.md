@@ -283,3 +283,13 @@ Final regression result for this milestone: full suite passed, 289 tests in 579 
 The latest dedicated optional tests also passed (11 checks), including the added malformed-state guard.
 Existing SQLite ResourceWarnings/debug timing output did not fail the suite.
 39D remains a preview until the two large-model inference checks above have run.
+
+## Owner decision: defer large-model validation to a fresh machine
+
+On 2026-10-21, Jeremy approved leaving Local AI Studio, PromptetheusBot, BEYOND,
+and connected ChatGPT/Claude work sessions running on the development PC.
+Do not close these applications or force large-model tests to reclaim RAM.
+Run the remaining pinned Gemma/projector vision and DreamShaper image-generation
+inference checks on the owner's fresh-machine installation as part of Phase 42.
+39D remains a preview with these checks pending; this deferral is not a passing result.
+The installer must still pass each feature's compatibility test before enabling it.

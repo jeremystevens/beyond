@@ -440,7 +440,7 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
   Disposable-copy integration passed with Qwen3 0.6B.
 - **39D preview implemented:** Add-Features.cmd selects independent Whisper, Kokoro, Piper, OCR, vision and image
   components with pinned downloads and isolated offline tests. Real Whisper/Kokoro/Piper/OCR integration and
-  rerun skipping passed. Full pinned vision/image inference still needs enough free RAM for validation.
+  rerun skipping passed. Owner approved deferring full pinned vision/image inference to the fresh-machine Phase 42 test; keep existing apps and connected work sessions running. 39D remains a preview until those checks pass.
 - Detailed design: phase39-setup-plan.md. Source audit: phase39-audit.md.
 - One script that installs Python and the libraries, downloads llama.cpp (verified), and offers model presets by PC
   (8 GB / 16 GB / good graphics card) and optional extras (voice, `/look`, `/imagine`).
