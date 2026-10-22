@@ -146,10 +146,39 @@ still arrive), and lets your other devices use it over a **secure address on you
 
 <div align="center">
 
+![BEYOND answering a question it looked up on the web](screenshots/chat-lookup.png)
+
+*Asked about something it might not know, BEYOND searches the web first and says so ("🔎 Looked up"). Every answer
+ends with a quiet line: copy, rate, read aloud, try again, and the model, tokens, time and speed.*
+
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screenshots/models-download.png" alt="The Models page downloading a model">
+<br><b>Models:</b> recommended models for a processor, downloaded from Hugging Face with fingerprint checks and resume.</td>
+<td width="50%" valign="top"><img src="screenshots/phones.png" alt="BEYOND on a phone: memory and hangman">
+<br><b>On your phone:</b> it remembers what you tell it ("🧠 Noted for next time"), and the games play by touch.</td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screenshots/files-writing.png" alt="Writing and reading a file from chat">
+<br><b>Files from chat:</b> "write a python file with a simple animal class", check the draft, save it, then ask what it does.</td>
+<td width="50%" valign="top"><img src="screenshots/game-hangman.png" alt="A game of hangman">
+<br><b>Games:</b> hangman, blackjack, trivia, tic-tac-toe, a study quiz and dice, with saved stats.</td>
+</tr>
+</table>
+
+<details>
+<summary>The welcome screen</summary>
+
+<br>
+
 ![BEYOND's chat page](screenshots/Screenshot1.png)
 
-*The chat page: saved chats on the left, the AI connection status, Games and Settings at the top, and the message
-box with photo 📷 and voice 🎤 buttons.*
+*Saved chats on the left, the AI connection status, Games and Settings at the top, and the message box with photo
+📷 and voice 🎤 buttons.*
+
+</details>
 
 On phones, **Games** and **Models** are in the **☰ menu** beside saved chats. **Settings** stays in the header.
 
@@ -1169,33 +1198,27 @@ BEYOND is being built in **43 small phases**, each one tested before the next. T
 [`planning/phases.md`](planning/phases.md).
 
 <details open>
-<summary><b>Implemented: Phases 1–34 (mobile navigation review pending)</b></summary>
+<summary><b>Implemented: Phases 1–38</b> (37 deferred for later)</summary>
 
 <br>
 
 | | | |
 |---|---|---|
-| ✅ 1 · Project setup | ✅ 12 · Ratings and learning | ✅ 22 · Photo understanding (`/look`) |
-| ✅ 2 · First chat | ✅ 13 · Web lookups | ✅ 23 · Picture generation (`/imagine`) |
-| ✅ 3 · Live typing and controls | ✅ 14 · Automatic lookups | ✅ 24 · Better pictures |
-| ✅ 4 · Settings | ✅ 15 · Small extras | ✅ 25 · Spoken replies |
-| ✅ 5 · Saved conversations | ✅ 16 · Notes | ✅ 26 · Voice input |
-| ✅ 6 · Personality and memory | ✅ 17 · Checklists | ✅ 27 · Games menu and dice |
-| ✅ 7 · House rules | ✅ 18 · Expenses | ✅ 28 · Tic-tac-toe |
-| ✅ 8 · Slash commands | ✅ 19 · Reminders | ✅ 29 · Trivia |
-| ✅ 9 · Buttons in chat | ✅ 20 · Tray icon and popups | ✅ 30 · Study quiz |
-| ✅ 10 · Saved facts | ✅ 20b · Morning briefing | ✅ 31 · Blackjack |
-| ✅ 11 · Automatic memory | ✅ 21 · Photos and `/scan` | ✅ 32 · Hangman |
-| | | ✅ 33 · Built-in engine |
-| | | 34 · Models page (tested; mobile navigation revised) |
-| | | 34a · Persona selector (optional; off by default) |
-| | | 34b · Search history |
-| | | ✅ 34c · Natural lookup follow-ups |
-| | | 34d · Optimized and custom chat prompts (ready to try) |
-| | | ✅ 35 · Model downloads |
-| | | ✅ 36 · Status and health |
-| | | 37 · Other AI servers (deferred) |
-| | | ✅ 38 · Sign-in and administrator access |
+| ✅ 1 · Project setup | ✅ 2 · First chat | ✅ 3 · Live typing and controls |
+| ✅ 4 · Settings | ✅ 5 · Saved conversations | ✅ 6 · Personality and memory |
+| ✅ 7 · House rules | ✅ 8 · Slash commands | ✅ 9 · Buttons in chat |
+| ✅ 10 · Saved facts | ✅ 11 · Automatic memory | ✅ 12 · Ratings and learning |
+| ✅ 13 · Web lookups | ✅ 14 · Automatic lookups | ✅ 15 · Small extras |
+| ✅ 16 · Notes | ✅ 17 · Checklists | ✅ 18 · Expenses |
+| ✅ 19 · Reminders | ✅ 20 · Tray icon and popups | ✅ 20b · Morning briefing |
+| ✅ 21 · Photos and `/scan` | ✅ 22 · Photo understanding (`/look`) | ✅ 23 · Picture generation (`/imagine`) |
+| ✅ 24 · Better pictures | ✅ 25 · Spoken replies | ✅ 26 · Voice input |
+| ✅ 27 · Games menu and dice | ✅ 28 · Tic-tac-toe | ✅ 29 · Trivia |
+| ✅ 30 · Study quiz | ✅ 31 · Blackjack | ✅ 32 · Hangman |
+| ✅ 33 · Built-in engine | 34 · Models page (tested; mobile navigation revised) | 34a · Persona selector (optional; off by default) |
+| 34b · Search history | ✅ 34c · Natural lookup follow-ups | 34d · Optimized and custom chat prompts (ready to try) |
+| ✅ 35 · Model downloads | ✅ 36 · Status and health | 37 · Other AI servers (deferred) |
+| ✅ 38 · Sign-in and administrator access |  |  |
 
 </details>
 
