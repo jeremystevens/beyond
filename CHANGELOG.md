@@ -5,6 +5,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.38.4] - 2026-10-21
+
+The first published release: everything from Phase 1 to Phase 38, plus the file tools.
+
 ### Added
 - **Reading files** (version 0.38.4). Name a file from the files folder in a message ("what does animals.py do?",
   "read notes.md", "is there a bug in animals.py?", "summarise report.txt") or use `/readfile animals.py
@@ -888,3 +892,6 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `app/config.py` holds the fresh-install defaults and is the only place port numbers are defined.
 - `/api/health` reports that BEYOND is running, its version and phase.
 - Planning documents moved into `planning/`.
+
+[Unreleased]: https://github.com/jeremystevens/beyond/compare/v0.38.4...HEAD
+[0.38.4]: https://github.com/jeremystevens/beyond/releases/tag/v0.38.4
