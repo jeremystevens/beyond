@@ -4,13 +4,13 @@ import json
 import re
 import tempfile
 import unittest
-from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
 
 import httpx
 
 from app import chats, config, games, hangman, settings
+from tests.support import closing_connections
 from app.tools import hangman as rules
 from app.tools.hangman_words import WORDS
 
@@ -59,21 +59,12 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         config.DATA_DIR = Path(cls.temp.name)
         chats.DB_PATH = config.DATA_DIR / 'test.sqlite3'
         settings.FILE = config.DATA_DIR / 'settings.json'
-        connect = chats.connect
-
-        @contextmanager
-        def closed_connection():
-            db = connect()
-            try:
-                with db:
-                    yield db
-            finally:
-                db.close()
-        cls.connections = patch.object(chats, 'connect', closed_connection)
+        cls.connections = patch.object(chats, 'connect', closing_connections())
         cls.connections.start()
         from app.server import app
         from app import rules as house_rules, memory, learning
-        for module in (chats, games, house_rules, memory, learning, hangman):
+        from app import followups, search_history
+        for module in (chats, games, house_rules, memory, learning, hangman, followups, search_history):
             module.initialize()
         cls.app = app
 

@@ -9,6 +9,7 @@ from unittest.mock import patch
 import httpx
 
 from app import chats, config, settings
+from tests.support import closing_connections
 from app.tools import speech_to_text
 
 QUESTION = 'What is the capital of France?'
@@ -65,18 +66,7 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         config.DATA_DIR = Path(cls.temp.name)
         chats.DB_PATH = config.DATA_DIR / 'test.sqlite3'
         settings.FILE = config.DATA_DIR / 'settings.json'
-        from contextlib import contextmanager
-        connect = chats.connect
-
-        @contextmanager
-        def closed_connection():
-            db = connect()
-            try:
-                with db:
-                    yield db
-            finally:
-                db.close()
-        cls.connections = patch.object(chats, 'connect', closed_connection)
+        cls.connections = patch.object(chats, 'connect', closing_connections())
         cls.connections.start()
         from app.server import app
         from app import memory, learning, notes, checklists, expenses, reminders, briefing, rules

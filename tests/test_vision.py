@@ -4,13 +4,13 @@ import tempfile
 import threading
 import time
 import unittest
-from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
 import httpx
 
 from app import chats, config, settings
+from tests.support import closing_connections
 from app.tools import vision
 from test_scan import png
 
@@ -86,19 +86,12 @@ class VisionApiTests(unittest.IsolatedAsyncioTestCase):
         config.DATA_DIR = Path(cls.temp.name)
         chats.DB_PATH = config.DATA_DIR / 'test.sqlite3'
         settings.FILE = config.DATA_DIR / 'settings.json'
-        connect = chats.connect
-        @contextmanager
-        def closed_connection():
-            db = connect()
-            try:
-                with db:
-                    yield db
-            finally:
-                db.close()
-        cls.connections = patch.object(chats, 'connect', closed_connection)
+        cls.connections = patch.object(chats, 'connect', closing_connections())
         cls.connections.start()
         from app import server, memory, learning, notes, checklists, expenses, reminders, briefing, rules
-        for module in (chats, rules, memory, learning, notes, checklists, expenses, reminders, briefing):
+        from app import followups, search_history
+        for module in (chats, rules, memory, learning, notes, checklists, expenses, reminders, briefing, followups,
+                       search_history):
             module.initialize()
         cls.app = server.app
 

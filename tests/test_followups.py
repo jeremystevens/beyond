@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from tests.support import local_request
 from app import chats, commands, config, followups, search_history
 from app.commands import Command
 
@@ -97,7 +98,7 @@ class FollowupTests(unittest.TestCase):
             seen.append(query)
             return WEATHER.replace('London, UK','Franklin, Tennessee')
         async def send():
-            response=await server.chat_stream(server.SendRequest(chat_id=pending,content=location))
+            response=await server.chat_stream(request=local_request(), body=server.SendRequest(chat_id=pending,content=location))
             return [json.loads(event) async for event in response.body_iterator]
         with patch.object(server.settings,'load',return_value={'auto_lookup':True}), \
              patch.dict(commands._BY_NAME,{'weather':Command('weather','fake','/weather',weather)}), \
@@ -143,7 +144,7 @@ class FollowupTests(unittest.TestCase):
             seen.append(query)
             return '1. Omarchy\nhttps://example.com/omarchy\nA Linux distribution.\n\nSource: test fixture'
         async def send():
-            response=await server.chat_stream(server.SendRequest(
+            response=await server.chat_stream(request=local_request(), body=server.SendRequest(
                 chat_id=self.chat,content="If you don't know you could always look it up"))
             return [json.loads(event) async for event in response.body_iterator]
         with patch.object(server.settings,'load',return_value={'auto_lookup':False}), \
@@ -186,7 +187,7 @@ class FollowupTests(unittest.TestCase):
             seen.append(query)
             return '1. Omarchy\nhttps://example.com/omarchy\nA Linux distribution.\n\nSource: test fixture'
         async def send():
-            response=await server.chat_stream(server.SendRequest(
+            response=await server.chat_stream(request=local_request(), body=server.SendRequest(
                 chat_id=self.chat,content='yes please look it up for me'))
             return [json.loads(event) async for event in response.body_iterator]
         with patch.object(server.settings,'load',return_value={'auto_lookup':False}), \
@@ -239,7 +240,7 @@ class FollowupTests(unittest.TestCase):
                 return "I couldn't find a place called: Denver, CO"
             return WEATHER.replace('London, UK','Franklin, Tennessee')
         async def send(text,chat=None):
-            response=await server.chat_stream(server.SendRequest(chat_id=chat or self.chat,content=text))
+            response=await server.chat_stream(request=local_request(), body=server.SendRequest(chat_id=chat or self.chat,content=text))
             return [json.loads(event) async for event in response.body_iterator]
         with patch.object(server.settings,'load',return_value={'auto_lookup':True}), \
              patch.dict(commands._BY_NAME,{'weather':Command('weather','fake','/weather',weather)}), \

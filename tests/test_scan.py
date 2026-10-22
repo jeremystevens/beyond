@@ -7,6 +7,7 @@ from unittest.mock import patch
 import httpx
 from PIL import Image, ImageDraw, ImageFont
 from app import chats, config, settings
+from tests.support import closing_connections
 from app.tools import scan
 
 
@@ -61,17 +62,7 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         config.DATA_DIR = Path(cls.temp.name)
         chats.DB_PATH = config.DATA_DIR / 'test.sqlite3'
         settings.FILE = config.DATA_DIR / 'settings.json'
-        from contextlib import contextmanager
-        connect = chats.connect
-        @contextmanager
-        def closed_connection():
-            db = connect()
-            try:
-                with db:
-                    yield db
-            finally:
-                db.close()
-        cls.connections = patch.object(chats, 'connect', closed_connection)
+        cls.connections = patch.object(chats, 'connect', closing_connections())
         cls.connections.start()
         from app.server import app
         # The server may already be imported by another test class; initialize this new temporary database.

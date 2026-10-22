@@ -3,13 +3,13 @@ decks, so every outcome is tested on purpose rather than by luck."""
 import json
 import tempfile
 import unittest
-from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
 
 import httpx
 
 from app import blackjack, chats, config, games, settings
+from tests.support import closing_connections
 from app.tools import blackjack as rules
 
 
@@ -56,21 +56,12 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         config.DATA_DIR = Path(cls.temp.name)
         chats.DB_PATH = config.DATA_DIR / 'test.sqlite3'
         settings.FILE = config.DATA_DIR / 'settings.json'
-        connect = chats.connect
-
-        @contextmanager
-        def closed_connection():
-            db = connect()
-            try:
-                with db:
-                    yield db
-            finally:
-                db.close()
-        cls.connections = patch.object(chats, 'connect', closed_connection)
+        cls.connections = patch.object(chats, 'connect', closing_connections())
         cls.connections.start()
         from app.server import app
         from app import rules as house_rules, memory, learning
-        for module in (chats, games, house_rules, memory, learning, blackjack):
+        from app import followups, search_history
+        for module in (chats, games, house_rules, memory, learning, blackjack, followups, search_history):
             module.initialize()
         cls.app = app
 
