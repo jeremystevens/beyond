@@ -11,6 +11,8 @@ By taking part you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md). Fo
 
 ## Ways to help
 
+- **Ask or share in [Discussions](https://github.com/jeremystevens/beyond/discussions):** questions go in Q&A,
+  ideas in Ideas, and your setup in Show and tell. Issues are kept for things that are broken.
 - **Report a bug** with the [bug report form](https://github.com/jeremystevens/beyond/issues/new/choose). Steps to
   reproduce it and the matching lines from `data\beyond.log` help the most.
 - **Suggest a feature** with the feature request form. Explain the problem it solves, not only the solution.

@@ -1,5 +1,11 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Ask a question
+    url: https://github.com/jeremystevens/beyond/discussions/categories/q-a
+    about: Help with setup or using BEYOND. Issues are for things that are broken.
+  - name: Share an idea
+    url: https://github.com/jeremystevens/beyond/discussions/categories/ideas
+    about: Talk through a feature idea with others before it becomes a request.
   - name: Report a security problem privately
     url: https://github.com/jeremystevens/beyond/security/advisories/new
     about: Please don't report security problems in a public issue.
