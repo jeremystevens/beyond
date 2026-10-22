@@ -34,6 +34,17 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-lock.txt
 
+      # Voice input never downloads its model by itself (Add-Features.cmd installs it), so fetch Whisper "base"
+      # here, once, for the tests that turn real speech into text. Cached between runs.
+      - name: Cache the voice input model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface/hub
+          key: whisper-base-v1
+
+      - name: Download the voice input model
+        run: python -c "from faster_whisper import WhisperModel; WhisperModel('base', device='cpu', compute_type='int8')"
+
       - name: Run the tests
         env:
           PYTHONIOENCODING: utf-8

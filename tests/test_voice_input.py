@@ -29,6 +29,15 @@ def spoken_question():
     return path.read_bytes() if path.exists() else None
 
 
+
+def skip_without_model(test):
+    """Real speech recognition needs the Whisper model, which BEYOND never downloads by itself (Add-Features.cmd
+    installs it; the GitHub test run downloads it first). Without it, these tests are skipped rather than failed."""
+    try:
+        speech_to_text._model()
+    except speech_to_text.SpeechError:
+        test.skipTest('The voice input model is not installed here (run Add-Features.cmd to install it).')
+
 class TranscribeTests(unittest.TestCase):
     def test_empty_and_oversized_recordings(self):
         for data in (b'', b'x' * 50, b'x' * (speech_to_text.MAX_RECORDING_BYTES + 1)):
@@ -51,6 +60,7 @@ class TranscribeTests(unittest.TestCase):
         audio = spoken_question()
         if audio is None:
             self.skipTest("Windows' speech voice isn't available")
+        skip_without_model(self)
         before = set(Path(tempfile.gettempdir()).glob('tmp*.wav'))
         text, seconds = speech_to_text.transcribe(audio, '.wav')
         self.assertIn('capital of france', text.lower())
@@ -93,6 +103,7 @@ class ApiTests(unittest.IsolatedAsyncioTestCase):
         audio = spoken_question()
         if audio is None:
             self.skipTest("Windows' speech voice isn't available")
+        skip_without_model(self)
         response = await self.post(audio, 'audio/wav')
         self.assertEqual(response.status_code, 200, response.text)
         self.assertIn('capital of france', response.json()['text'].lower())
