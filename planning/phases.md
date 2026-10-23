@@ -481,10 +481,10 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
   Manual official Python 3.14 x64 installation followed by Setup.cmd is the documented fallback.
 - Details: phase42-clean-install.md. No claim that every acceptance case passed; measured disk use remains pending.
 
-### Phase 43: First release (preparation in progress)
+### Phase 43: First release (published 2026-10-22)
 - Draft notes: ../docs/RELEASE_NOTES.md. Packaging/checklist: phase43-release.md.
 - Prepare source ZIP, consistent version/tag, checksums and exact-artifact notice review; disclose Phase 42 exceptions.
-- No release or version tag has been published by this preparation step.
+- Published v1.0.0: https://github.com/jeremystevens/beyond/releases/tag/v1.0.0. Full CI passed at the tagged commit; source ZIP, notice hashes, checksum and latest-release status verified.
 - **Done when:** the release page is up and the download installs correctly.
 
 ---
