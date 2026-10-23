@@ -20,15 +20,19 @@ things up, keeps you organised, reads photos, listens, talks back and plays game
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.143-d96326?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=0d1117)
 ![License](https://img.shields.io/badge/License-MIT-d96326?style=for-the-badge&labelColor=0d1117)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-d96326?style=for-the-badge&logo=windows&logoColor=white&labelColor=0d1117)
-![Version](https://img.shields.io/badge/Version-0.38.0-d96326?style=for-the-badge&labelColor=0d1117)
+![Version](https://img.shields.io/badge/Version-1.0.0-d96326?style=for-the-badge&labelColor=0d1117)
 
-![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local-d96326?style=for-the-badge&logo=shield&logoColor=white&labelColor=0d1117)
+![Privacy](https://img.shields.io/badge/Privacy-Local%20storage-d96326?style=for-the-badge&logo=shield&logoColor=white&labelColor=0d1117)
 ![AI](https://img.shields.io/badge/AI-OpenAI--compatible%20%C2%B7%20llama.cpp-d96326?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117)
 ![Runs on](https://img.shields.io/badge/Runs%20on-CPU%20only-d96326?style=for-the-badge&logo=intel&logoColor=white&labelColor=0d1117)
-![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2038%20of%2043-d96326?style=for-the-badge&labelColor=0d1117)
-![Status](https://img.shields.io/badge/Status-Active%20development-d96326?style=for-the-badge&labelColor=0d1117)
+![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2043%20released-d96326?style=for-the-badge&labelColor=0d1117)
+![Status](https://img.shields.io/badge/Status-1.0.0%20released-d96326?style=for-the-badge&labelColor=0d1117)
 
 </div>
+
+**BEYOND 1.0.0 is available:** [Release notes and downloads](https://github.com/jeremystevens/beyond/releases/tag/v1.0.0).
+Download [BEYOND-1.0.0-source.zip](https://github.com/jeremystevens/beyond/releases/download/v1.0.0/BEYOND-1.0.0-source.zip),
+extract it, and run **Setup.cmd**. Python libraries, engines and your chosen models download separately during setup.
 
 Install this assistant from this GitHub repository. The PyPI package named beyond is unrelated.
 
@@ -50,7 +54,7 @@ own machine.
 
 | | ☁️ Cloud AI assistants | 🖥️ A bare local model | ✦ **BEYOND** |
 |---|---|---|---|
-| **Where your data goes** | Their servers | Stays on your PC | **Stays on your PC** |
+| **Where your data goes** | Their servers | Stays on your PC | **Stored locally; online tools and configured external AI receive requests** |
 | **Remembers you across chats** | Yes, on their servers | No | **Yes: facts, preferences, old conversations** |
 | **Learns how you like answers** | Opaque | No | **Yes: 👍 👎 ratings and house rules** |
 | **Current info (weather, news, web)** | Yes | No | **Yes, and it tells you when it looked** |
@@ -236,9 +240,9 @@ flowchart LR
 <a id="quick-start"></a>
 ## `▸ QUICK START`
 
-### Automatic text-only setup (Phase 39C)
+### Automatic text-only setup
 
-Download/extract BEYOND, then double-click **Setup.cmd**. Close an already-running BEYOND before continuing.
+Download the [1.0.0 source ZIP](https://github.com/jeremystevens/beyond/releases/download/v1.0.0/BEYOND-1.0.0-source.zip), extract it fully, then double-click **Setup.cmd**. Close an already-running BEYOND before continuing.
 Setup finds Python 3.14 or offers a verified per-user installation, prepares its isolated environment, installs
 the text-only libraries, checks the app starts, and downloads a pinned CPU build of llama.cpp.
 
@@ -266,7 +270,7 @@ Separate-PC installation with existing Python passed. Automatic installation whe
 For interrupted downloads, library failures, or an existing environment that needs attention, see the
 [setup recovery guide](planning/setup-recovery.md). You can cancel and rerun either installer.
 
-### Your first start (Phase 40)
+### Your first start
 
 On a fresh installation, BEYOND opens a **Welcome guide** before chat. It shows installed and available RAM,
 keeps the model and connection chosen in Setup, and offers **Keep current**, **Lighter**, or **Balanced**
@@ -278,9 +282,9 @@ continue without claiming the test passed. Reopen the guide from Settings whenev
 
 Existing configured installations continue opening chat normally. Welcome progress is local in data/welcome.json;
 it does not change chats, memories, network access or optional-feature choices. CPU remains the supported mode;
-graphics-card testing and clean-machine acceptance are deferred.
+graphics-card testing is unavailable. Installation with existing Python passed on a separate PC; the no-Python bootstrap remains untested.
 
-### Add Features (Phase 39D preview)
+### Add optional features
 
 After the main setup, close BEYOND and double-click **Add-Features.cmd**. Select individual features:
 
@@ -1215,11 +1219,12 @@ blocking Python: allow it on private networks when asked.
 <a id="roadmap"></a>
 ## `▸ ROADMAP`
 
-BEYOND is being built in **43 small phases**, each one tested before the next. The full plan lives in
+**BEYOND 1.0.0 is released**, completing the delivery work through **Phase 43**. Phase 37 remains deferred,
+and the Phase 42 validation exceptions are listed below. The full history and evidence live in
 [`planning/phases.md`](planning/phases.md).
 
 <details open>
-<summary><b>Implemented: Phases 1–38</b> (37 deferred for later)</summary>
+<summary><b>Delivered through Phase 43 · BEYOND 1.0.0</b> (Phase 37 deferred; validation exceptions below)</summary>
 
 <br>
 
@@ -1239,20 +1244,30 @@ BEYOND is being built in **43 small phases**, each one tested before the next. T
 | ✅ 33 · Built-in engine | 34 · Models page (tested; mobile navigation revised) | 34a · Persona selector (optional; off by default) |
 | 34b · Search history | ✅ 34c · Natural lookup follow-ups | 34d · Optimized and custom chat prompts (ready to try) |
 | ✅ 35 · Model downloads | ✅ 36 · Status and health | 37 · Other AI servers (deferred) |
-| ✅ 38 · Sign-in and administrator access |  |  |
+| ✅ 38 · Sign-in and administrator access | ✅ 39 · Automatic setup and optional features | ✅ 40 · First-run welcome guide |
+| ✅ 41 · User guide and license notices | ◐ 42 · Separate-PC testing (exceptions below) | ✅ 43 · BEYOND 1.0.0 release |
 
 </details>
 
-### Coming next
+### Setup and release milestones
 
-```
-◇  Phase 37 — Other AI servers         first-class support for more AI servers
-◇  Phase 39 — Setup script             one command to install everything
-◇  Phase 40 — First-run setup          a guided welcome inside the app
-◇  Phase 41 — Guide and licenses       a full user guide and every licence in one place
-◇  Phase 42 — Test on a clean PC       a fresh-machine install, start to finish
-◇  Phase 43 — First release            BEYOND 1.0
-```
+| Phase | Delivered |
+|---|---|
+| **39 · Setup** | Python 3.14 detection/bootstrap, isolated text-only setup, pinned CPU engine/model downloads, hardware and memory checks, retries, settings protection, and the separate Add Features installer. |
+| **40 · Welcome** | Reuse Setup choices, select a CPU preset, test a short AI reply, and open chat; reopen the guide from Settings. |
+| **41 · Guide and licenses** | [User guide](docs/USER_GUIDE.md), [third-party notices](THIRD_PARTY_NOTICES.md), collected license texts, package-name check and project acknowledgment. |
+| **42 · Testing** | Separate-PC setup with existing Python 3.14.5, chat, saved conversations, installer rerun, shortcut/port-conflict recovery, Whisper tiny, Kokoro, OCR, vision and image generation confirmed by user testing. |
+| **43 · Release** | [1.0.0 published](https://github.com/jeremystevens/beyond/releases/tag/v1.0.0), with a source ZIP, SHA-256 checksums and artifact metadata. The full Windows/Python 3.14 CI suite passed at the tagged release commit. |
+
+### Deferred features and remaining validation
+
+- **Phase 37:** dedicated integrations for additional AI servers remain deferred. The existing OpenAI-compatible connection option is available.
+- **No-Python bootstrap:** automatic Python download/installation has not been tested end to end. If it fails, manually install official Python 3.14 (64-bit), then rerun Setup.cmd. Setup.cmd uses the same bootstrap; it is not a separate workaround.
+- **Piper:** passed earlier isolated integration tests; installation/playback on the separate test PC is not confirmed.
+- **Disk usage:** final installed size was not measured. Model and optional-feature choices affect required space.
+- **GPU acceleration:** the installers use CPU mode; graphics-card testing is not available.
+
+See [Phase 42 results](planning/phase42-clean-install.md) and [release provenance](planning/phase43-release.md) for the tested paths, limitations and artifact checks.
 
 ---
 
