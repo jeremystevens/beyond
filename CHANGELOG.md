@@ -5,6 +5,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- **Phase 42 startup conflict:** desktop/tray launches now show a visible Windows error dialog when the
+  web port is occupied; console launches retain the printed explanation. The tray's server starts only
+  after the icon is ready, so an immediate startup failure can remove it reliably. Port guidance now points
+  to the saved web_port setting and current Settings page instead of the obsolete Phase 4/config.py advice.
+
 ### Added
 - **Phase 41 guide and notices:** new-user installation/use/recovery guide, third-party notice index,
   91-package version-matched inventory with 118 shipped notice texts, upstream license/model-card snapshots

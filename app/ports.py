@@ -3,6 +3,8 @@ import socket
 
 import psutil
 
+from app import settings
+
 
 def users_of(port):
     """Programs listening on `port`, as [(pid, name, command line)]. Empty if none (or if Windows won't say)."""
@@ -52,5 +54,7 @@ def problem(host, port):
                 f'or close the other BEYOND window first.')
     who = ', '.join(f'{name} (process {pid})' for pid, name, _ in users) or 'another program'
     return (f"BEYOND can't start: port {port} is already in use by {who}.\n"
-            f'Close that program, or give BEYOND a different port (WEB_PORT in app/config.py for now; '
-            f'a settings page arrives in Phase 4).')
+            'Close that program only if you recognize it and it is safe to stop, then try again.\n'
+            f'Or, while BEYOND is closed, set "web_port" to a free port in {settings.FILE}. '
+            'Keep any other saved settings intact. Once BEYOND opens, future port changes are in '
+            'Settings > Address and network.')

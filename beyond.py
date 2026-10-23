@@ -9,8 +9,8 @@ the browser is closed, so reminders still go off. When the port or the network s
 page, BEYOND restarts itself here with the new settings.
 """
 import asyncio
+import ctypes
 import sys
-import threading
 import webbrowser
 
 from app import config
@@ -30,6 +30,16 @@ from app.server import app   # noqa: E402
 state = {'quitting': False}
 
 
+def report_startup_problem(message):
+    """Console users keep the printed explanation; shortcut users also get a visible dialog."""
+    print(message, flush=True)
+    if sys.platform == 'win32' and '--console' not in sys.argv:
+        try:
+            ctypes.windll.user32.MessageBoxW(None, message, 'BEYOND could not start', 0x10 | 0x10000)
+        except (OSError, AttributeError):
+            print('The error dialog could not be shown. See data/beyond.log for startup details.', flush=True)
+
+
 def serve():
     """Run the web server; returns an exit code. Restarts itself when the port or network setting changes."""
     previous = None   # where BEYOND was running before a restart, to fall back to if the new port is taken
@@ -42,7 +52,7 @@ def serve():
             print(problem + f'\nStaying on port {previous[1]} for now.', flush=True)
             (host, port), values['allow_network'] = previous, previous[0] == config.NETWORK_HOST
         elif problem:
-            print(problem, flush=True)
+            report_startup_problem(problem)
             return 1
         config.DATA_DIR.mkdir(exist_ok=True)
         notify.base_url = f'http://127.0.0.1:{port}'
@@ -127,8 +137,13 @@ def run_with_tray():
         pystray.MenuItem('Pause popups', toggle_pause, checked=lambda _item: notify.paused),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem('Quit BEYOND', quit_beyond)))
-    threading.Thread(target=server_thread, name='beyond-server', daemon=True).start()
-    icon.run()
+    def start_server(tray):
+        # pystray calls setup on its worker only after the native icon is ready.
+        # A startup failure can now stop it reliably, even before a server begins.
+        tray.visible = True
+        server_thread()
+
+    icon.run(setup=start_server)
     return result['code']
 
 

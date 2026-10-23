@@ -110,7 +110,7 @@ For source updates, use `git pull` if you installed with Git, or extract a newer
 | Low available memory | Retry later, choose the smaller chat model during setup, or use the Lighter preset. Essential apps can stay running. |
 | AI still loading | Wait for the status to become ready before testing. Large CPU models can take time. |
 | AI not reachable | Check the selected mode and connection in Settings. Use Status and health for the configured service checks. |
-| Port already in use | Read the conflict message. Do not stop an unrelated app; choose a permitted free port in Settings if BEYOND is already accessible, or resolve the conflict before starting. |
+| Port already in use | The desktop shortcut shows an error dialog; console mode prints the same explanation. Stop the known test listener or another program only when safe. To keep that program running, change BEYOND's saved web_port as described below. |
 | Optional feature failed | Retry or skip it. New feature settings are not activated until its test passes. Installed libraries are not rolled back automatically. |
 | Invalid .venv | Preserve it by renaming it after closing BEYOND, then rerun Setup.cmd. Do not delete chats or models. |
 
@@ -122,3 +122,14 @@ Read-only checks from the project folder:
 ```
 
 See the [setup recovery guide](../planning/setup-recovery.md) for logs and detailed recovery. Logs and settings backups can contain private paths or settings: review and redact them before posting an issue. [GitHub issues](https://github.com/jeremystevens/beyond/issues) are for bug reports; the repository's [security policy](../SECURITY.md) covers security reports.
+
+### Changing a port when BEYOND cannot start
+
+With BEYOND closed, back up data/settings.json, then edit its web_port field to a permitted free port.
+Preserve the other JSON fields and use a number, not quoted text. If the file does not exist, create a JSON
+object containing that field. Do not change app/config.py to override a saved setting.
+If network access is enabled, the next port is also needed for HTTPS. Launch again after saving.
+When BEYOND is accessible, future port changes are available in Settings > Address and network.
+
+For the Phase 42 conflict test, stop the temporary Python HTTP server with Ctrl+C in its own PowerShell
+window, then launch BEYOND again. The application does not close that server or other programs itself.

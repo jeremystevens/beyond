@@ -472,7 +472,12 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - Details: phase41-guide-licenses.md. Final release-artifact/native-library and model-term review remains Phase 43.
 - **Done when:** a new person could install and use BEYOND from the guide alone.
 
-### Phase 42: Test on a clean PC
+### Phase 42: Test on a clean PC (in progress)
+- Separate-PC ZIP installation, existing Python 3.14.5 reuse, text setup, Welcome, normal chat, shortcut restart,
+  conversation persistence and setup rerun passed by Jeremy's report. Console port-conflict detection/recovery
+  passed; its hidden shortcut error and obsolete instructions are fixed in source, pending fresh-PC retest.
+- Details and remaining cases: phase42-clean-install.md. No-Python installation and optional vision/image
+  inference remain unverified; this phase is not complete.
 - Install from scratch on a fresh Windows user account (or another PC) with **no Studio, no bot and no settings
   file**, and fix whatever goes wrong. Also start another program on port 7770 to check BEYOND's conflict message.
 - **Done when:** a clean install works start to finish with no manual fixes, on the default ports, and a port
