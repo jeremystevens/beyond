@@ -472,19 +472,19 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - Details: phase41-guide-licenses.md. Final release-artifact/native-library and model-term review remains Phase 43.
 - **Done when:** a new person could install and use BEYOND from the guide alone.
 
-### Phase 42: Test on a clean PC (in progress)
-- Separate-PC ZIP installation, existing Python 3.14.5 reuse, text setup, Welcome, normal chat, shortcut restart,
-  conversation persistence and setup rerun passed by Jeremy's report. Console port-conflict detection/recovery
-  passed; its hidden shortcut error and obsolete instructions are fixed in source, pending fresh-PC retest.
-- Details and remaining cases: phase42-clean-install.md. No-Python installation and optional vision/image
-  inference remain unverified; this phase is not complete.
-- Install from scratch on a fresh Windows user account (or another PC) with **no Studio, no bot and no settings
-  file**, and fix whatever goes wrong. Also start another program on port 7770 to check BEYOND's conflict message.
-- **Done when:** a clean install works start to finish with no manual fixes, on the default ports, and a port
-  conflict gives a clear message instead of a crash.
+### Phase 42: Test on a clean PC (tested paths accepted; explicit exceptions retained)
+- Separate-PC ZIP setup with existing Python 3.14.5, model download, welcome, normal chat, persistence and
+  rerun passed by Jeremy report. Fixed shortcut port-conflict dialog and recovery were retested successfully.
+- Whisper tiny, Kokoro, OCR, vision and image generation were installed and manually tested successfully
+  by Jeremy. The last three raw logs/revisions were not collected; fresh-PC Piper is unconfirmed.
+- No-Python bootstrap is untested and deferred by owner decision; no clean environment is available.
+  Manual official Python 3.14 x64 installation followed by Setup.cmd is the documented fallback.
+- Details: phase42-clean-install.md. No claim that every acceptance case passed; measured disk use remains pending.
 
-### Phase 43: First release
-- Version 1.0 on GitHub: release notes and a downloadable zip.
+### Phase 43: First release (preparation in progress)
+- Draft notes: ../docs/RELEASE_NOTES_DRAFT.md. Packaging/checklist: phase43-release.md.
+- Prepare source ZIP, consistent version/tag, checksums and exact-artifact notice review; disclose Phase 42 exceptions.
+- No release or version tag has been published by this preparation step.
 - **Done when:** the release page is up and the download installs correctly.
 
 ---

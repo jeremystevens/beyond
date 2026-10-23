@@ -28,13 +28,13 @@ Only the existing MSI development PC was connected when this checklist was prepa
 
 Keep local logs private. Report redacted error text and the failed step for fixes. Record exact source revision for each retry. Preserve the failed environment for diagnosis before replacing anything.
 
-Overall result: in progress; startup shortcut error regression fixed in source; fresh-PC shortcut retest pending.
+Overall result: tested paths accepted by Jeremy; proceed with release preparation with the explicit exceptions below.
 No-Python bootstrap: pending; test PC already had Python 3.14.5 x64.
 Text install / welcome / normal chat: passed by Jeremy's report.
-Port conflict: console detection and recovery passed; shortcut error visibility failed on the original ZIP and needs retest after this fix.
-Optional voice/OCR on fresh machine: pending.
-Pinned vision inference: pending.
-Pinned image inference: pending.
+Port conflict: passed after the two-file fix; native dialog screenshot supplied, followed by successful normal startup and chat.
+Optional voice/OCR on separate test PC: Whisper tiny, Kokoro and OCR passed by Jeremy report.
+Vision installation and photo test: passed by Jeremy report on the separate PC; exact log/source revision not independently collected.
+Image installation and generation: passed by Jeremy report on the separate PC; exact log/source revision not independently collected.
 Measured disk use: pending.
 
 Do not mark Phase 42 complete or prepare a final release until actual acceptance outcomes are recorded and required failures are resolved.
@@ -74,3 +74,26 @@ program naming, duplicate-instance guidance, a free port, and tray readiness bef
 fixture encountered Windows SQLite cleanup locks; launcher tests were isolated from database initialization.
 No live app was restarted, no other app was stopped, and no model was loaded for these regression tests.
 Actual native dialog visibility on Jeremy's fresh test PC still requires the updated-shortcut test.
+
+## Acceptance update and release-preparation decision
+
+Jeremy replaced beyond.py and app/ports.py in the test ZIP, repeated the occupied-port shortcut launch,
+and supplied a screenshot of the native error dialog with corrected instructions. After stopping the test
+listener, normal launch and a chat reply passed again.
+
+Whisper tiny: installer reported Ready, with checksums and offline CPU test completed. Microphone transcription
+of the France question and the subsequent chat reply passed; Jeremy reported quick response.
+Kokoro: installer reported Ready and Jeremy confirmed actual spoken-reply playback.
+OCR: Jeremy confirmed installation and reading-text testing worked.
+Vision: Jeremy confirmed downloading, installation and manual photo testing worked.
+Image generation: Jeremy confirmed downloading, installation and actual image generation worked.
+These last three results are user reports; no raw worker logs or exact model/source revision were collected
+through this chat. Optional rerun skipping was verified earlier in a disposable development integration,
+not yet demonstrated by a fresh-PC transcript. Piper on the separate PC is not confirmed.
+
+The PC already had Python 3.14.5. No machine without Python is available, and Jeremy chose to defer that
+case rather than uninstall Python or build a VM. Proceed with Phase 43 preparation with that limitation
+explicitly disclosed; it is not a successful no-Python test. Setup.cmd uses the same bootstrap and is not
+an independent workaround. Fallback: manually install official Python 3.14 x64, then rerun Setup.cmd.
+This reuses the existing-compatible-Python path demonstrated on the test PC; the manual installation step
+itself was not part of that test. Installed folder size also remains unmeasured.

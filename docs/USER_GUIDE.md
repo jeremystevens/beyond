@@ -2,7 +2,7 @@
 
 BEYOND is a personal AI assistant you run on your Windows PC. Start with text chat, then add voice or photo tools when you want them. Chat storage and built-in AI processing stay on your PC. Web lookups, downloads and any external AI server you choose use the network.
 
-This guide describes the setup and welcome flow on the GitHub main branch. A full fresh-PC test is still planned for Phase 42; vision/image setup remains a preview. GPU acceleration is not enabled.
+This guide describes the setup and welcome flow on the GitHub main branch. A separate-PC installation with existing Python and optional-feature tests passed by user report. Automatic Python installation on a PC without Python remains untested. GPU acceleration is not enabled.
 
 ## 1. What you need
 
@@ -79,8 +79,8 @@ Close BEYOND normally, then double-click **Add-Features.cmd**. Select the indivi
 | Kokoro | Spoken replies. `/speak` or the optional automatic reading setting uses the installed local voice. |
 | Piper | Another local speech engine or a fallback. The selected Ryan voice has its own noncommercial dataset terms; read the notice before installing. |
 | OCR | Read text in photos with local recognition models. |
-| Vision | Describe or ask about photos with `/look`. Setup is a preview pending fresh-machine inference validation. |
-| Image generation | Generate pictures with `/imagine`. CPU generation can take several minutes; setup is a preview pending fresh-machine inference validation. |
+| Vision | Describe or ask about photos with `/look`. Installation and a photo test passed on the separate test PC. |
+| Image generation | Generate pictures with `/imagine`. CPU generation can take several minutes; installation and generation passed on the separate test PC. |
 
 Compatibility tests run on the CPU before activating newly selected settings. Already verified unchanged selections are skipped on rerun. Use `Add-Features.cmd --retest` to retest selected features. Adding Piper does not replace an already enabled Kokoro primary voice.
 
@@ -133,3 +133,7 @@ When BEYOND is accessible, future port changes are available in Settings > Addre
 
 For the Phase 42 conflict test, stop the temporary Python HTTP server with Ctrl+C in its own PowerShell
 window, then launch BEYOND again. The application does not close that server or other programs itself.
+
+### If automatic Python installation fails
+
+Manually install official Python 3.14 (64-bit) from https://www.python.org/downloads/windows/, then rerun Setup.cmd. The launcher uses the same automatic bootstrap; it is not a separate workaround. Existing-compatible-Python setup passed on the test PC; the no-Python installation path remains untested.

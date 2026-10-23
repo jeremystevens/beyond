@@ -261,7 +261,7 @@ Advanced users can run `.venv\Scripts\python.exe installer\text_setup.py --model
 `--model-path "C:\Models\your-model.gguf"` after preparing the environment.
 
 This installs **text chat only**. Add optional features separately below.
-Fresh-PC validation is still tracked in Phase 42. Manual full-feature installation remains available.
+Separate-PC installation with existing Python passed. Automatic installation when Python is absent is untested; manually install Python 3.14 x64, then rerun Setup.cmd if that step fails. Manual full-feature installation remains available.
 
 For interrupted downloads, library failures, or an existing environment that needs attention, see the
 [setup recovery guide](planning/setup-recovery.md). You can cancel and rerun either installer.
@@ -306,8 +306,7 @@ Use `--retest` to repair/retest a selection. Existing configurations stay in eff
 Examples: `Add-Features.cmd --check` for read-only status, or
 `Add-Features.cmd --features whisper kokoro --whisper-model tiny` for selected voice features.
 Logs and test outputs stay in `data/setup/optional/`; installation step logs also use `data/setup/install.log`.
-The preview has passed real Whisper, Kokoro, Piper and OCR tests; full inference validation of its pinned
-vision/image combinations is still pending. GPU acceleration is not enabled.
+Whisper tiny, Kokoro, OCR, vision and image generation were installed and manually tested on a separate PC by Jeremy. Piper passed earlier isolated integration tests; its separate-PC check is unconfirmed. GPU acceleration is not enabled.
 
 ### Manual installation
 

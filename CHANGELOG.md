@@ -3,7 +3,13 @@
 All notable changes to BEYOND are recorded here, newest first.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [1.0.0] - Unreleased candidate
+
+### Documentation
+- Recorded Phase 42 separate-PC results, including the corrected shortcut conflict test and user-confirmed
+  Whisper/Kokoro/OCR/vision/image features. Prepared Phase 43 draft notes and release checklist.
+  No-Python bootstrap remains explicitly untested; manual Python 3.14 x64 installation followed by Setup.cmd
+  is the fallback. Application candidate version is 1.0.0; a GitHub draft does not publish the release.
 
 ### Fixed
 - **Phase 42 startup conflict:** desktop/tray launches now show a visible Windows error dialog when the
