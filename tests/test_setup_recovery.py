@@ -94,7 +94,12 @@ class RecoveryTests(unittest.TestCase):
                 with self.assertRaisesRegex(shared.InstallError, "timed out"):
                     shared.run_logged([sys.executable,"-c",code,str(pidfile)],"Fixture",log,timeout=2)
             self.assertTrue(pidfile.exists())
-            self.assertFalse(psutil.pid_exists(int(pidfile.read_text())))
+            # Windows may retain an exited PID while process handles are still open.
+            # Wait for actual process exit instead of requiring immediate PID removal.
+            try:
+                psutil.Process(int(pidfile.read_text())).wait(timeout=5)
+            except psutil.NoSuchProcess:
+                pass
             self.assertIn("started", log.read_text())
 
     @unittest.skipUnless(sys.platform == "win32", "Windows job ownership")
@@ -128,7 +133,10 @@ class RecoveryTests(unittest.TestCase):
                 with self.assertRaises(KeyboardInterrupt):
                     shared.run_logged([sys.executable,"-c","import time; time.sleep(60)"],
                                       "Fixture",root/"cancel.log")
-            self.assertFalse(psutil.pid_exists(jobs[0].pid))
+            try:
+                psutil.Process(jobs[0].pid).wait(timeout=5)
+            except psutil.NoSuchProcess:
+                pass
 
     @unittest.skipUnless(sys.platform == "win32", "Windows job ownership")
     def test_failed_library_command_is_actionable_and_can_be_rerun(self):

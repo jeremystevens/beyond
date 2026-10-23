@@ -482,7 +482,7 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - Details: phase42-clean-install.md. No claim that every acceptance case passed; measured disk use remains pending.
 
 ### Phase 43: First release (preparation in progress)
-- Draft notes: ../docs/RELEASE_NOTES_DRAFT.md. Packaging/checklist: phase43-release.md.
+- Draft notes: ../docs/RELEASE_NOTES.md. Packaging/checklist: phase43-release.md.
 - Prepare source ZIP, consistent version/tag, checksums and exact-artifact notice review; disclose Phase 42 exceptions.
 - No release or version tag has been published by this preparation step.
 - **Done when:** the release page is up and the download installs correctly.

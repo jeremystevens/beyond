@@ -12,7 +12,7 @@ Status: draft materials prepared; release not published.
 ## Release checklist
 
 - [x] Record Phase 42 reports and disclose outstanding cases.
-- [x] Prepare docs/RELEASE_NOTES_DRAFT.md and manual-Python fallback.
+- [x] Prepare docs/RELEASE_NOTES.md and manual-Python fallback.
 - [x] Set release candidate version 1.0.0 / phase 43; draft tag v1.0.0. Publication remains pending.
 - [ ] Run final regression checks at the exact release commit.
 - [ ] Build a source ZIP from that commit's tracked files, excluding local/runtime material.

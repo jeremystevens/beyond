@@ -3,7 +3,7 @@
 All notable changes to BEYOND are recorded here, newest first.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [1.0.0] - Unreleased candidate
+## [1.0.0] - 2026-10-22
 
 ### Documentation
 - Recorded Phase 42 separate-PC results, including the corrected shortcut conflict test and user-confirmed
@@ -12,6 +12,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   is the fallback. Application candidate version is 1.0.0; a GitHub draft does not publish the release.
 
 ### Fixed
+- Windows recovery tests now confirm worker exit directly rather than relying on immediate disappearance of an exited process ID.
 - **Phase 42 startup conflict:** desktop/tray launches now show a visible Windows error dialog when the
   web port is occupied; console launches retain the printed explanation. The tray's server starts only
   after the icon is ready, so an immediate startup failure can remove it reliably. Port guidance now points

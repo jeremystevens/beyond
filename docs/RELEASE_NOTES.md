@@ -1,6 +1,5 @@
-# BEYOND 1.0 ? draft release notes
+# BEYOND 1.0.0
 
-Status: draft release candidate for v1.0.0. Not published. The candidate source contains version 1.0.0; publication date remains unset.
 
 BEYOND is a Windows personal AI assistant with a browser interface and tray icon. It supports local text chat,
 saved conversations, memories, everyday tools, games and optional voice, photo and image features.
@@ -41,8 +40,3 @@ dataset terms, while Gemma and DreamShaper have separate model-specific conditio
 Intended artifact: source code, setup scripts, requirements, documentation and collected notices.
 No private data, settings, conversations, .venv, model weights or native engine executables are bundled.
 Required runtime components download during setup. Preserve data/files/models when updating an existing copy.
-
-## Before publication
-
-Version/tag candidate: v1.0.0. Run final checks at the release commit, inspect the actual ZIP,
-verify its checksum and notice coverage, and replace this draft status with the actual artifact/version details.
