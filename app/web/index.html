@@ -97,6 +97,8 @@
             margin-top: 8px; white-space: normal; }
     .foot .acts { display: flex; align-items: center; gap: 2px; margin-left: -6px; }
     .foot .stats { margin-top: 0; margin-left: auto; }
+    .adjust-menu { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .chip.icon[aria-expanded="true"] { background: var(--bg); color: var(--accent); }
     .chip.icon { width: 30px; height: 30px; padding: 0; border: none; border-radius: 8px; background: none;
                  color: var(--muted); display: inline-flex; align-items: center; justify-content: center; min-height: 0; }
     .chip.icon:hover:not(:disabled) { background: var(--bg); color: var(--text); }
@@ -350,7 +352,8 @@
     // ---------- buttons under a message ----------
     function showButtons(el, messageId, buttons) {
       el.querySelector('.buttons')?.remove();
-      el.querySelectorAll('.foot .acts [data-kind="up"], .foot .acts [data-kind="down"], .foot .acts [data-kind="retry"]')
+      el.querySelector(':scope > .adjust-menu')?.remove();
+      el.querySelectorAll('.foot .acts [data-kind="up"], .foot .acts [data-kind="down"], .foot .acts [data-kind="retry"], .foot .acts [data-kind="adjust"]')
         .forEach(old => old.remove());
       if (!buttons || !buttons.length) { arrangeFooter(el); return; }
       const box = document.createElement('div');
@@ -400,8 +403,9 @@
       down: '<path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/>',
       speak: '<path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.4 18.4a9 9 0 0 0 0-12.8"/>',
       retry: '<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>',
+      adjust: '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
     };
-    const FOOT_ORDER = ['copy', 'up', 'down', 'speak', 'retry'];
+    const FOOT_ORDER = ['copy', 'up', 'down', 'speak', 'retry', 'adjust'];
     function asIcon(button, kind, label) {
       button.className = 'chip icon';
       button.dataset.kind = kind;
@@ -413,7 +417,7 @@
       const source = BeyondCode.source(el);
       if (source !== undefined) return source.trim();
       const copy = el.cloneNode(true);
-      copy.querySelectorAll('.foot, .buttons, .stats, .lookup, .speech-box, .note, .toast').forEach(x => x.remove());
+      copy.querySelectorAll('.foot, .buttons, .stats, .lookup, .speech-box, .note, .toast, .adjust-menu').forEach(x => x.remove());
       return copy.innerText.trim();
     }
     async function copyAnswer(el, button) {
@@ -458,6 +462,14 @@
         acts.append(asIcon(chip, kind, { up: 'Good answer', down: 'Bad answer', retry: 'Try again' }[kind]));
       }
       if (speak) acts.append(asIcon(speak, 'speak', speak.textContent || 'Read aloud'));
+      if (acts.querySelector('[data-kind="retry"]') && !acts.querySelector('[data-kind="adjust"]')) {
+        const adjust = document.createElement('button');
+        adjust.type = 'button';
+        asIcon(adjust, 'adjust', 'Adjust this answer');
+        adjust.setAttribute('aria-expanded', 'false');
+        adjust.onclick = () => toggleAdjust(el, adjust);
+        acts.append(adjust);
+      }
       [...acts.children].sort((a, b) => FOOT_ORDER.indexOf(a.dataset.kind) - FOOT_ORDER.indexOf(b.dataset.kind))
         .forEach(child => acts.append(child));
       if (stats && stats.parentElement !== foot) foot.append(stats);
@@ -866,6 +878,38 @@
       });
     });
 
+    // ✨ Adjust this answer (Phase 46): Simpler, More detail, Show an example or Walk me through it. The choice is
+    // saved as your message and answered below like any reply; the answer itself stays as it was.
+    const ADJUST = [['simpler', 'Simpler'], ['detail', 'More detail'], ['example', 'Show an example'],
+                    ['steps', 'Walk me through it']];
+    const ADJUST_SAID = { simpler: 'Simpler, please', detail: 'More detail, please', example: 'Show me an example',
+                          steps: 'Walk me through it' };
+    function toggleAdjust(el, button) {
+      const open = el.querySelector(':scope > .adjust-menu');
+      button.setAttribute('aria-expanded', open ? 'false' : 'true');
+      if (open) { open.remove(); return; }
+      const menu = document.createElement('div');
+      menu.className = 'adjust-menu';
+      menu.setAttribute('role', 'group'); menu.setAttribute('aria-label', 'Adjust this answer');
+      for (const [kind, label] of ADJUST) {
+        const chip = document.createElement('button');
+        chip.type = 'button'; chip.className = 'chip'; chip.textContent = label;
+        chip.onclick = () => adjustAnswer(el, kind);
+        menu.append(chip);
+      }
+      el.append(menu);
+      if (nearBottom()) scrollDown(true);
+    }
+    function adjustAnswer(el, kind) {
+      if (current || scanning) return;
+      el.querySelector(':scope > .adjust-menu')?.remove();
+      el.querySelector('[data-kind="adjust"]')?.setAttribute('aria-expanded', 'false');
+      const question = bubble('user', ADJUST_SAID[kind]);
+      streamAnswer(`/api/messages/${el.dataset.messageId}/adjust`, { kind }, question, () => {
+        if (question.isConnected) question.remove();   // nothing was answered, so nothing was saved
+      });
+    }
+
     // 🔄 Try again: the old answer stays (marked), and a different one streams in below it.
     function tryAgain(el, messageId, buttons) {
       if (current || scanning) return;
@@ -1007,7 +1051,7 @@
               showImage(reply, event.image);
               // 🔄 is only offered on the newest answer
               if (event.buttons.some(row => row.some(b => (b.action || '').startsWith('rate:retry:'))))
-                list.querySelectorAll('.chip[data-retry]').forEach(c => c.remove());
+                list.querySelectorAll('.chip[data-retry], .chip[data-kind="adjust"], .adjust-menu').forEach(c => c.remove());
               showButtons(reply, event.id, event.buttons);
               if (follow) {
                 if (event.game?.type === 'menu') reply.scrollIntoView({ block: 'start' });

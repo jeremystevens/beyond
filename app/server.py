@@ -1045,6 +1045,50 @@ async def try_again(message_id: int):
                    temperature=min(1.1, config.TEMPERATURE + 0.3),
                    prior_context=context if grounded else None, suppress_auto=bool(grounded))
 
+# Adjust this answer (Phase 46): what the user's message says, and what the AI is asked to do with its last answer.
+ADJUSTMENTS = {
+    'simpler': ('Simpler, please', 'Explain your previous answer again more simply: shorter sentences and everyday '
+                                   'words, no jargon. Keep everything in it that was correct.'),
+    'detail': ('More detail, please', 'Expand your previous answer with more useful detail and explanation. Keep it '
+                                      'accurate, and add substance rather than padding.'),
+    'example': ('Show me an example', 'Give one concrete, practical example that illustrates your previous answer. '
+                                      'If it is about code, show a short working example in a fenced code block.'),
+    'steps': ('Walk me through it', 'Walk through your previous answer step by step, as a numbered list with one '
+                                    'clear action or idea per step.'),
+}
+
+
+class Adjustment(BaseModel):
+    model_config = {'extra': 'forbid'}
+    kind: Literal['simpler', 'detail', 'example', 'steps']
+
+
+@app.post('/api/messages/{message_id}/adjust')
+async def adjust_answer(message_id: int, body: Adjustment):
+    """✨ Adjust: Simpler, More detail, Show an example or Walk me through it, for the newest AI answer. The choice is
+    saved as the user's message and answered below like any reply; the original answer stays as it was."""
+    old = chats.get_message(message_id)
+    if old is None:
+        return JSONResponse({'error': 'That answer no longer exists.'}, status_code=404)
+    chat_id = old['chat_id']
+    latest = chats.latest_answer(chat_id)
+    if old['kind'] != 'chat' or old['role'] != 'assistant' or latest is None or latest['id'] != message_id:
+        return JSONResponse({'error': 'Only the newest answer can be adjusted. Ask below instead.'}, status_code=409)
+    label, instruction = ADJUSTMENTS[body.kind]
+    question_id = chats.add_message(chat_id, 'user', label)
+    history, sent_ids = chats.recent_messages(chat_id, engine.history_window(chats.message_count(chat_id)),
+                                              with_ids=True)
+
+    def undo():   # nothing was answered: take the request back out, as if it was never sent
+        chats.remove_message(question_id)
+
+    note = (f'[The user pressed "{label}" under your last answer. {instruction} Answer directly; don\'t apologise '
+            'or mention a button.]')
+    opening = {'type': 'chat', 'id': chat_id, 'new': False, 'title': '', 'question_id': question_id}
+    return _answer(chat_id, history, _background(label, sent_ids, settings.load(), note), opening, undo,
+                   question=label, suppress_auto=True, retain_on_error=True)
+
+
 ACTIVE_CHAT_ANSWERS = {}  # chat_id -> live streams; recovery waits for their cancellation/save
 
 

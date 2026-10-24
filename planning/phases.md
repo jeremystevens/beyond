@@ -495,7 +495,7 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - Default and custom chat prompts receive code-fence guidance; no extra model call or Python runtime dependency.
 - Parser, filename, browser, safety, streaming/reopen and prompt checks are covered. See phase44-code-blocks.md for current validation and release status.
 
-### Phase 45: Easy updates (planned)
+### Phase 45: Easy updates
 
 - Item 13 of post-v1-feature-brainstorm.md. BEYOND checks the `VERSION` file on GitHub against the running version
   and, when a newer release is out, offers **Update now** in Settings → Updates (this PC or an administrator only).
@@ -504,6 +504,13 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
   failure. 1.0.0 users run `Update-Beyond.cmd` once by hand.
 - **Done when:** a real 1.0.0 installation updates in one go with everything kept, and a failed update leaves a
   working BEYOND. See phase45-updates.md for the full plan and the open decisions.
+
+### Phase 46: Adjust this answer
+
+- Item 5 of post-v1-feature-brainstorm.md. A ✨ button on the newest AI answer offers Simpler, More detail, Show an
+  example and Walk me through it. The choice is saved as the user's message and answered below like any reply.
+- **Done when:** each choice gives a sensible reply with a small CPU model, and only the newest answer can be
+  adjusted. See phase46-adjust-answer.md.
 
 ## Later, optional
 
