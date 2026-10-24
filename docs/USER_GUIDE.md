@@ -59,6 +59,10 @@ Code in fenced blocks is displayed with preserved indentation and syntax highlig
 
 Controls become available when the reply finishes or is stopped. Reopened chats use the same formatting. If a model replies with unfenced code, ask it to put the example in a language-labeled code block. Unknown languages remain readable plain code. Downloading an example does not execute it; review generated code before running it.
 
+### Recovering an interrupted reply (v1.0.1)
+
+If an AI reply fails or its connection ends unexpectedly, a small monochrome retry icon appears with the tooltip **Retry last prompt**. It starts a fresh answer to the same question, rather than continuing at the last generated character. Partial text remains visible. Reopening the chat also offers recovery for its latest incomplete turn. If BEYOND itself is stopped, restart it before retrying. Recovery does not repeat slash commands that could change files or other state.
+
 ## 5. Everyday tools and preferences
 
 | Where to go | What it does |

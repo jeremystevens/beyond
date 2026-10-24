@@ -20,7 +20,10 @@ Requested as an early high-priority improvement on 2026-10-23. Scoped separately
 - Actual chat-page browser regression passed using isolated mocked API replies in installed Chrome on Windows: code-only copy, separate block download contents and extension, unchanged whole-reply copy, reopening via openChat, stream completion, stopped/partial blocks, HTML injection safety, clipboard fallback, and horizontal overflow on a phone-width viewport.
 - Windows clipboard APIs normalize LF to CRLF; clipboard assertions allow that platform behavior while file-download assertions compare exact bytes.
 - No live model request was made and no running bot was stopped. Live model formatting remains a manual smoke test.
-- GitHub CI includes the parser and isolated Chromium browser checks alongside the existing Python suite; remote CI status will be recorded after pushing.
+- Initial code-block commit 18c12fc passed full Windows Python CI and Chromium CI (run 40052696772).
+- Jeremy confirmed the code-block UI worked, then found failed generation lacked recovery. Added a quiet monochrome retry icon, a saved-question recovery route, retained partial answers without negative ratings or duplicate prompts, idle/EOF detection, and recovery on reopening incomplete chats.
+- Five new backend recovery/engine EOF tests and extended browser tests for errors before/after tokens, abrupt EOF, inactivity timeout, quiet icon styling, and reopened incomplete turns passed on Windows. Existing built-in-engine, file-reading, and follow-up suites also passed.
+- Recovery follow-up CI and live endpoint verification are tracked separately from the already-passed initial code-block run.
 
 ## Release scope
 

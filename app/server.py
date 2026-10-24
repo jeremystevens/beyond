@@ -794,7 +794,8 @@ def _ai_answer(body, content, request, followup=None, read=''):
         if new_chat and chats.message_count(chat_id, kind=None) == 0:
             chats.delete(chat_id)
 
-    opening = {'type': 'chat', 'id': chat_id, 'new': new_chat, 'title': chats.title_from(content)}
+    opening = {'type': 'chat', 'id': chat_id, 'new': new_chat, 'title': chats.title_from(content),
+               'question_id': question_id}
     extra = followup.get('notes','') if followup else ''
     reading, file_notes, follow_up = file_reading.for_message(None if new_chat else chat_id, content,
                                                               can_manage(request), named=read)
@@ -806,7 +807,7 @@ def _ai_answer(body, content, request, followup=None, read=''):
                    pickup=content if values['auto_facts'] else None,
                    prior_context=followup['state'] if followup else None,
                    suppress_auto=bool(followup) or bool(reading),
-                   status=f'📖 Reading {reading}…' if reading and not follow_up else '')
+                   status=f'📖 Reading {reading}…' if reading and not follow_up else '', retain_on_error=True)
 
 
 def _background(question, sent_ids, values, extra=''):
@@ -818,7 +819,7 @@ def _background(question, sent_ids, values, extra=''):
 
 
 def _answer(chat_id, history, background, opening, undo, question=None, pickup=None, retry_of=None,
-            temperature=None, prior_context=None, suppress_auto=False, status=''):
+            temperature=None, prior_context=None, suppress_auto=False, status='', retain_on_error=False):
     """Stream an AI answer to the end of `history` and save it with 👍 👎 🔄 under it. If the page disconnects
     (Stop), what was written so far is saved, marked as stopped; if nothing was written at all, undo() runs.
     `question`: checked for an automatic lookup (weather, news, web) first, whose results go in the notes."""
@@ -831,8 +832,10 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
     async def events():
         global ANSWERS_IN_PROGRESS
         answer, finished, saved, lookup = [], False, False, None
+        failed = False
         active_context = prior_context
         ANSWERS_IN_PROGRESS += 1
+        ACTIVE_CHAT_ANSWERS[chat_id] = ACTIVE_CHAT_ANSWERS.get(chat_id, 0) + 1
         writing = True
         try:
             yield json.dumps(opening) + '\n'
@@ -868,6 +871,7 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                     yield json.dumps({'type': 'token', 'text': piece}) + '\n'
                 finished = True
             except engine.EngineError as exc:
+                failed = True
                 diagnostics.record_error('chat', 'An AI reply failed. Check AI engine status and connection settings.')
                 yield json.dumps({'type': 'error', 'message': str(exc)}) + '\n'
                 notify.show('error', 'BEYOND: the AI had a problem', str(exc), chat_id)
@@ -898,6 +902,7 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 # (the automatic fact pickup) is extra and arrives a little later on the same connection.
                 yield json.dumps({'type': 'done'}) + '\n'
                 ANSWERS_IN_PROGRESS -= 1
+                _release_chat_answer(chat_id)
                 writing = False
                 notify.show('reply', 'BEYOND replied', text, chat_id)   # only if you're not looking at the page
                 if pickup and memory.wants_pickup(pickup):
@@ -908,17 +913,54 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
         finally:   # also runs when Stop cancels the stream
             if writing:
                 ANSWERS_IN_PROGRESS -= 1
+                _release_chat_answer(chat_id)
             if not saved:
                 text = lookups.without_fake_mark(''.join(answer))
                 if text:
                     partial_id = chats.add_message(chat_id, 'assistant', text, stopped=True, retry_of=retry_of, lookup=lookup)
                     if found or prior_context:
                         followups.save(chat_id,partial_id,active_context)
-                else:
+                elif not failed or not retain_on_error:
                     undo()
 
     return StreamingResponse(events(), media_type='application/x-ndjson',
                              headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
+
+
+@app.post('/api/messages/{question_id}/retry-question')
+async def retry_question(question_id: int, request: Request):
+    """Recover a failed/disconnected AI turn without duplicating its user prompt or rating it badly."""
+    question = chats.get_message(question_id)
+    if question is None:
+        return JSONResponse({'error': 'That prompt is no longer saved.'}, status_code=404)
+    if question['role'] != 'user' or question['kind'] != 'chat':
+        return JSONResponse({'error': 'Only an AI chat prompt can be retried here.'}, status_code=409)
+    chat_id = question['chat_id']
+    if chat_id in ACTIVE_CHAT_ANSWERS:
+        return JSONResponse({'error': 'The previous reply is still finishing. Retry in a moment.'}, status_code=409)
+    messages = chats.get(chat_id)['messages']
+    if any(m['role'] == 'user' and m['id'] > question_id for m in messages):
+        return JSONResponse({'error': 'A newer prompt exists. Only the last prompt can be retried.'}, status_code=409)
+    old = [m for m in messages if m['id'] > question_id and m['role'] == 'assistant' and m['kind'] == 'chat']
+    for m in old:
+        chats.set_buttons(m['id'], [], kind='retried')
+
+    def undo():
+        for m in old:
+            chats.set_buttons(m['id'], m['buttons'], kind=m['kind'])
+
+    history, sent_ids = chats.recent_messages(chat_id, engine.history_window(chats.message_count(chat_id)), with_ids=True)
+    if not history or history[-1]['role'] != 'user':
+        undo()
+        return JSONResponse({'error': 'There is no prompt to answer again.'}, status_code=409)
+    context = followups.for_message(old[-1]['id']) if old else None
+    grounded = followups.context_notes(context, question['content']) if context else ''
+    _, file_notes, _ = file_reading.for_message(chat_id, question['content'], can_manage(request))
+    extra = '\n\n'.join(part for part in (grounded, file_notes) if part)
+    return _answer(chat_id, history, _background(question['content'], sent_ids, settings.load(), extra),
+                   {'type': 'chat', 'id': chat_id, 'new': False, 'question_id': question_id}, undo,
+                   question=question['content'], retry_of=old[-1]['id'] if old else None,
+                   prior_context=context, suppress_auto=bool(grounded or file_notes))
 
 
 @app.post('/api/messages/{message_id}/retry')
@@ -956,6 +998,16 @@ async def try_again(message_id: int):
                    question=history[-1]['content'], retry_of=message_id,
                    temperature=min(1.1, config.TEMPERATURE + 0.3),
                    prior_context=context if grounded else None, suppress_auto=bool(grounded))
+
+ACTIVE_CHAT_ANSWERS = {}  # chat_id -> live streams; recovery waits for their cancellation/save
+
+
+def _release_chat_answer(chat_id):
+    remaining = ACTIVE_CHAT_ANSWERS.get(chat_id, 1) - 1
+    if remaining:
+        ACTIVE_CHAT_ANSWERS[chat_id] = remaining
+    else:
+        ACTIVE_CHAT_ANSWERS.pop(chat_id, None)
 
 ANSWERS_IN_PROGRESS = 0     # chat answers being written right now
 PICKUP_LOCK = asyncio.Lock()

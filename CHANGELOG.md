@@ -6,6 +6,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [1.0.1] - Unreleased
 
 ### Added
+- Quiet monochrome Retry last prompt controls for failed, timed-out, or unexpectedly disconnected AI replies, including failures before the first token. Saved prompts are reused without duplication or negative ratings; incomplete replies remain visible. Reopened chats offer recovery for their newest unfinished turn.
 - Fenced code blocks with offline syntax highlighting, language labels, and independent Copy code and Save code controls. Each control uses only its own block's original code; downloads suggest a language-appropriate extension.
 - Browser regression coverage for exact code downloads, code-only and whole-reply copying, reopened chats, streamed/stopped replies, safe HTML examples, clipboard fallback, and phone-width overflow.
 

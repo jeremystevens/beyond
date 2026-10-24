@@ -668,12 +668,14 @@
       chatId = chat.id;
       list.innerHTML = '';
       if (!chat.messages.length) list.innerHTML = WELCOME;
+      let lastQuestion = null;
       for (const m of chat.messages) {
+        if (m.role === 'user') lastQuestion = m;
         if (m.kind === 'note') { noteBubble(m.content); continue; }
         const el = bubble(m.role + (m.kind === 'command' && m.role === 'assistant' ? ' command' : '') +
                           (['reminder', 'briefing'].includes(m.kind) ? ' reminder' : ''), m.content);
         el.dataset.messageId = String(m.id);
-        if (m.stopped) addNote(el, 'Stopped');
+        if (m.stopped) addNote(el, 'Stopped / incomplete');
         if (m.kind === 'retried') addNote(el, RETRIED);
         showLookup(el, m.lookup);
         showStats(el, m.stats);
@@ -683,7 +685,14 @@
         if (m.kind === 'image') el.querySelector('.picture')?.classList.add('generated-picture');
         showGame(el, m.game);
         showButtons(el, m.id, m.buttons);
+        if (m.stopped && m.role === 'assistant' && m.kind === 'chat' && lastQuestion &&
+            !chat.messages.some(next => next.role === 'user' && next.id > m.id))
+          recoveryButton(el, `/api/messages/${lastQuestion.id}/retry-question`, null, el);
         showSpeech(el, m.id, m.speech, m.role === 'assistant' && m.kind === 'chat');
+      }
+      if (lastQuestion?.kind === 'chat' && !chat.messages.some(m => m.role === 'assistant' && m.kind === 'chat' && m.id > lastQuestion.id)) {
+        const error = bubble('error', 'No reply was completed for the last prompt.');
+        recoveryButton(error, `/api/messages/${lastQuestion.id}/retry-question`, null, error);
       }
       scrollDown(true);
       showChatInAddress();
@@ -868,14 +877,30 @@
       });
     }
 
+    function recoveryButton(box, url, payload, anchor, fallback = null) {
+      const button = document.createElement('button');
+      button.type = 'button'; asIcon(button, 'retry', 'Retry last prompt');
+      button.classList.add('recovery-retry');
+      button.onclick = () => {
+        if (current || scanning || !anchor.isConnected) return;
+        button.disabled = true;
+        streamAnswer(url, payload, anchor, () => {}, fallback).then(recovered => {
+          if (recovered) button.remove();
+          else if (button.isConnected) button.disabled = false;
+        });
+      };
+      const row = document.createElement('div'); row.className = 'buttons'; row.append(button); box.append(row);
+    }
+
     // Send a request that answers with a stream of events, and show the answer as it's written.
     // `anchor`: the message this answer belongs to; `nothing()`: runs if no answer was written at all.
-    async function streamAnswer(url, payload, anchor, nothing) {
+    async function streamAnswer(url, payload, anchor, nothing, recoveryFallback = null) {
       const reply = bubble('assistant thinking', '');
       current = { controller: new AbortController(), stopped: false, chatId };
       const mine = current;
       setBusy(true);
       let answer = '', problem = null, startedNewChat = false, finished = false, lookup = null;
+      let questionId = null, savedMessage = false;
       let thinkingTimer = null, thinkingSince = 0;   // a thinking model's "💭 Thinking… 12s"
       // Called once the answer is complete ("done"), or when the stream ends: lets you type again. A "Noted for
       // next time" note may still arrive afterwards on the same connection.
@@ -887,13 +912,22 @@
         BeyondCode.complete(reply);
         if (answer) {
           if (mine.stopped) addNote(reply, 'Stopped');
+          else if (problem) addNote(reply, 'Incomplete reply');
           showLookup(reply, lookup);
         } else {
           reply.remove();
           if (anchor.isConnected) nothing();
-          if (startedNewChat && chatId === mine.chatId) { chatId = null; showChatInAddress(); }   // BEYOND removed it again
+          if (startedNewChat && !questionId && chatId === mine.chatId) { chatId = null; showChatInAddress(); }   // BEYOND removed it again
         }
-        if (problem && anchor.isConnected) { bubble('error', problem); refreshStatus(); }
+        if (problem && anchor.isConnected) {
+          const error = bubble('error', problem);
+          const fallback = recoveryFallback || (url === '/api/chat/stream' && payload && !payload.content.startsWith('/') ?
+            { chat_id: startedNewChat ? null : mine.chatId, content: payload.content } : null);
+          if (questionId) recoveryButton(error, `/api/messages/${questionId}/retry-question`, null, error, fallback);
+          else if (url.endsWith('/retry-question') || url.endsWith('/retry')) recoveryButton(error, url, payload, error, fallback);
+          else if (fallback) recoveryButton(error, '/api/chat/stream', fallback, error);
+          refreshStatus();
+        }
         if (current === mine) current = null;
         setBusy(false);
         loadList();
@@ -904,13 +938,30 @@
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: payload ? JSON.stringify(payload) : undefined, signal: mine.controller.signal,
         });
-        if (!response.ok) throw new Error((await response.json()).error || 'Something went wrong.');
+        if (!response.ok) {
+          if (response.status === 404 && recoveryFallback && url.endsWith('/retry-question')) {
+            reply.remove(); finished = true;
+            return await streamAnswer('/api/chat/stream', recoveryFallback, anchor, nothing);
+          }
+          throw new Error((await response.json()).error || 'Something went wrong.');
+        }
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
         while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
+          let timer;
+          const { value, done } = await Promise.race([
+            reader.read(),
+            new Promise((_, reject) => { timer = setTimeout(() => {
+              reject(new Error('The reply timed out. Retry the last prompt when the connection is ready.'));
+              mine.controller.abort();
+            }, 330000); })
+          ]).finally(() => clearTimeout(timer));
+          if (done) {
+            if (!finished && !savedMessage && !mine.stopped && !problem)
+              problem = 'The connection ended before the reply finished. You can retry the last prompt.';
+            break;
+          }
           buffer += decoder.decode(value, { stream: true });
           let newline;
           while ((newline = buffer.indexOf('\n')) >= 0) {
@@ -919,6 +970,7 @@
             if (!line) continue;
             const event = JSON.parse(line);
             if (event.type === 'chat') {
+              questionId = event.question_id || questionId;
               if (event.new) { chatId = mine.chatId = event.id; startedNewChat = true; showChatInAddress(); loadList(); }
             } else if (event.type === 'token') {
               const follow = nearBottom();
@@ -944,6 +996,7 @@
             } else if (event.type === 'question') {
               if (anchor.classList.contains('user')) fill(anchor, event.text);   // e.g. the Wi-Fi password hidden
             } else if (event.type === 'message') {
+              savedMessage = true;
               const follow = nearBottom();
               reply.dataset.messageId = String(event.id);
               showGame(reply, event.game);
@@ -977,6 +1030,7 @@
       } finally {
         finish();
       }
+      return savedMessage && !problem && !mine.stopped;
     }
 
 

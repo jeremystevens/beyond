@@ -256,6 +256,7 @@ async def chat_stream(messages, background='', max_tokens=None, temperature=None
         values = settings.load()
         model = builtin_engine.model_name(values) if values['ai_mode'] == 'builtin' else values['ai_model']
         started, first_thinking, first_text, chunks, timings, usage = time.monotonic(), None, None, 0, {}, {}
+        completed = False
         try:
             async with _client() as client:
                 async with client.stream('POST', endpoint, json=payload) as response:
@@ -265,6 +266,7 @@ async def chat_stream(messages, background='', max_tokens=None, temperature=None
                             continue
                         data = line[5:].strip()
                         if data == '[DONE]':
+                            completed = True
                             break
                         try:
                             chunk = json.loads(data)
@@ -273,6 +275,8 @@ async def chat_stream(messages, background='', max_tokens=None, temperature=None
                             usage = chunk.get('usage') or usage
                             if not chunk.get('choices'):
                                 continue
+                            if chunk['choices'][0].get('finish_reason') is not None:
+                                completed = True
                             delta = chunk['choices'][0]['delta']
                             piece = delta.get('content') or ''
                             thinking = bool(delta.get('reasoning_content'))
@@ -286,6 +290,8 @@ async def chat_stream(messages, background='', max_tokens=None, temperature=None
                         elif thinking:
                             first_thinking = first_thinking or time.monotonic()
                             yield THINKING   # the thinking itself is never shown or saved
+            if not completed:
+                raise EngineError('The AI connection ended before the reply finished. Please retry the last prompt.')
             yield _stats(model, started, first_thinking, first_text, chunks, timings, usage)
         except httpx.HTTPError as exc:
             raise _explain(exc, url) from exc

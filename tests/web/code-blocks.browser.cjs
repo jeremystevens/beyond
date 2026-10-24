@@ -12,12 +12,27 @@ const web = path.resolve(__dirname, '../../app/web');
     const context = await browser.newContext({acceptDownloads:true, permissions:['clipboard-read','clipboard-write']});
     const page = await context.newPage();
     const errors = [];
-    let savedReply = '';
+    let savedReply = '', savedStopped = false, savedQuestionOnly = false;
     let streamedReply = '';
+    let streamMode = 'ok', recoveryRequests = 0;
     page.on('pageerror', err => errors.push(err.message));
     await page.route('**/*', async route => {
       const url = new URL(route.request().url());
       if (url.pathname.startsWith('/api/')) {
+        if (url.pathname.endsWith('/retry-question')) {
+          recoveryRequests++;
+          return route.fulfill({contentType:'application/x-ndjson',body:[
+            {type:'chat',id:1,new:false,question_id:99},
+            {type:'token',text:'Recovered reply'},
+            {type:'message',id:100,buttons:[]}, {type:'done'}
+          ].map(x=>JSON.stringify(x)).join('\n')+'\n'});
+        }
+        if (url.pathname === '/api/chat/stream' && streamMode !== 'ok') {
+          const events = [{type:'chat',id:1,new:false,question_id:99}];
+          if (streamMode !== 'empty-error') events.push({type:'token',text:'```python\nclass Partial:'});
+          if (streamMode !== 'eof') events.push({type:'error',message:'The AI timed out.'});
+          return route.fulfill({contentType:'application/x-ndjson',body:events.map(x=>JSON.stringify(x)).join('\n')+'\n'});
+        }
         if (url.pathname === '/api/chat/stream') {
           const events = [
             {type:'token',text:streamedReply},
@@ -29,7 +44,7 @@ const web = path.resolve(__dirname, '../../app/web');
         let body = {};
         if (url.pathname === '/api/chats/1') body = {id:1,messages:[
           {id:1,role:'user',kind:'chat',content:'Show an example'},
-          {id:2,role:'assistant',kind:'chat',content:savedReply,buttons:[],stats:{tokens:20,seconds:1}}
+          ...(!savedQuestionOnly ? [{id:2,role:'assistant',kind:'chat',stopped:savedStopped,content:savedReply,buttons:[],stats:{tokens:20,seconds:1}}] : [])
         ]};
         if (url.pathname === '/api/chats') body = [];
         if (url.pathname === '/api/commands') body = [];
@@ -89,6 +104,45 @@ const web = path.resolve(__dirname, '../../app/web');
     await page.evaluate(() => streamAnswer('/api/chat/stream',{content:'Show code'},bubble('user','Show code'),()=>{}));
     assert.equal(await page.locator('.msg.assistant').last().locator('.code-action:disabled').count(),0);
     assert.ok(await page.locator('.msg.assistant').last().locator('.hljs-built_in').count());
+
+    // Unexpected EOF, explicit timeout, and a failure before the first token all offer quiet recovery.
+    for (const failure of ['eof','error','empty-error']) {
+      streamMode = failure;
+      await page.evaluate(() => streamAnswer('/api/chat/stream',{chat_id:1,content:'Show code'},bubble('user','Show code'),()=>{}));
+      const button = page.locator('.msg.error .recovery-retry').last();
+      assert.equal(await button.getAttribute('title'),'Retry last prompt');
+      assert.ok((await button.getAttribute('class')).includes('icon'));
+      assert.equal(await button.textContent(),'');
+      assert.equal(await button.locator('svg').count(),1);
+      const before = recoveryRequests;
+      await button.click();
+      await page.waitForFunction(() => !current);
+      assert.equal(recoveryRequests,before+1);
+      assert.equal(await page.locator('.msg.assistant').last().textContent(),'Recovered reply');
+    }
+    streamMode = 'ok';
+
+    // Reopened partial turns and saved questions with no answer retain recovery controls.
+    savedStopped = true;
+    await page.evaluate(() => openChat(1));
+    assert.equal(await page.locator('.msg.assistant .recovery-retry').count(),1);
+    savedQuestionOnly = true;
+    await page.evaluate(() => openChat(1));
+    assert.equal(await page.locator('.msg.error .recovery-retry').count(),1);
+    savedStopped = savedQuestionOnly = false;
+
+    // Accelerate only the inactivity watchdog; no real six-minute wait or server interruption.
+    await page.evaluate(async () => {
+      const originalFetch = window.fetch, originalTimeout = window.setTimeout;
+      window.fetch = (url, options) => url === '/api/chat/stream' ? Promise.resolve({
+        ok:true,body:{getReader:()=>({read:()=>new Promise(()=>{})})}
+      }) : originalFetch(url, options);
+      window.setTimeout = (fn, ms, ...args) => originalTimeout(fn, ms === 330000 ? 30 : ms, ...args);
+      try { await streamAnswer('/api/chat/stream',{chat_id:1,content:'Show code'},bubble('user','Show code'),()=>{}); }
+      finally { window.fetch=originalFetch; window.setTimeout=originalTimeout; }
+    });
+    assert.ok((await page.locator('.msg.error').last().textContent()).includes('timed out'));
+    assert.equal(await page.locator('.msg.error').last().locator('.recovery-retry').count(),1);
 
     // Unknown language and missing highlighter retain working controls and literal code.
     await page.evaluate(() => { window.hljs=undefined; const el=bubble('assistant','```unknown\n<safe>\n```'); el.id='fallback-test'; });
