@@ -53,17 +53,17 @@ Try:
 
 Small starter models are useful for testing and basic chat, but can make factual or reasoning mistakes. A larger model may improve answers at the cost of more memory and processing time.
 
-### Code answers (v1.0.1)
+### Code answers (1.1.0)
 
 Code in fenced blocks is displayed with preserved indentation and syntax highlighting for supported languages. Each block has **Copy code** and **Save code** controls in its header. Copy code copies only that block, without the surrounding explanation or Markdown fences. Save code downloads a text file with a suggested extension such as `.py`; your browser's download settings control the save location and whether a Save As dialog appears. The existing Copy button beneath an answer still copies the entire reply.
 
 Controls become available when the reply finishes or is stopped. Reopened chats use the same formatting. If a model replies with unfenced code, ask it to put the example in a language-labeled code block. Unknown languages remain readable plain code. Downloading an example does not execute it; review generated code before running it.
 
-### Adjust this answer (v1.0.1)
+### Adjust this answer (1.1.0)
 
 Under the newest answer, press ✨ (**Adjust this answer**) and choose **Simpler**, **More detail**, **Show an example** or **Walk me through it**. Your choice appears as your message, and BEYOND answers it below. The original answer stays, so you can compare them. It's only offered on the newest answer; for an older one, ask in your own words.
 
-### Attaching documents (v1.0.1)
+### Attaching documents (1.1.0)
 
 Press 📎 **Attach a photo or document** next to the message box, or drop a file on the chat. Photos work as before. A **PDF**, **Word (.docx)** or **text/code** file (up to 20 MB) is attached to the chat, shown as "📎 Attached …" with a ✕, and listed at the top of the chat. With no chat open, a new one starts, named after the file. Every following question in that chat can use it; answers mention the page they used.
 
@@ -71,11 +71,11 @@ A small AI on a processor can't read a long document at once, so for longer docu
 
 Only the text is kept, in BEYOND's database on your PC; the file itself isn't stored. Press ✕ to remove a document, or delete the chat. Scanned PDFs (pictures of pages) have no text: photograph a page and attach the photo instead. Password-protected PDFs and old .doc files can't be read; save a copy as an unprotected PDF or .docx.
 
-### Branching a conversation (v1.0.1)
+### Branching a conversation (1.1.0)
 
 Press ⑂ (**Branch from here**) under any answer. BEYOND makes a new chat with the conversation up to that answer and opens it, ready for your next message, and the original chat stays as it was. The branch is named after the original with "(branch)" (rename it with ✎), starts with a link back to the original, and has a ⑂ mark in the chat list. Each chat then goes its own way; deleting one doesn't delete the other.
 
-### Recovering an interrupted reply (v1.0.1)
+### Recovering an interrupted reply (1.1.0)
 
 If an AI reply fails or its connection ends unexpectedly, a small monochrome retry icon appears with the tooltip **Retry last prompt**. It starts a fresh answer to the same question, rather than continuing at the last generated character. Partial text remains visible. Reopening the chat also offers recovery for its latest incomplete turn. If BEYOND itself is stopped, restart it before retrying. Recovery does not repeat slash commands that could change files or other state.
 

@@ -3,7 +3,11 @@
 All notable changes to BEYOND are recorded here, newest first.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [1.0.1] - Unreleased
+## [Unreleased]
+
+## [1.1.0] - 2026-10-24
+
+See [the release notes](docs/RELEASE_NOTES_1.1.0.md).
 
 ### Added
 - Conversation attachments (Phase 48). The 📷 button is now 📎 **Attach a photo or document**: photos work as before, and a PDF, Word (.docx) or text/code file (up to 20 MB, 5 per chat) is attached to the chat for every following question. Short documents go whole with each question; for longer ones, the passages that best match the question are sent, labelled with file and page, and answers name the page they used. "Summarise this" gets the opening and heading-like passages. Only the extracted text is kept, in BEYOND's database; ✕ or deleting the chat deletes it. Branches take their attachments along. Scanned and password-protected PDFs, old .doc files and non-text files are refused with a plain explanation. New dependency: pypdf 6.21.2 (BSD-3-Clause).
@@ -962,5 +966,7 @@ The first published release: everything from Phase 1 to Phase 38, plus the file 
 - `/api/health` reports that BEYOND is running, its version and phase.
 - Planning documents moved into `planning/`.
 
-[Unreleased]: https://github.com/jeremystevens/beyond/compare/v0.38.4...HEAD
+[Unreleased]: https://github.com/jeremystevens/beyond/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/jeremystevens/beyond/releases/tag/v1.1.0
+[1.0.0]: https://github.com/jeremystevens/beyond/releases/tag/v1.0.0
 [0.38.4]: https://github.com/jeremystevens/beyond/releases/tag/v0.38.4

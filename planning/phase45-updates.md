@@ -166,7 +166,7 @@ same every time.
 
 1. ~~**The next version number**~~ **Decided:** the next release is **1.1.0**, not 1.0.1, because it bundles
    several features (code blocks, retry, updates and more). When it's prepared, `app/config.py`, the CHANGELOG's
-   Unreleased section and `docs/RELEASE_NOTES_1.0.1.md` become 1.1.0. `VERSION` changes only after it's published.
+   Unreleased section and `docs/RELEASE_NOTES_1.1.0.md` become 1.1.0. `VERSION` changes only after it's published.
 2. ~~**Tray popup** for a new version~~ **Decided:** yes, a popup with Yes and No buttons (see *What the user sees*).
 3. ~~**Automatic checks on by default**~~ **Decided:** off by default. Users can turn on a daily check, and the
    Check for updates button is always there.

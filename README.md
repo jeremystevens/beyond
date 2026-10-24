@@ -150,9 +150,9 @@ still arrive), and lets your other devices use it over a **secure address on you
 
 ---
 
-### Code answers in the next patch (v1.0.1)
+### Code answers
 
-Code blocks now have offline syntax highlighting and their own **Copy code** and **Save code** buttons. These actions include only the selected block; Copy beneath a reply still copies the full answer. Save location/dialog behavior follows your browser settings. This is a v1.0.1 candidate on main; the published v1.0.0 ZIP does not include it.
+Code blocks now have offline syntax highlighting and their own **Copy code** and **Save code** buttons. These actions include only the selected block; Copy beneath a reply still copies the full answer. Save location/dialog behavior follows your browser settings.
 
 ### Adjust this answer
 
@@ -1279,7 +1279,7 @@ and the Phase 42 validation exceptions are listed below. The full history and ev
 | **41 · Guide and licenses** | [User guide](docs/USER_GUIDE.md), [third-party notices](THIRD_PARTY_NOTICES.md), collected license texts, package-name check and project acknowledgment. |
 | **42 · Testing** | Separate-PC setup with existing Python 3.14.5, chat, saved conversations, installer rerun, shortcut/port-conflict recovery, Whisper tiny, Kokoro, OCR, vision and image generation confirmed by user testing. |
 | **43 · Release** | [1.0.0 published](https://github.com/jeremystevens/beyond/releases/tag/v1.0.0), with a source ZIP, SHA-256 checksums and artifact metadata. The full Windows/Python 3.14 CI suite passed at the tagged release commit. |
-| **44 · Code blocks** | Highlighted code blocks with their own Copy code and Save code buttons, plus a retry icon for interrupted replies. Built and tested on `main` for v1.0.1, which isn't published yet. See [Phase 44](planning/phase44-code-blocks.md) and the [draft release notes](docs/RELEASE_NOTES_1.0.1.md). |
+| **44 · Code blocks** | Highlighted code blocks with their own Copy code and Save code buttons, plus a retry icon for interrupted replies. Built and tested on `main` for v1.0.1, which isn't published yet. See [Phase 44](planning/phase44-code-blocks.md) and the [draft release notes](docs/RELEASE_NOTES_1.1.0.md). |
 
 ### Deferred features and remaining validation
 
