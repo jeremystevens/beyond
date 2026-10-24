@@ -30,6 +30,13 @@ param(
     [switch]$Yes                    # don't ask before waiting for BEYOND to close
 )
 
+# Started from PowerShell 7 (or by a program started from it), Windows PowerShell inherits PowerShell 7's module
+# folders and can't load some of its own commands. Use Windows PowerShell's own folders.
+if ($PSVersionTable.PSVersion.Major -lt 6) {
+    $env:PSModulePath = (@([Environment]::GetFolderPath('MyDocuments') + '\WindowsPowerShell\Modules',
+                           "$env:ProgramFiles\WindowsPowerShell\Modules",
+                           "$env:SystemRoot\System32\WindowsPowerShell\v1.0\Modules") -join ';')
+}
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -74,7 +81,11 @@ function Download([string]$Url, [string]$Target) {
     Invoke-WebRequest -Uri $Url -OutFile $Target -UseBasicParsing -TimeoutSec 120
 }
 
-function Sha256([string]$Path) { return (Get-FileHash -Path $Path -Algorithm SHA256).Hash.ToLowerInvariant() }
+function Sha256([string]$Path) {
+    $stream = [System.IO.File]::OpenRead($Path)
+    try { $bytes = [System.Security.Cryptography.SHA256]::Create().ComputeHash($stream) } finally { $stream.Dispose() }
+    return -join ($bytes | ForEach-Object { $_.ToString('x2') })
+}
 
 function Expected-Sum([string]$SumsFile, [string]$Name) {
     foreach ($line in Get-Content -Path $SumsFile) {

@@ -105,6 +105,39 @@ The README's [Project structure](README.md#structure) section has the full tree.
 - **Pages:** no frameworks or build tools. Make sure a change works on a phone as well as a computer, in light and
   dark mode.
 
+## Keeping updates working
+
+BEYOND updates itself from GitHub releases (Settings → Updates). The updater treats **every committed file as a
+program file**: it can replace or remove any of them, and it never touches `data\`, `models\`, `files\` or `.venv\`.
+Every change has to keep that safe:
+
+1. **Don't touch the root `VERSION` file.** Changing it on `main` offers that version to everyone who checks for
+   updates, so it only changes after a release is published ([docs/RELEASING.md](docs/RELEASING.md)).
+2. **Only change `VERSION = '…'` in `app/config.py` when preparing a release,** and keep that exact form: the updater
+   reads it.
+3. **Keep user data in `data\`, `models\` or `files\`.** Anything a feature saves elsewhere in BEYOND's folder can be
+   overwritten or deleted by the next update.
+4. **Never commit user or runtime files** (chats, settings, logs, models, downloads). Anything in git becomes a
+   program file.
+5. **Keep saved data readable after an update.**
+   - A new setting gets its default in `config.DEFAULTS`.
+   - A setting is never renamed or removed without moving its old value across.
+   - Database changes run once at start-up, recorded with a version number (as `app/memory.py` does with
+     `PRAGMA user_version`).
+   - A rollback restores program files, not data, so before changing a file's format, copy it into
+     `data\updates\backup-<version>`.
+6. **Put library changes in `requirements-text-lock.txt`,** or in `requirements-<feature>.txt` for an optional
+   feature. Those are what Setup and the updater install; the updater runs pip only when one of them changed.
+7. **Don't break the updater's contract** unless you also change `installer/Update-Beyond.ps1` and
+   `tests/test_updates.py`:
+   - the release file names (`BEYOND-x.y.z-source.zip`, `Update-Beyond.ps1`, `SHA256SUMS.txt`);
+   - the updater's options (`-InstallDir`, `-Version`, `-WaitPid`, `-Port`);
+   - starting BEYOND with `.venv\Scripts\pythonw.exe beyond.py`;
+   - `/api/health` reporting the version.
+
+   An *older* BEYOND starts the *newer* updater, so these must keep working for versions already installed.
+8. **`tests/test_updates.py` and GitHub's Tests workflow must pass** before a release.
+
 ## Commits and pull requests
 
 1. Fork the repository and create a branch from `main` (for example `fix/reminder-snooze`).
