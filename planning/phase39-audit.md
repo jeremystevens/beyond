@@ -287,7 +287,7 @@ Existing SQLite ResourceWarnings/debug timing output did not fail the suite.
 ## Owner decision: defer large-model validation to a fresh machine
 
 On 2026-10-21, Jeremy approved leaving Local AI Studio, PromptetheusBot, BEYOND,
-and connected ChatGPT/Claude work sessions running on the development PC.
+and other connected development work sessions running on the development PC.
 Do not close these applications or force large-model tests to reclaim RAM.
 Run the remaining pinned Gemma/projector vision and DreamShaper image-generation
 inference checks on the owner's fresh-machine installation as part of Phase 42.

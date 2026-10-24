@@ -30,4 +30,4 @@ Run Add-Features.cmd with --retest to retest a previously verified selection. No
 
 Logs are local under data/setup/: install.log for steps, libraries.log and libraries-check.log for text packages, app-test.log for startup and chat-test.log for the chat engine. Optional package logs and feature worker results are under data/setup/optional/. Settings backups use settings-before-*.json; treat these as private and do not post them publicly.
 
-Fresh-machine acceptance still needs a Windows installation without Python, text setup from scratch, optional features one at a time, and the port-conflict check. Jeremy will run the pending pinned vision and DreamShaper inference tests there; the busy development PC's essential apps and ChatGPT/Claude sessions remain running. These checks are deferred, not passed.
+Fresh-machine acceptance still needs a Windows installation without Python, text setup from scratch, optional features one at a time, and the port-conflict check. Jeremy will run the pending pinned vision and DreamShaper inference tests there; the busy development PC's essential apps and other work sessions remain running. These checks are deferred, not passed.
