@@ -1,0 +1,11 @@
+{
+  "name": "beyond-web-tests",
+  "private": true,
+  "scripts": {
+    "test": "node --test code-blocks.test.cjs",
+    "test:browser": "node code-blocks.browser.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}

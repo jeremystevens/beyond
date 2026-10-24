@@ -16,6 +16,32 @@ concurrency:                # a newer push to the same branch or pull request re
   cancel-in-progress: true
 
 jobs:
+  web:
+    name: Code blocks, Chromium
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tests/web/package-lock.json
+      - name: Install browser test tools (development only)
+        working-directory: tests/web
+        run: npm ci
+      - name: Install Chromium
+        working-directory: tests/web
+        run: npx playwright install chromium
+      - name: Check parser and filename handling
+        working-directory: tests/web
+        run: npm test
+      - name: Check chat rendering, copy, downloads and safety
+        working-directory: tests/web
+        env:
+          BEYOND_SCREENSHOT: ${{ runner.temp }}/code-blocks-mobile.png
+        run: npm run test:browser
+
   tests:
     name: Windows, Python 3.14
     runs-on: windows-latest

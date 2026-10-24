@@ -1,0 +1,37 @@
+.code-block {
+  margin: 12px 0; max-width: 100%; min-width: 0; overflow: hidden;
+  border: 1px solid #384353; border-radius: 10px; background: #18212e; color: #e2e8f0;
+  white-space: normal; overflow-wrap: normal;
+}
+.code-toolbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 7px 10px; background: #243041; border-bottom: 1px solid #384353;
+  font: 12px/1.5 system-ui, sans-serif;
+}
+.code-language { color: #ced8e5; margin-right: auto; overflow-wrap: anywhere; }
+.code-status { color: #c5e4c3; }
+.code-action {
+  background: transparent; color: #f1f5f9; border: 1px solid #64748b;
+  border-radius: 5px; padding: 4px 8px; min-height: 30px; font: inherit; cursor: pointer;
+}
+.code-action:hover { background: #394b63; }
+.code-action:focus-visible, .code-block pre:focus-visible { outline: 2px solid #93c5fd; outline-offset: -2px; }
+.code-action:disabled { opacity: .55; cursor: wait; }
+.code-block pre {
+  margin: 0; padding: 14px; overflow-x: auto; max-width: 100%;
+  white-space: pre; overflow-wrap: normal; tab-size: 4;
+}
+.code-block code { font: 13px/1.6 Consolas, 'Liberation Mono', monospace; color: inherit; }
+.code-block .hljs-comment, .code-block .hljs-quote { color: #a6b5c8; font-style: italic; }
+.code-block .hljs-keyword, .code-block .hljs-selector-tag, .code-block .hljs-literal { color: #d8b4fe; }
+.code-block .hljs-string, .code-block .hljs-regexp, .code-block .hljs-addition { color: #a7e3a1; }
+.code-block .hljs-number, .code-block .hljs-attribute, .code-block .hljs-symbol { color: #fdba74; }
+.code-block .hljs-title, .code-block .hljs-section, .code-block .hljs-name { color: #93c5fd; }
+.code-block .hljs-built_in, .code-block .hljs-type, .code-block .hljs-params { color: #f5dc94; }
+.code-block .hljs-meta, .code-block .hljs-variable, .code-block .hljs-attr { color: #9de4e8; }
+.code-block .hljs-deletion { color: #fda4af; }
+@media (max-width: 480px) {
+  .code-toolbar { gap: 6px; padding: 6px 8px; }
+  .code-action { min-height: 36px; }
+  .code-block pre { padding: 10px; }
+}

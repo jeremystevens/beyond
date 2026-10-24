@@ -4,6 +4,10 @@ BEYOND's own source is licensed under the [MIT License](LICENSE), copyright Jere
 
 This index accompanies the pinned setup manifests and the Python dependency snapshot collected on 2026-10-21. Full collected notice texts are in [docs/licenses](docs/licenses/README.md). Keep upstream notices with any components you redistribute. A source-code checkout and a bundled executable/environment are different distribution artifacts; the final binary bundle still needs its own inventory before Phase 43.
 
+## Browser syntax highlighting
+
+Highlight.js 11.11.1 (common language bundle plus PowerShell grammar) is redistributed under BSD-3-Clause. Local assets and the complete upstream license are in [app/web/vendor](app/web/vendor); [the vendor README](app/web/vendor/README.md) records pinned sources and SHA-256 values. No CDN is contacted at runtime. BEYOND's code-block stylesheet is project-owned.
+
 ## Engines and Python
 
 | Component | Source / terms | Included material |

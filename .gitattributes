@@ -7,3 +7,4 @@
 
 # Preserve upstream notice bytes so recorded SHA-256 values survive checkout.
 docs/licenses/** -text
+app/web/vendor/** -text

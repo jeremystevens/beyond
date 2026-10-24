@@ -8,6 +8,10 @@
   <meta name="theme-color" content="#141210" media="(prefers-color-scheme: dark)">
   <title>BEYOND</title>
   <link rel="stylesheet" href="/static/style.css?v=4">
+  <link rel="stylesheet" href="/static/code-blocks.css?v=1">
+  <script src="/static/vendor/highlight.min.js?v=11.11.1"></script>
+  <script src="/static/vendor/powershell.min.js?v=11.11.1"></script>
+  <script src="/static/code-blocks.js?v=1"></script>
   <script src="/static/auth.js?v=1"></script>
   <script src="/static/app-height.js?v=3" defer></script>
   <style>
@@ -314,9 +318,12 @@
     function nearBottom() { return log.scrollHeight - log.scrollTop - log.clientHeight < 80; }
     function scrollDown(force) { if (force || nearBottom()) log.scrollTop = log.scrollHeight; }
 
-    // Plain text on purpose: nothing the AI or a web result writes is run as HTML. Web addresses become links
-    // (built as elements, only http/https, opened in a new tab without access back to BEYOND).
+    // Only assistant fenced-code blocks receive formatting. All prose and user text stay plain text.
     function fill(el, text) {
+      if (el.classList.contains('assistant')) {
+        BeyondCode.render(el, text, { streaming: el.classList.contains('writing') });
+        return;
+      }
       el.textContent = '';
       let last = 0;
       for (const m of text.matchAll(/https?:\/\/[^\s<>"'“”‘’«»]+/g)) {
@@ -403,6 +410,8 @@
       return button;
     }
     function answerText(el) {   // the answer's own words, without the line, buttons and notes under it
+      const source = BeyondCode.source(el);
+      if (source !== undefined) return source.trim();
       const copy = el.cloneNode(true);
       copy.querySelectorAll('.foot, .buttons, .stats, .lookup, .speech-box, .note, .toast').forEach(x => x.remove());
       return copy.innerText.trim();
@@ -468,7 +477,7 @@
         if (!r.ok) throw new Error(data.error || 'Something went wrong.');
         const spoken = el.querySelector('.speech-box');
         const foot = el.querySelector(':scope > .foot');   // keeps Copy, Read aloud and the stats
-        fill(el, data.text);   // the message changes in place (plain text, as always)
+        fill(el, data.text);   // the message changes in place, including safe code blocks
         if (foot) el.append(foot);
         showGame(el, data.game);
         showButtons(el, messageId, data.buttons);
@@ -875,6 +884,7 @@
         finished = true;
         clearInterval(thinkingTimer);
         reply.classList.remove('writing', 'thinking');
+        BeyondCode.complete(reply);
         if (answer) {
           if (mine.stopped) addNote(reply, 'Stopped');
           showLookup(reply, lookup);

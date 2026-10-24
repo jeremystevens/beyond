@@ -489,6 +489,12 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 
 ---
 
+### Phase 44: Code block usability (v1.0.1 candidate)
+
+- High-priority improvement selected from post-v1-feature-brainstorm.md: fenced blocks, offline highlighting, per-block Copy code and Save code, and unchanged whole-reply Copy.
+- Default and custom chat prompts receive code-fence guidance; no extra model call or Python runtime dependency.
+- Parser, filename, browser, safety, streaming/reopen and prompt checks are covered. See phase44-code-blocks.md for current validation and release status.
+
 ## Later, optional
 
 - **Shared brain with the Telegram bot:** once BEYOND's core is stable, the bot and BEYOND could share one copy of

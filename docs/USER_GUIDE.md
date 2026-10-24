@@ -53,6 +53,12 @@ Try:
 
 Small starter models are useful for testing and basic chat, but can make factual or reasoning mistakes. A larger model may improve answers at the cost of more memory and processing time.
 
+### Code answers (v1.0.1)
+
+Code in fenced blocks is displayed with preserved indentation and syntax highlighting for supported languages. Each block has **Copy code** and **Save code** controls in its header. Copy code copies only that block, without the surrounding explanation or Markdown fences. Save code downloads a text file with a suggested extension such as `.py`; your browser's download settings control the save location and whether a Save As dialog appears. The existing Copy button beneath an answer still copies the entire reply.
+
+Controls become available when the reply finishes or is stopped. Reopened chats use the same formatting. If a model replies with unfenced code, ask it to put the example in a language-labeled code block. Unknown languages remain readable plain code. Downloading an example does not execute it; review generated code before running it.
+
 ## 5. Everyday tools and preferences
 
 | Where to go | What it does |

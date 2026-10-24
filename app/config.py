@@ -6,8 +6,8 @@ which is never committed and only holds what differs from these defaults, so a n
 """
 from pathlib import Path
 
-VERSION = '1.0.0'
-PHASE = 43
+VERSION = '1.0.1'
+PHASE = 44
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / 'data'                          # settings, chats, logs: created at runtime, git-ignored

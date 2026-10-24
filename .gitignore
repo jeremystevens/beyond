@@ -13,6 +13,9 @@ models/
 # Files written from chat with /writefile.
 files/
 
+# Development-only browser test dependencies
+node_modules/
+
 # Editors and OS
 .vscode/
 .idea/

@@ -150,6 +150,10 @@ still arrive), and lets your other devices use it over a **secure address on you
 
 ---
 
+### Code answers in the next patch (v1.0.1)
+
+Code blocks now have offline syntax highlighting and their own **Copy code** and **Save code** buttons. These actions include only the selected block; Copy beneath a reply still copies the full answer. Save location/dialog behavior follows your browser settings. This is a v1.0.1 candidate on main; the published v1.0.0 ZIP does not include it.
+
 <a id="screenshots"></a>
 ## `▸ SCREENSHOTS`
 
