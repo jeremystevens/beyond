@@ -19,11 +19,12 @@ Requested as an early high-priority improvement on 2026-10-23. Scoped separately
 - Four Python prompt tests passed on Windows.
 - Actual chat-page browser regression passed using isolated mocked API replies in installed Chrome on Windows: code-only copy, separate block download contents and extension, unchanged whole-reply copy, reopening via openChat, stream completion, stopped/partial blocks, HTML injection safety, clipboard fallback, and horizontal overflow on a phone-width viewport.
 - Windows clipboard APIs normalize LF to CRLF; clipboard assertions allow that platform behavior while file-download assertions compare exact bytes.
-- No live model request was made and no running bot was stopped. Live model formatting remains a manual smoke test.
+- Isolated regression tests do not use live models. BEYOND was restarted separately at Jeremy's request; PromptetheusBot and Local AI Studio were left running. Jeremy confirmed code formatting in live examples.
+- After restarting the recovery backend and waiting for the model to become ready, a live Chrome test simulated a lost browser response, clicked the monochrome retry icon, and obtained a fresh real-AI reply. The chat contained one user prompt, one retained/retried answer, and one current answer. Only the temporary test chat was deleted afterward.
 - Initial code-block commit 18c12fc passed full Windows Python CI and Chromium CI (run 40052696772).
 - Jeremy confirmed the code-block UI worked, then found failed generation lacked recovery. Added a quiet monochrome retry icon, a saved-question recovery route, retained partial answers without negative ratings or duplicate prompts, idle/EOF detection, and recovery on reopening incomplete chats.
 - Five new backend recovery/engine EOF tests and extended browser tests for errors before/after tokens, abrupt EOF, inactivity timeout, quiet icon styling, and reopened incomplete turns passed on Windows. Existing built-in-engine, file-reading, and follow-up suites also passed.
-- Recovery follow-up CI and live endpoint verification are tracked separately from the already-passed initial code-block run.
+- Recovery code commit d127e8f passed both full Windows Python 3.14 CI and Chromium CI: https://github.com/jeremystevens/beyond/actions/runs/40053748505. The live recovery route and real-AI browser flow were independently verified after restart. v1.0.1 remains unpublished pending Jeremy's final testing.
 
 ## Release scope
 
