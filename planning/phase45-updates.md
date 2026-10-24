@@ -1,6 +1,6 @@
 # Phase 45: Easy updates
 
-Status: built on 2026-10-24 (45A–45E): app/updates.py, Settings → Updates, installer/Update-Beyond.ps1, Update-Beyond.cmd and tools/make_release.py, with tests in tests/test_updates.py. 45F (a real 1.0.0 update on another PC) is still to do. See *Built* at the end for where it differs from the plan. Comes from item 13 of [post-v1-feature-brainstorm.md](post-v1-feature-brainstorm.md)
+Status: built on 2026-10-24 (45A–45E): app/updates.py, Settings → Updates, installer/Update-Beyond.ps1, Update-Beyond.cmd and tools/make_release.py, with tests in tests/test_updates.py. 45F passed on 2026-10-24: a real installation on another PC updated to the 1.0.2 test release (see *45F result* at the end). See *Built* at the end for where it differs from the plan. Comes from item 13 of [post-v1-feature-brainstorm.md](post-v1-feature-brainstorm.md)
 (high priority). Ships in the next release, which waits until more features are ready.
 
 ## Goal
@@ -196,3 +196,23 @@ same every time.
   `data\updates\update-<version>.log`. The result goes to `data\updates\last-update.json`, which Settings shows.
 - **Tray popup:** only after an automatic check (a manual check is already on screen). Clicking **Yes** starts the
   update; **No** closes it for that version.
+
+## 45F result (2026-10-24)
+
+The 1.0.2 test release ([v1.0.2](https://github.com/jeremystevens/beyond/releases/tag/v1.0.2), a pre-release;
+`VERSION` left at 1.0.0 so nobody was offered it) was used to update a real installation on a separate PC.
+
+- **Before publishing,** a copy of the real 1.0.0 release ZIP, with its own `.venv` and test data, updated itself to the
+  1.0.2 build on this PC. All 8 steps passed, it came back running 1.0.2 with its data kept, and its own Check for
+  updates correctly found nothing to install.
+- **On the other PC** (`E:\beyond-main`), the installation turned out to be **0.38.4**, a ZIP of `main` from before
+  the first release, with optional features installed. The updater was run by hand from the release (the command in the
+  release notes) and finished all 8 steps: it backed up the program files, swapped 346 files, installed the text-chat
+  libraries plus the Whisper and Kokoro feature libraries, and started BEYOND 1.0.2.
+- **Jeremy confirmed afterwards** that the old chats and memories were there, chat replies worked, and voice worked.
+- **As designed,** 0.38.4 had no published release to take its file list from, so files it had that 1.0.2 doesn't were
+  left in place. From now on each update records its list in `data\updates\installed-files.txt`.
+
+Not covered in this run: starting an update from Settings → Updates on another PC (tested on this PC with a test copy),
+`Update-Beyond.cmd` (it reads `VERSION`, so it's first used when 1.1.0 is published), the tray popup's Yes/No, and
+pulling the network cable mid-download.
