@@ -1,6 +1,6 @@
 # Phase 45: Easy updates
 
-Status: plan approved in outline; all four decisions answered 2026-10-24. Nothing is built yet. Comes from item 13 of [post-v1-feature-brainstorm.md](post-v1-feature-brainstorm.md)
+Status: built on 2026-10-24 (45A–45E): app/updates.py, Settings → Updates, installer/Update-Beyond.ps1, Update-Beyond.cmd and tools/make_release.py, with tests in tests/test_updates.py. 45F (a real 1.0.0 update on another PC) is still to do. See *Built* at the end for where it differs from the plan. Comes from item 13 of [post-v1-feature-brainstorm.md](post-v1-feature-brainstorm.md)
 (high priority). Ships in the next release, which waits until more features are ready.
 
 ## Goal
@@ -179,3 +179,20 @@ same every time.
 - Downgrading to an older version (the backup only covers the last update).
 - Updating models or the AI engine (Setup and Add Features already handle those).
 - Signed releases.
+
+## Built (2026-10-24): differences from the plan
+
+- **Libraries:** the updater installs `requirements-text-lock.txt` (what Setup installs) plus the requirement file of
+  each optional feature that passed its test in `data\setup\optional\features.json`, and only when one of those
+  files changed. Before pip runs it saves `pip freeze`, which a rollback reinstalls.
+- **The old version's files:** after each update the list is kept in `data\updates\installed-files.txt`. For the first
+  update (from 1.0.0, or any version without that list) the updater downloads that version's own release ZIP, checks
+  it, and reads its file list. No list is built into the script. If it can't, files the new version dropped are
+  simply left in place.
+- **Version check of the download:** the updater checks the version in the ZIP's `app\config.py`, because a release
+  commit's `VERSION` file is only changed after publishing. `tools/make_release.py` also writes the release version
+  into the ZIP's `VERSION`.
+- **Progress window:** the updater runs in its own console window with numbered steps (1–8), and logs to
+  `data\updates\update-<version>.log`. The result goes to `data\updates\last-update.json`, which Settings shows.
+- **Tray popup:** only after an automatic check (a manual check is already on screen). Clicking **Yes** starts the
+  update; **No** closes it for that version.

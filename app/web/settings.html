@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f6f4f1" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#141210" media="(prefers-color-scheme: dark)">
   <title>BEYOND Settings</title>
-  <link rel="stylesheet" href="/static/style.css?v=4">
+  <link rel="stylesheet" href="/static/style.css?v=5">
   <script src="/static/auth.js?v=1"></script>
   <script src="/static/app-height.js?v=3" defer></script>
   <style>
@@ -105,6 +105,7 @@
       <a href="#group-engine">AI engine and models</a>
       <a href="#group-chat">Chat and everyday use</a>
       <a href="#group-popups">Popups and startup</a>
+      <a href="#group-updates">Updates</a>
       <a href="#group-media">Photos and pictures</a>
       <a href="#group-network">Address and network</a>
     </nav>
@@ -322,6 +323,31 @@
       </div>
     </section>
 
+    <h2 class="group" id="group-updates">Updates</h2>
+
+    <section id="updatesBox" aria-labelledby="updatesHeading" hidden>
+      <h2 id="updatesHeading">Updates</h2>
+      <p class="hint">BEYOND can check GitHub for a newer version and update itself with one click. Your chats,
+        memories, settings, models and files are kept. Checking only reads a public version number from GitHub;
+        nothing about you is sent.</p>
+      <p><b id="updateInstalled"></b></p>
+      <div class="banner" id="updateState" role="status" aria-live="polite" hidden></div>
+      <details id="updateNotesBox" hidden><summary>What's new</summary>
+        <pre id="updateNotes" style="white-space:pre-wrap"></pre>
+        <p class="small"><a id="updateNotesLink" target="_blank" rel="noopener">Full release notes on GitHub</a></p>
+      </details>
+      <label class="switch">
+        <input type="checkbox" id="update_auto_check">
+        <span><b>Check for updates automatically</b>
+          <span class="small">Once a day. When a new version is out, a popup asks if you'd like to update. Off by
+            default; press Save after changing it.</span></span>
+      </label>
+      <div class="row">
+        <button type="button" class="ghost" id="updateCheck">Check for updates</button>
+        <button type="button" id="updateInstall" hidden></button>
+      </div>
+    </section>
+
     <h2 class="group" id="group-media">Photos and pictures</h2>
 
     <section>
@@ -447,7 +473,7 @@
   <script>
     const $ = id => document.getElementById(id);
     const checkboxes = ['custom_prompt_enabled', 'persona_enabled', 'engine_enabled', 'engine_thinking', 'allow_network', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
-                        'popup_errors', 'start_with_windows', 'vision_enabled', 'image_enabled', 'speech_enabled', 'speech_auto'];
+                        'popup_errors', 'start_with_windows', 'update_auto_check', 'vision_enabled', 'image_enabled', 'speech_enabled', 'speech_auto'];
     const fields = ['custom_prompt', 'persona', 'ai_mode', 'engine_executable', 'engine_model', 'engine_threads', 'engine_context', 'engine_cache',
                     'ai_server_url', 'ai_model', 'web_port', 'quiet_start', 'quiet_end',
                     'vision_executable', 'vision_model', 'vision_mmproj', 'vision_threads', 'vision_timeout',
@@ -922,8 +948,82 @@
     };
     fetch('/api/auth').then(r => r.json()).then(showSignIn).catch(() => {});
 
+    // ---------- updates (Phase 45) ----------
+    let updateInfo = null;
+
+    function updateBanner(kind, text) {
+      $('updateState').className = 'banner ' + kind;
+      $('updateState').textContent = text;
+      $('updateState').hidden = !text;
+    }
+
+    function showUpdates(u) {
+      updateInfo = u;
+      $('updatesBox').hidden = !u.allowed;
+      if (!u.allowed) return;
+      $('updateInstalled').textContent = `Installed: BEYOND ${u.installed}`;
+      const when = u.checked_at ? new Date(u.checked_at * 1000).toLocaleString() : '';
+      const done = u.last_update || {};
+      $('updateInstall').hidden = true;
+      $('updateNotesBox').hidden = true;
+      if (u.installing) updateBanner('warn', 'An update is starting…');
+      else if (u.available && u.git) updateBanner('warn', `BEYOND ${u.latest} is available. This copy of BEYOND was ` +
+        'set up with git, so it updates the git way: run "git pull" in its folder, then restart BEYOND.');
+      else if (u.available) {
+        updateBanner('warn', `BEYOND ${u.latest} is available. You have ${u.installed}.`);
+        $('updateInstall').textContent = `Update to ${u.latest}`;
+        $('updateInstall').hidden = false;
+        if (u.notes) {
+          $('updateNotes').textContent = u.notes;
+          $('updateNotesLink').href = u.notes_url;
+          $('updateNotesBox').hidden = false;
+        }
+      }
+      else if (u.error) updateBanner('bad', u.error + (when ? ` (${when})` : ''));
+      else if (done.ok === false && done.to) updateBanner('bad', `The update to ${done.to} didn't finish, so ` +
+        `BEYOND ${done.from || ''} was put back. ${done.message || ''}`);
+      else if (done.ok && done.to === u.installed && Date.now() / 1000 - (done.at || 0) < 86400)
+        updateBanner('ok', `Updated to BEYOND ${u.installed}.`);
+      else if (u.checked_at) updateBanner('ok', `BEYOND is up to date (checked ${when}).`);
+      else updateBanner('', '');
+    }
+
+    $('updateCheck').onclick = async () => {
+      $('updateCheck').disabled = true;
+      updateBanner('warn', 'Checking GitHub for updates…');
+      try { showUpdates(await call('/api/updates/check')); }
+      catch (e) { updateBanner('bad', e.message); }
+      finally { $('updateCheck').disabled = false; }
+    };
+
+    $('updateInstall').onclick = async () => {
+      const version = updateInfo.latest;
+      if (!confirm(`Update to BEYOND ${version}?\n\nBEYOND will close, update itself and start again. That ` +
+                   'usually takes a minute or two; a window shows the progress. Your chats, memories, settings, ' +
+                   'models and files are kept, and if anything goes wrong the current version is put back.')) return;
+      $('updateInstall').disabled = $('updateCheck').disabled = true;
+      updateBanner('warn', 'Downloading the updater…');
+      try { await call('/api/updates/install', { version }); }
+      catch (e) {
+        updateBanner('bad', e.message);
+        $('updateInstall').disabled = $('updateCheck').disabled = false;
+        return;
+      }
+      updateBanner('warn', `BEYOND is closing to update to ${version}. This page reconnects when it's back.`);
+      for (let i = 0; i < 400; i++) {   // up to about 20 minutes: library downloads can be slow
+        await new Promise(r => setTimeout(r, 3000));
+        try {
+          const h = await (await fetch('/api/health', { cache: 'no-store' })).json();
+          if (h.version === version) { location.reload(); return; }
+        } catch {}
+        if (i === 60) updateBanner('warn', 'Still updating… The updater window shows what it is doing.');
+      }
+      updateBanner('bad', "BEYOND hasn't come back yet. Check the updater window, or start BEYOND again.");
+    };
+
     fetch('/api/settings').then(r => r.json()).then(fill).catch(() => show('bad', 'BEYOND is not responding.'));
     api('/api/rules').then(showRules).catch(() => {});
+    api('/api/updates').then(showUpdates).catch(() => {});
   </script>
 </body>
 </html>

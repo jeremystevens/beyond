@@ -107,9 +107,12 @@ DEFAULTS = {
     'quiet_end': '',
     # Start BEYOND (in the tray) when you sign in to Windows.
     'start_with_windows': False,
+    # Check GitHub once a day for a newer BEYOND (Phase 45). Off by default: BEYOND then only checks when you press
+    # Check for updates in Settings. Installing an update is always your choice.
+    'update_auto_check': False,
 }
 BOOLEAN_SETTINGS = ('custom_prompt_enabled', 'persona_enabled', 'engine_enabled', 'engine_thinking', 'speech_enabled', 'speech_auto', 'image_enabled', 'vision_enabled', 'allow_network', 'require_sign_in', 'auto_facts', 'recall', 'auto_lookup', 'popup_replies', 'popup_reminders',
-                    'popup_errors', 'start_with_windows')
+                    'popup_errors', 'start_with_windows', 'update_auto_check')
 TIME_SETTINGS = ('quiet_start', 'quiet_end')
 RESTART_SETTINGS = ('web_port', 'allow_network')   # these only take effect after BEYOND restarts
 

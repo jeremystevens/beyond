@@ -110,7 +110,9 @@ Closing the browser tab leaves BEYOND running. Use the tray menu's **Quit BEYOND
 
 Before an update or backup, quit BEYOND normally when convenient. Keep a copy of **data/** (settings, conversations, memories and other local records), **files/** (your files), and any **models/** you want to preserve. Keep backups private: they can contain personal conversations and credentials. Optional models are large and can instead be downloaded again.
 
-For source updates, use `git pull` if you installed with Git, or extract a newer ZIP separately. Keep your old folder and private data backup until the updated copy works. Run the newer Setup.cmd to prepare its environment; do not copy a .venv between folders or PCs. Engine/model settings may reference old absolute paths, so rerun setup or choose the new paths in Settings after moving folders. Avoid replacing your data with another person's data.
+**Updating to a new version.** Open **Settings → Updates** and press **Check for updates**. When a newer version is out, press **Update to …**: BEYOND closes, a window shows the updater's progress, and BEYOND starts again on the new version. Your chats, memories, settings, models, files and optional features are kept, and if a step fails the previous version is put back. Turn on **Check for updates automatically** to be asked once a day with a popup. Only this PC or a device signed in as administrator can update. On 1.0.0, download `Update-Beyond.cmd` from the latest release page into your BEYOND folder (next to beyond.py) and double-click it once; later versions update from Settings.
+
+If you installed with Git, update with `git pull` instead; or extract a newer ZIP separately. Keep your old folder and private data backup until the updated copy works. Run the newer Setup.cmd to prepare its environment; do not copy a .venv between folders or PCs. Engine/model settings may reference old absolute paths, so rerun setup or choose the new paths in Settings after moving folders. Avoid replacing your data with another person's data.
 
 ## 9. If something goes wrong
 

@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#f6f4f1" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#141210" media="(prefers-color-scheme: dark)">
   <title>BEYOND</title>
-  <link rel="stylesheet" href="/static/style.css?v=4">
+  <link rel="stylesheet" href="/static/style.css?v=5">
   <link rel="stylesheet" href="/static/code-blocks.css?v=1">
   <script src="/static/vendor/highlight.min.js?v=11.11.1"></script>
   <script src="/static/vendor/powershell.min.js?v=11.11.1"></script>
@@ -1973,6 +1973,17 @@
     if (fromAddress) openChat(Number(fromAddress[1])); else newChat();
     refreshStatus();
     setInterval(refreshStatus, 30000);
+
+    // A newer BEYOND is available (Phase 45): a small dot on Settings, for this PC and administrators only.
+    function refreshUpdateDot() {
+      api('/api/updates').then(u => {
+        const link = $('settings-open');
+        link.classList.toggle('has-update', !!u.available);
+        link.title = u.available ? `BEYOND ${u.latest} is available` : '';
+      }).catch(() => {});
+    }
+    refreshUpdateDot();
+    setInterval(refreshUpdateDot, 3600000);
 
     // ---------- reminders that go off ----------
     // BEYOND posts a due reminder in its chat; the page asks every few seconds whether one went off since it last

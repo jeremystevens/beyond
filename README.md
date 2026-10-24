@@ -154,6 +154,10 @@ still arrive), and lets your other devices use it over a **secure address on you
 
 Code blocks now have offline syntax highlighting and their own **Copy code** and **Save code** buttons. These actions include only the selected block; Copy beneath a reply still copies the full answer. Save location/dialog behavior follows your browser settings. This is a v1.0.1 candidate on main; the published v1.0.0 ZIP does not include it.
 
+### Updating BEYOND
+
+**Settings → Updates** checks GitHub for a newer version and updates BEYOND with one click: it closes, swaps its program files, keeps your chats, memories, settings, models and files, and starts again. If anything goes wrong, the previous version is put back. Checking is off unless you press **Check for updates** or turn on the daily check. On **1.0.0**, which can't check yet, download `Update-Beyond.cmd` from the latest release into your BEYOND folder and double-click it once. If you set BEYOND up with git, use `git pull` instead.
+
 <a id="screenshots"></a>
 ## `▸ SCREENSHOTS`
 

@@ -4,6 +4,7 @@ import base64
 import json
 import logging
 import re
+import threading
 from urllib.parse import quote
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
@@ -19,7 +20,7 @@ from app import (autostart, briefing, chats, checklists, commands, config, engin
 
 from app import auth, builtin_engine, downloads, file_reading, file_requests, files, photo_jobs, image_jobs, speech_jobs, blackjack, followups, games, hangman, study_quiz, tictactoe, trivia
 from app.tools import scan, speech, speech_to_text
-from app import diagnostics, welcome
+from app import diagnostics, updates, welcome
 
 models.initialize()
 chats.initialize()
@@ -130,6 +131,51 @@ async def _reminder_loop():
         await asyncio.sleep(5)
 
 
+async def _update_loop():
+    """Phase 45: when "Check automatically" is on, check GitHub for a newer BEYOND once a day (a few minutes after
+    starting, so start-up stays quick), and offer a new version once with a tray popup."""
+    await asyncio.sleep(180)
+    while True:
+        try:
+            if updates.due():
+                await asyncio.to_thread(updates.check)
+            version = updates.needs_announcing()
+            if version:
+                _announce_update(version)
+        except Exception:
+            logging.exception('Checking for updates failed')
+        await asyncio.sleep(3600)
+
+
+def _announce_update(version):
+    """A tray popup: "BEYOND 1.1.0 is available. Update now?" with Yes and No. Shown once per version."""
+    def answer(argument):
+        if argument != 'update:yes':
+            return
+        try:
+            updates.start(version, app.state.running['port'])
+        except updates.UpdateError as exc:
+            notify.show('update', "BEYOND couldn't update", str(exc), force=True)
+    reason = notify.show('update', f'BEYOND {version} is available',
+                         f'You have {config.VERSION}. Update now? BEYOND closes for about a minute and keeps your '
+                         'chats, settings and models.',
+                         buttons=[('Yes', 'update:yes'), ('No', 'update:no')], on_button=answer)
+    if not reason:
+        updates.mark_announced(version)
+
+
+def _quit_for_update():
+    """Close BEYOND (like Quit in the tray) so the updater can replace its files. Not a restart: the updater
+    starts the new version itself."""
+    server = app.state.server
+    if server is not None:
+        app.state.restart_requested = False
+        threading.Timer(1.5, setattr, (server, 'should_exit', True)).start()   # after the reply is sent
+
+
+updates.request_quit = _quit_for_update
+
+
 @asynccontextmanager
 async def lifespan(_app):
     diagnostics.configure(_app.state.running)
@@ -138,7 +184,7 @@ async def lifespan(_app):
     speech_jobs.recover()
     downloads.recover()
     tasks = [asyncio.create_task(loop()) for loop in (_reminder_loop, _briefing_loop, _watch_ai,
-                                                      builtin_engine.supervise)]
+                                                      builtin_engine.supervise, _update_loop)]
     try:
         yield
     finally:
@@ -1460,6 +1506,46 @@ def restart_engine(request: Request):
     settings.save({'engine_enabled': True})
     builtin_engine.request_restart()
     return {'ok': True}
+
+
+# ---------- updates (Phase 45) ----------
+
+@app.get('/api/updates')
+def update_status(request: Request):
+    """Settings → Updates and the dot on the Settings button. Only this PC and administrators see updates."""
+    if not can_manage(request):
+        return {'allowed': False, 'available': False}
+    return {**updates.status(), 'allowed': True, 'last_update': updates.recent_result()}
+
+
+@app.post('/api/updates/check')
+async def check_for_updates(request: Request):
+    if not can_manage(request):
+        return only_this_pc()
+    result = await asyncio.to_thread(updates.check)
+    if result['available']:
+        updates.mark_announced(result['latest'])   # seen here already; no tray popup for it later
+    return {**result, 'allowed': True, 'last_update': updates.recent_result()}
+
+
+class UpdateChoice(BaseModel):
+    model_config = {'extra': 'forbid'}
+    version: str = Field(min_length=5, max_length=20)
+
+
+@app.post('/api/updates/install')
+async def install_update(body: UpdateChoice, request: Request):
+    """Update now: download and check the updater, start it, then close BEYOND (the updater restarts it)."""
+    if not can_manage(request):
+        return only_this_pc()
+    if app.state.server is None:
+        return JSONResponse({'error': "BEYOND wasn't started with beyond.py, so it can't close itself to update."},
+                            status_code=409)
+    try:
+        await asyncio.to_thread(updates.start, body.version, app.state.running['port'])
+    except updates.UpdateError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=409)
+    return {'ok': True, 'version': body.version}
 
 
 @app.post('/api/restart')
