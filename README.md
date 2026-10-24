@@ -25,13 +25,13 @@ things up, keeps you organised, reads photos, listens, talks back and plays game
 ![Privacy](https://img.shields.io/badge/Privacy-Local%20storage-d96326?style=for-the-badge&logo=shield&logoColor=white&labelColor=0d1117)
 ![AI](https://img.shields.io/badge/AI-OpenAI--compatible%20%C2%B7%20llama.cpp-d96326?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117)
 ![Runs on](https://img.shields.io/badge/Runs%20on-CPU%20only-d96326?style=for-the-badge&logo=intel&logoColor=white&labelColor=0d1117)
-![Roadmap](https://img.shields.io/badge/Roadmap-Phase%2043%20released-d96326?style=for-the-badge&labelColor=0d1117)
+![Roadmap](https://img.shields.io/badge/Release-1.1.0%20%C2%B7%20Phase%2048-d96326?style=for-the-badge&labelColor=0d1117)
 ![Status](https://img.shields.io/badge/Status-1.0.0%20released-d96326?style=for-the-badge&labelColor=0d1117)
 
 </div>
 
-**BEYOND 1.0.0 is available:** [Release notes and downloads](https://github.com/jeremystevens/beyond/releases/tag/v1.0.0).
-Download [BEYOND-1.0.0-source.zip](https://github.com/jeremystevens/beyond/releases/download/v1.0.0/BEYOND-1.0.0-source.zip),
+**BEYOND 1.1.0 is available:** [Release notes and downloads](https://github.com/jeremystevens/beyond/releases/tag/v1.1.0).
+Download [BEYOND-1.1.0-source.zip](https://github.com/jeremystevens/beyond/releases/download/v1.1.0/BEYOND-1.1.0-source.zip),
 extract it, and run **Setup.cmd**. Python libraries, engines and your chosen models download separately during setup.
 
 Install this assistant from this GitHub repository. The PyPI package named beyond is unrelated.
@@ -262,7 +262,7 @@ flowchart LR
 
 ### Automatic text-only setup
 
-Download the [1.0.0 source ZIP](https://github.com/jeremystevens/beyond/releases/download/v1.0.0/BEYOND-1.0.0-source.zip), extract it fully, then double-click **Setup.cmd**. Close an already-running BEYOND before continuing.
+Download the [1.1.0 source ZIP](https://github.com/jeremystevens/beyond/releases/download/v1.1.0/BEYOND-1.1.0-source.zip), extract it fully, then double-click **Setup.cmd**. Close an already-running BEYOND before continuing.
 Setup finds Python 3.14 or offers a verified per-user installation, prepares its isolated environment, installs
 the text-only libraries, checks the app starts, and downloads a pinned CPU build of llama.cpp.
 
@@ -1239,12 +1239,12 @@ blocking Python: allow it on private networks when asked.
 <a id="roadmap"></a>
 ## `▸ ROADMAP`
 
-**BEYOND 1.0.0 is released**, completing the delivery work through **Phase 43**. Phase 37 remains deferred,
+**BEYOND 1.1.0 is released**, adding Phases 44–48 to the 1.0.0 work through Phase 43. Phase 37 remains deferred,
 and the Phase 42 validation exceptions are listed below. The full history and evidence live in
 [`planning/phases.md`](planning/phases.md).
 
 <details open>
-<summary><b>Delivered through Phase 43 · BEYOND 1.0.0</b> (Phase 37 deferred; validation exceptions below)</summary>
+<summary><b>Delivered through Phase 48 · BEYOND 1.1.0</b> (Phase 37 deferred; validation exceptions below)</summary>
 
 <br>
 
@@ -1266,7 +1266,8 @@ and the Phase 42 validation exceptions are listed below. The full history and ev
 | ✅ 35 · Model downloads | ✅ 36 · Status and health | 37 · Other AI servers (deferred) |
 | ✅ 38 · Sign-in and administrator access | ✅ 39 · Automatic setup and optional features | ✅ 40 · First-run welcome guide |
 | ✅ 41 · User guide and license notices | ◐ 42 · Separate-PC testing (exceptions below) | ✅ 43 · BEYOND 1.0.0 release |
-| ✅ 44 · Code blocks, Copy and Save (v1.0.1, not yet released) |  |  |
+| ✅ 44 · Code blocks, Copy and Save | ✅ 45 · Easy updates | ✅ 46 · Adjust this answer |
+| ✅ 47 · Conversation branches | ✅ 48 · Conversation attachments |  |
 
 </details>
 
@@ -1279,7 +1280,8 @@ and the Phase 42 validation exceptions are listed below. The full history and ev
 | **41 · Guide and licenses** | [User guide](docs/USER_GUIDE.md), [third-party notices](THIRD_PARTY_NOTICES.md), collected license texts, package-name check and project acknowledgment. |
 | **42 · Testing** | Separate-PC setup with existing Python 3.14.5, chat, saved conversations, installer rerun, shortcut/port-conflict recovery, Whisper tiny, Kokoro, OCR, vision and image generation confirmed by user testing. |
 | **43 · Release** | [1.0.0 published](https://github.com/jeremystevens/beyond/releases/tag/v1.0.0), with a source ZIP, SHA-256 checksums and artifact metadata. The full Windows/Python 3.14 CI suite passed at the tagged release commit. |
-| **44 · Code blocks** | Highlighted code blocks with their own Copy code and Save code buttons, plus a retry icon for interrupted replies. Built and tested on `main` for v1.0.1, which isn't published yet. See [Phase 44](planning/phase44-code-blocks.md) and the [draft release notes](docs/RELEASE_NOTES_1.1.0.md). |
+| **44 · Code blocks** | Highlighted code blocks with their own Copy code and Save code buttons, plus a retry icon for interrupted replies. See [Phase 44](planning/phase44-code-blocks.md). |
+| **45–48 · 1.1.0** | [1.1.0 published](https://github.com/jeremystevens/beyond/releases/tag/v1.1.0): easy updates from Settings (tested from 1.0.0, 1.0.2 and 0.38.4), Adjust this answer, conversation branches and document attachments. See the [release notes](docs/RELEASE_NOTES_1.1.0.md). |
 
 ### Deferred features and remaining validation
 
