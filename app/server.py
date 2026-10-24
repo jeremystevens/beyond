@@ -1328,6 +1328,18 @@ def rename_chat(chat_id: int, body: Rename):
     return {'ok': True} if found else JSONResponse({'error': 'That chat no longer exists.'}, status_code=404)
 
 
+@app.post('/api/messages/{message_id}/branch')
+def branch_chat(message_id: int):
+    """⑂ Branch from here (Phase 47): a new chat with the conversation up to this AI answer, to continue another
+    way. The original chat stays as it was."""
+    made = chats.branch(message_id)
+    if made is None:
+        return JSONResponse({'error': 'You can branch from an AI answer only.'}, status_code=409)
+    chat_id, answer_id = made
+    chats.set_buttons(answer_id, learning.rating_buttons(answer_id))   # 👍 👎 🔄 ✨ on the branch's newest answer
+    return {'id': chat_id}
+
+
 @app.delete('/api/chats/{chat_id}')
 def delete_chat(chat_id: int):
     image_jobs.remove_previews(chat_id)

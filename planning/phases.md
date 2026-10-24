@@ -512,6 +512,13 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - **Done when:** each choice gives a sensible reply with a small CPU model, and only the newest answer can be
   adjusted. See phase46-adjust-answer.md.
 
+### Phase 47: Conversation branches
+
+- Item 1 of post-v1-feature-brainstorm.md. ⑂ under any AI answer makes a new chat with the conversation up to
+  that answer; the original stays as it was. Branches link back to their original and are marked in the list.
+- **Done when:** a branch continues on its own, deleting either chat keeps the other, and recall doesn't repeat
+  copied exchanges. See phase47-branches.md.
+
 ## Later, optional
 
 - **Shared brain with the Telegram bot:** once BEYOND's core is stable, the bot and BEYOND could share one copy of

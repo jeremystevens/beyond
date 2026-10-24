@@ -98,6 +98,8 @@
     .foot .acts { display: flex; align-items: center; gap: 2px; margin-left: -6px; }
     .foot .stats { margin-top: 0; margin-left: auto; }
     .adjust-menu { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .branch-note button { border: none; background: none; padding: 0; color: var(--accent); font: inherit;
+                          cursor: pointer; text-decoration: underline; min-height: 0; }
     .chip.icon[aria-expanded="true"] { background: var(--bg); color: var(--accent); }
     .chip.icon { width: 30px; height: 30px; padding: 0; border: none; border-radius: 8px; background: none;
                  color: var(--muted); display: inline-flex; align-items: center; justify-content: center; min-height: 0; }
@@ -403,9 +405,10 @@
       down: '<path d="M17 14V2"/><path d="M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z"/>',
       speak: '<path d="M11 4.7a.7.7 0 0 0-1.2-.5L6.4 7.6A1.4 1.4 0 0 1 5.4 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.4a1.4 1.4 0 0 1 1 .4l3.4 3.4a.7.7 0 0 0 1.2-.5z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19.4 18.4a9 9 0 0 0 0-12.8"/>',
       retry: '<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>',
+      branch: '<path d="M6 3v12"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>',
       adjust: '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
     };
-    const FOOT_ORDER = ['copy', 'up', 'down', 'speak', 'retry', 'adjust'];
+    const FOOT_ORDER = ['copy', 'up', 'down', 'speak', 'retry', 'adjust', 'branch'];
     function asIcon(button, kind, label) {
       button.className = 'chip icon';
       button.dataset.kind = kind;
@@ -462,6 +465,13 @@
         acts.append(asIcon(chip, kind, { up: 'Good answer', down: 'Bad answer', retry: 'Try again' }[kind]));
       }
       if (speak) acts.append(asIcon(speak, 'speak', speak.textContent || 'Read aloud'));
+      if (stats && el.dataset.kind !== 'retried' && !acts.querySelector('[data-kind="branch"]')) {
+        const branch = document.createElement('button');
+        branch.type = 'button';
+        asIcon(branch, 'branch', 'Branch from here: continue in a new chat');
+        branch.onclick = () => branchFrom(el, branch);
+        acts.append(branch);
+      }
       if (acts.querySelector('[data-kind="retry"]') && !acts.querySelector('[data-kind="adjust"]')) {
         const adjust = document.createElement('button');
         adjust.type = 'button';
@@ -632,7 +642,7 @@
         if (c.id === chatId) li.className = 'active';
         const open = document.createElement('button');
         open.type = 'button'; open.className = 'item';
-        const t = document.createElement('span'); t.className = 't'; t.textContent = c.title;
+        const t = document.createElement('span'); t.className = 't'; t.textContent = (c.branched_from ? '⑂ ' : '') + c.title;
         const d = document.createElement('span'); d.className = 'd'; d.textContent = when(c.updated_at);
         open.append(t, d);
         open.onclick = () => openChat(c.id);
@@ -680,6 +690,16 @@
       chatId = chat.id;
       list.innerHTML = '';
       if (!chat.messages.length) list.innerHTML = WELCOME;
+      if (chat.branched_from) {   // Phase 47: where this branch came from
+        const note = noteBubble('');
+        note.classList.add('branch-note');
+        if (chat.branched_from_title !== null) {
+          const back = document.createElement('button');
+          back.type = 'button'; back.textContent = 'Open original';
+          back.onclick = () => openChat(chat.branched_from);
+          note.append(`⑂ Branched from "${chat.branched_from_title}" · `, back);
+        } else note.textContent = '⑂ Branched from a chat that has since been deleted';
+      }
       let lastQuestion = null;
       for (const m of chat.messages) {
         if (m.role === 'user') lastQuestion = m;
@@ -688,7 +708,7 @@
                           (['reminder', 'briefing'].includes(m.kind) ? ' reminder' : ''), m.content);
         el.dataset.messageId = String(m.id);
         if (m.stopped) addNote(el, 'Stopped / incomplete');
-        if (m.kind === 'retried') addNote(el, RETRIED);
+        if (m.kind === 'retried') { el.dataset.kind = 'retried'; addNote(el, RETRIED); }
         showLookup(el, m.lookup);
         showStats(el, m.stats);
         showImage(el, m.image);
@@ -910,11 +930,25 @@
       });
     }
 
+    // ⑂ Branch from here (Phase 47): a new chat with the conversation up to this answer; the original stays.
+    async function branchFrom(el, button) {
+      if (current || scanning) return;
+      button.disabled = true;
+      try {
+        const r = await fetch(`/api/messages/${el.dataset.messageId}/branch`, { method: 'POST' });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || 'Something went wrong.');
+        await openChat(data.id);   // also updates the address and the chat list
+        input.focus();
+      } catch (e) { button.disabled = false; bubble('error', e.message); }
+    }
+
     // 🔄 Try again: the old answer stays (marked), and a different one streams in below it.
     function tryAgain(el, messageId, buttons) {
       if (current || scanning) return;
       el.querySelector('.buttons')?.remove();
       const note = addNote(el, RETRIED);
+      el.dataset.kind = 'retried'; el.querySelector('[data-kind="branch"]')?.remove();
       streamAnswer(`/api/messages/${messageId}/retry`, null, el, () => {
         note.remove();   // no new answer: BEYOND put the old one back
         showButtons(el, messageId, buttons);

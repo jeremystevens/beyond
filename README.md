@@ -158,6 +158,10 @@ Code blocks now have offline syntax highlighting and their own **Copy code** and
 
 Under the newest answer, the ✨ button offers **Simpler**, **More detail**, **Show an example** and **Walk me through it**, so you can get a better follow-up without typing a new prompt. The original answer stays, and the adjusted one appears below it.
 
+### Conversation branches
+
+Press ⑂ under any answer to **branch from there**: a new chat with the conversation up to that point, so you can explore another direction (camping in one branch, hotels in another) while the original stays as it was. A branch shows where it came from, with a link back.
+
 ### Updating BEYOND
 
 **Settings → Updates** checks GitHub for a newer version and updates BEYOND with one click: it closes, swaps its program files, keeps your chats, memories, settings, models and files, and starts again. If anything goes wrong, the previous version is put back. Checking is off unless you press **Check for updates** or turn on the daily check. On **1.0.0**, which can't check yet, download `Update-Beyond.cmd` from the latest release into your BEYOND folder and double-click it once. If you set BEYOND up with git, use `git pull` instead.

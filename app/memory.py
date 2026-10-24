@@ -176,6 +176,13 @@ def search(text, skip_ids=(), limit=RECALL_MAX):
     query = ' OR '.join('"' + term.replace('"', '') + '"' for term in terms)
     pairs, seen = [], set()
     with chats.connect() as db:
+        # Branches (Phase 47) hold copies of their original's messages. Leave out an original whose copy is already
+        # in this conversation, and a copy whose original still exists (the original stands for both).
+        skip_ids = set(skip_ids)
+        if skip_ids:
+            marks = ','.join('?' * len(skip_ids))
+            skip_ids |= {row[0] for row in db.execute(f'SELECT copied_from FROM messages WHERE id IN ({marks}) '
+                                                       'AND copied_from IS NOT NULL', tuple(skip_ids))}
         rows = db.execute("""SELECT m.id, m.chat_id, m.role FROM messages_fts f JOIN messages m ON m.id = f.rowid
                              WHERE messages_fts MATCH ? AND m.kind = 'chat'
                              ORDER BY bm25(messages_fts) LIMIT 40""", (query,)).fetchall()
@@ -188,6 +195,10 @@ def search(text, skip_ids=(), limit=RECALL_MAX):
                                       "AND kind = 'chat' AND role = 'user' ORDER BY id DESC LIMIT 1",
                                       (row['chat_id'], row['id'])).fetchone()
             if question is None or question['id'] in seen:
+                continue
+            original = db.execute('SELECT 1 FROM messages WHERE id = (SELECT copied_from FROM messages WHERE id = ?)',
+                                  (question['id'],)).fetchone()
+            if original:   # a branch's copy: the original exchange is found on its own
                 continue
             answer = db.execute("SELECT id, content, rating FROM messages WHERE chat_id = ? AND id > ? AND kind = 'chat' "
                                 "ORDER BY id LIMIT 1", (row['chat_id'], question['id'])).fetchone()

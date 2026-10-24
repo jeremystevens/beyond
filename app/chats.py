@@ -56,9 +56,16 @@ def initialize():
         # stats: the model, tokens, time and speed of an AI answer, as JSON (shown in a small line under it).
         for column in ('rating INTEGER', 'reason TEXT', 'retry_of INTEGER', 'lookup TEXT', 'image TEXT', 'replaces INTEGER',
                        'audio BLOB', 'speech_state TEXT', 'speech_error TEXT', 'speech_engine TEXT',
-                       'speech_truncated INTEGER NOT NULL DEFAULT 0', 'game TEXT', 'stats TEXT'):
+                       'speech_truncated INTEGER NOT NULL DEFAULT 0', 'game TEXT', 'stats TEXT',
+                       'copied_from INTEGER'):   # copied_from (Phase 47): the original of a message copied into a branch
             if column.split()[0] not in columns:
                 db.execute('ALTER TABLE messages ADD COLUMN ' + column)
+        # Branches (Phase 47): the chat a branch was made from, and the answer it was branched at. No foreign keys:
+        # deleting the original keeps the branch.
+        chat_columns = [row['name'] for row in db.execute('PRAGMA table_info(chats)')]
+        for column in ('branched_from INTEGER', 'branched_at INTEGER'):
+            if column.split()[0] not in chat_columns:
+                db.execute('ALTER TABLE chats ADD COLUMN ' + column)
 
 
 def title_from(text):
@@ -191,7 +198,8 @@ def message_count(chat_id, kind='chat'):
 
 def list_chats():
     with connect() as db:
-        rows = db.execute('SELECT id, title, updated_at FROM chats ORDER BY updated_at DESC, id DESC').fetchall()
+        rows = db.execute('SELECT id, title, updated_at, branched_from FROM chats '
+                          'ORDER BY updated_at DESC, id DESC').fetchall()
     return [dict(row) for row in rows]
 
 
@@ -205,13 +213,16 @@ def speech_info(row):
 def get(chat_id):
     """A chat and all its messages, or None."""
     with connect() as db:
-        chat = db.execute('SELECT id, title, created_at, updated_at FROM chats WHERE id = ?', (chat_id,)).fetchone()
+        chat = db.execute('SELECT id, title, created_at, updated_at, branched_from, branched_at FROM chats '
+                          'WHERE id = ?', (chat_id,)).fetchone()
         if chat is None:
             return None
+        original = db.execute('SELECT title FROM chats WHERE id = ?',
+                              (chat['branched_from'],)).fetchone() if chat['branched_from'] else None
         messages = db.execute('SELECT id, role, content, stopped, created_at, kind, buttons, lookup, image, speech_state, speech_error, '
                               'speech_engine, speech_truncated, game, stats FROM messages '
                               'WHERE chat_id = ? ORDER BY id', (chat_id,)).fetchall()
-    return {**dict(chat), 'messages': [{**dict(m), 'stopped': bool(m['stopped']), 'buttons': _buttons(m['buttons']),
+    return {**dict(chat), 'branched_from_title': original['title'] if original else None, 'messages': [{**dict(m), 'stopped': bool(m['stopped']), 'buttons': _buttons(m['buttons']),
                                         'lookup': _lookup(m['lookup']), 'speech': speech_info(m), 'game': _game(m['game']),
                                         'stats': _lookup(m['stats'])} for m in messages]}
 
@@ -229,6 +240,39 @@ def _lookup(raw):
         return json.loads(raw) if raw else None
     except ValueError:
         return None
+
+
+BRANCH_SUFFIX = ' (branch)'
+# Messages a branch doesn't take along: pictures and photo readings still being made belong to the original.
+NOT_COPIED_KINDS = ('vision_pending', 'image_pending')
+
+
+def branch(message_id):
+    """A new chat with the conversation up to and including this AI answer (Phase 47). Returns (chat_id, answer_id
+    of the copied answer), or None if message_id isn't an AI answer. Ratings, buttons, read-aloud audio and games
+    stay with the original; the original itself is unchanged."""
+    now = _now()
+    with connect() as db:
+        point = db.execute('SELECT id, chat_id, role, kind FROM messages WHERE id = ?', (message_id,)).fetchone()
+        if point is None or point['role'] != 'assistant' or point['kind'] != 'chat':
+            return None
+        title = db.execute('SELECT title FROM chats WHERE id = ?', (point['chat_id'],)).fetchone()['title']
+        title = title if title.endswith(BRANCH_SUFFIX) else title[:200 - len(BRANCH_SUFFIX)] + BRANCH_SUFFIX
+        chat_id = db.execute('INSERT INTO chats (title, created_at, updated_at, branched_from, branched_at) '
+                             'VALUES (?, ?, ?, ?, ?)', (title, now, now, point['chat_id'], message_id)).lastrowid
+        marks = ','.join('?' * len(NOT_COPIED_KINDS))
+        rows = db.execute(f'SELECT id, role, content, stopped, created_at, kind, lookup, image, stats FROM messages '
+                          f'WHERE chat_id = ? AND id <= ? AND game IS NULL AND kind NOT IN ({marks}) ORDER BY id',
+                          (point['chat_id'], message_id, *NOT_COPIED_KINDS)).fetchall()
+        answer_id = None
+        for row in rows:
+            copy_id = db.execute('INSERT INTO messages (chat_id, role, content, stopped, created_at, kind, lookup, '
+                                 'image, stats, copied_from) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                                 (chat_id, row['role'], row['content'], row['stopped'], row['created_at'],
+                                  row['kind'], row['lookup'], row['image'], row['stats'], row['id'])).lastrowid
+            if row['id'] == message_id:
+                answer_id = copy_id
+    return chat_id, answer_id
 
 
 def rename(chat_id, title):
