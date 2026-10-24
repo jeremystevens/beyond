@@ -519,6 +519,13 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - **Done when:** a branch continues on its own, deleting either chat keeps the other, and recall doesn't repeat
   copied exchanges. See phase47-branches.md.
 
+### Phase 48: Conversation attachments
+
+- Item 10 of post-v1-feature-brainstorm.md. 📎 attaches a PDF, Word or text file to a chat; each question gets the
+  whole of a short document or the best-matching passages of a long one, with page numbers. Only the text is kept.
+- **Done when:** questions about specific pages and summaries work with a small CPU model, and removing or deleting
+  clears the text. See phase48-attachments.md.
+
 ## Later, optional
 
 - **Shared brain with the Telegram bot:** once BEYOND's core is stable, the bot and BEYOND could share one copy of

@@ -98,6 +98,9 @@
     .foot .acts { display: flex; align-items: center; gap: 2px; margin-left: -6px; }
     .foot .stats { margin-top: 0; margin-left: auto; }
     .adjust-menu { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .msg.user.attachment { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
+    .msg.user.attachment .chip { font-size: 0.82rem; }
+    .attach-line { overflow-wrap: anywhere; }
     .branch-note button { border: none; background: none; padding: 0; color: var(--accent); font: inherit;
                           cursor: pointer; text-decoration: underline; min-height: 0; }
     .chip.icon[aria-expanded="true"] { background: var(--bg); color: var(--accent); }
@@ -125,6 +128,11 @@
                     max(16px, env(safe-area-inset-left)); }
     #backdrop { display: none; }
     #mic.recording { background: #c0392b; border-color: #c0392b; color: #fff; animation: pulse 1.2s infinite; }
+    /* The paper clip and microphone: standard line icons, drawn like the icons under an answer */
+    #attach-photo svg, #mic svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2;
+                                  stroke-linecap: round; stroke-linejoin: round; display: block; margin: auto; }
+    #mic.working svg { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
     #mic.unavailable { opacity: 0.45; }
     .composer { max-width: 760px; margin: 0 auto; display: flex; gap: 8px; align-items: flex-end; position: relative; }
     #cmdmenu { position: absolute; left: 0; right: 0; bottom: calc(100% + 8px); max-height: 320px; overflow-y: auto;
@@ -295,10 +303,10 @@
           <button type="button" class="ghost" id="ask-photo">Ask a question</button>
           <button type="button" class="ghost" id="remove-photo" aria-label="Remove attached photo">Remove</button>
         </div>
-        <input id="photo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+        <input id="photo-file" type="file" accept="image/png,image/jpeg,image/webp,.pdf,.docx,.txt,.md,.markdown,.csv,.tsv,.json,.html,.htm,.xml,.log,.ini,.cfg,.yaml,.yml,.toml,.py,.js,.ts,.css,.java,.c,.h,.cpp,.cs,.go,.rs,.rb,.php,.sh,.ps1,.bat,.sql,.rst,.tex" hidden>
         <div class="composer">
-          <button type="button" class="ghost" id="attach-photo" aria-label="Attach a photo" title="Attach a photo to read its text">📷</button>
-          <button type="button" class="ghost" id="mic" aria-label="Speak your message" title="Speak your message">🎤</button>
+          <button type="button" class="ghost" id="attach-photo" aria-label="Attach a photo or document" title="Attach a photo (read its text or ask about it) or a document (PDF, Word or text) to talk about"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
+          <button type="button" class="ghost" id="mic" aria-label="Speak your message" title="Speak your message"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg></button>
           <ul id="cmdmenu" role="listbox" aria-label="Commands" hidden></ul>
           <textarea id="input" rows="1" placeholder="Message BEYOND…  (type / for commands)" aria-label="Message"
                     title="Enter sends · Shift+Enter starts a new line · / shows the commands"
@@ -382,6 +390,11 @@
           if (b.action) chip.dataset.action = b.action;
           if (b.send && b.send.startsWith('/')) {   // e.g. Next question: sends the command like a typed message
             chip.onclick = () => sendGameCommand(b.send);
+            line.appendChild(chip);
+            continue;
+          }
+          if (b.action && b.action.startsWith('attach:remove:')) {   // ✕ on an attached document (Phase 48)
+            chip.onclick = () => removeAttachment(Number(b.action.split(':')[2]), el);
             line.appendChild(chip);
             continue;
           }
@@ -701,10 +714,12 @@
         } else note.textContent = '⑂ Branched from a chat that has since been deleted';
       }
       let lastQuestion = null;
+      setTimeout(() => chatId === chat.id && showAttachmentLine(chat.attachments), 0);
       for (const m of chat.messages) {
         if (m.role === 'user') lastQuestion = m;
         if (m.kind === 'note') { noteBubble(m.content); continue; }
         const el = bubble(m.role + (m.kind === 'command' && m.role === 'assistant' ? ' command' : '') +
+                          (m.kind === 'attachment' ? ' attachment' : '') +
                           (['reminder', 'briefing'].includes(m.kind) ? ' reminder' : ''), m.content);
         el.dataset.messageId = String(m.id);
         if (m.stopped) addNote(el, 'Stopped / incomplete');
@@ -1832,8 +1847,9 @@
     function choosePhoto(files) {
       if (current || scanning) { bubble('error', 'Wait for this answer to finish before attaching a photo.'); return; }
       if (!files || !files.length) return;
-      if (files.length !== 1) { bubble('error', 'Choose one photo at a time.'); return; }
+      if (files.length !== 1) { bubble('error', 'Choose one file at a time.'); return; }
       const file = files[0];
+      if (!file.type.startsWith('image/') && !/\.(png|jpe?g|webp)$/i.test(file.name)) { attachDocument(file); return; }
       if (!/\.(png|jpe?g|webp)$/i.test(file.name) && !['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
         bubble('error', 'Choose a PNG, JPEG or WebP photo.'); return;
       }
@@ -1867,6 +1883,61 @@
       };
       el.appendChild(copy);
     }
+    // ---------- attached documents (Phase 48) ----------
+    function showAttachmentLine(items) {   // "📎 warranty.pdf · quote.docx" at the top of the chat
+      let line = list.querySelector('.attach-line');
+      if (!items || !items.length) { line?.remove(); return; }
+      if (!line) {
+        line = noteBubble('');
+        line.classList.add('attach-line');
+        const branch = list.querySelector('.branch-note');
+        if (branch) branch.after(line); else list.prepend(line);
+      }
+      line.textContent = '📎 Attached to this chat: ' + items.map(item => item.name).join(' · ');
+    }
+    function attachProblem(status, data, name) {   // what to tell the user when BEYOND didn't take the file
+      if (data.error) return data.error;
+      if (status === 404 && data.detail === 'Not Found')
+        return 'This BEYOND doesn\'t know about attachments yet: it was started before they were added. Quit BEYOND ' +
+               'from the tray icon and start it again, then try once more.';
+      if (status === 413) return `${name} is too large. Choose a document up to 20 MB.`;
+      if (status === 401) return 'Sign in to BEYOND again, then try once more.';
+      return `BEYOND couldn't attach ${name} (error ${status}). See data\\beyond.log on the PC for details.`;
+    }
+    async function attachDocument(file) {
+      if (!file.size) { bubble('error', 'That file is empty.'); return; }
+      if (file.size > 20 * 1024 * 1024) { bubble('error', 'Choose a document up to 20 MB.'); return; }
+      const el = bubble('user attachment', `📎 Attaching ${file.name}…`);
+      try {
+        const query = new URLSearchParams({ name: file.name });
+        if (chatId) query.set('chat_id', chatId);
+        let r;
+        try {
+          r = await fetch('/api/attachments?' + query, {
+            method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: file });
+        } catch { throw new Error(`Couldn't send ${file.name} to BEYOND. Check that BEYOND is running, then try again.`); }
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(attachProblem(r.status, data, file.name));
+        if (data.new) { chatId = data.chat_id; showChatInAddress(); }
+        loadList();
+        fill(el, data.message.content);
+        el.dataset.messageId = String(data.message.id);
+        showButtons(el, data.message.id, data.message.buttons);
+        showAttachmentLine(data.attachments);
+        input.focus();
+      } catch (e) { el.remove(); bubble('error', e.message); }
+    }
+    async function removeAttachment(id, el) {
+      try {
+        const r = await fetch('/api/attachments/' + id, { method: 'DELETE' });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(attachProblem(r.status, data, 'the document'));
+        if (data.message) fill(el, data.message.content);
+        showButtons(el, Number(el.dataset.messageId), []);
+        showAttachmentLine(data.attachments);
+      } catch (e) { bubble('error', e.message); }
+    }
+
     async function readPhoto() {
       if (!pendingPhoto || current || scanning) return;
       const file = pendingPhoto, originChat = chatId;
@@ -1946,11 +2017,17 @@
     // and the words are sent like a typed message. Nothing is saved but the words.
     const mic = $('mic');
     const MAX_RECORDING_MS = 120000;
+    const MIC_ICON = '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>' +
+                     '<path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/>';
     let recorder = null, micChunks = [], micTimer = null, micBusy = false;
 
     function micState(state) {   // 'idle' | 'recording' | 'working'
-      mic.textContent = state === 'recording' ? '⏹' : state === 'working' ? '⏳' : '🎤';
+      mic.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (state === 'recording'
+        ? '<rect x="6" y="6" width="12" height="12" rx="2"/>'          // stop
+        : state === 'working' ? '<path d="M21 12a9 9 0 1 1-6.22-8.56"/>'   // a spinning circle
+        : MIC_ICON) + '</svg>';
       mic.classList.toggle('recording', state === 'recording');
+      mic.classList.toggle('working', state === 'working');
       mic.title = mic.ariaLabel = state === 'recording' ? 'Stop recording and send'
         : state === 'working' ? 'Turning your words into text…' : 'Speak your message';
       mic.disabled = state === 'working';

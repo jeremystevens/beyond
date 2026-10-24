@@ -63,6 +63,14 @@ Controls become available when the reply finishes or is stopped. Reopened chats 
 
 Under the newest answer, press ✨ (**Adjust this answer**) and choose **Simpler**, **More detail**, **Show an example** or **Walk me through it**. Your choice appears as your message, and BEYOND answers it below. The original answer stays, so you can compare them. It's only offered on the newest answer; for an older one, ask in your own words.
 
+### Attaching documents (v1.0.1)
+
+Press 📎 **Attach a photo or document** next to the message box, or drop a file on the chat. Photos work as before. A **PDF**, **Word (.docx)** or **text/code** file (up to 20 MB) is attached to the chat, shown as "📎 Attached …" with a ✕, and listed at the top of the chat. With no chat open, a new one starts, named after the file. Every following question in that chat can use it; answers mention the page they used.
+
+A small AI on a processor can't read a long document at once, so for longer documents BEYOND sends the parts that best match your question. Name what you're looking for ("the warranty", "page 9") for the best results. "Summarise this" covers the opening and headings, not every page. A chat can have up to 5 documents.
+
+Only the text is kept, in BEYOND's database on your PC; the file itself isn't stored. Press ✕ to remove a document, or delete the chat. Scanned PDFs (pictures of pages) have no text: photograph a page and attach the photo instead. Password-protected PDFs and old .doc files can't be read; save a copy as an unprotected PDF or .docx.
+
 ### Branching a conversation (v1.0.1)
 
 Press ⑂ (**Branch from here**) under any answer. BEYOND makes a new chat with the conversation up to that answer and opens it, ready for your next message, and the original chat stays as it was. The branch is named after the original with "(branch)" (rename it with ✎), starts with a link back to the original, and has a ⑂ mark in the chat list. Each chat then goes its own way; deleting one doesn't delete the other.

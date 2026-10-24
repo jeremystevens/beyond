@@ -158,6 +158,10 @@ Code blocks now have offline syntax highlighting and their own **Copy code** and
 
 Under the newest answer, the ✨ button offers **Simpler**, **More detail**, **Show an example** and **Walk me through it**, so you can get a better follow-up without typing a new prompt. The original answer stays, and the adjusted one appears below it.
 
+### Attach documents to a chat
+
+Press 📎 (or drop a file on the chat) to attach a **PDF**, **Word** document or **text** file, then ask about it: "summarise this", "what does page 4 say about the warranty?", "compare the two quotes". The document stays with the chat for follow-up questions, and answers name the page they used. Only the text is kept, on your PC; ✕ removes it. Photos attached the same way still read text (`/scan`) or answer questions (`/look`).
+
 ### Conversation branches
 
 Press ⑂ under any answer to **branch from there**: a new chat with the conversation up to that point, so you can explore another direction (camping in one branch, hotels in another) while the original stays as it was. A branch shows where it came from, with a link back.
@@ -200,8 +204,8 @@ ends with a quiet line: copy, rate, read aloud, try again, and the model, tokens
 
 ![BEYOND's chat page](screenshots/Screenshot1.png)
 
-*Saved chats on the left, the AI connection status, Games and Settings at the top, and the message box with photo
-📷 and voice 🎤 buttons.*
+*Saved chats on the left, the AI connection status, Games and Settings at the top, and the message box with its
+paper clip (attach) and microphone buttons.*
 
 </details>
 
@@ -720,7 +724,7 @@ Python (no extra AI work). Turn it off in Settings; the AI then says it can't ch
 
 <br>
 
-Attach a **PNG, JPEG or WebP** with the 📷 button, or drop one onto the chat (up to 10 MB / 25 megapixels).
+Attach a **PNG, JPEG or WebP** with the paper clip button, or drop one onto the chat (up to 10 MB / 25 megapixels).
 
 - **Read text / `/scan`** uses **RapidOCR** on the CPU, offline. The result has a **Copy text** button. Printed text
   works best. Only one scan runs at a time.
@@ -765,7 +769,7 @@ Set it up on the host PC in **Settings → Picture generation**: `sd-cli.exe` fr
 aloud automatically** is optional in Settings. Speech uses **Kokoro** (Piper as fallback) in a separate CPU process,
 one clip at a time. Clips are saved with the answer and play in an audio player with seek controls.
 
-**Voice input.** Install Whisper tiny or base with **Add-Features.cmd**, then tap **🎤**, speak, and tap **⏹**.
+**Voice input.** Install Whisper tiny or base with **Add-Features.cmd**, then tap the **microphone** button, speak, and tap it again (it shows a stop square while recording).
 Your words are turned into text **on this PC** (faster-whisper, CPU) and sent like a typed message. The recording
 is deleted straight away. The selected local model works offline; recording never triggers a download. Older
 installations can still reuse an already-cached base model. Browsers only allow the microphone on secure pages,

@@ -57,6 +57,7 @@ pyclipper==1.4.0
 pycparser==3.11
 pydantic==2.14.1
 pydantic_core==2.50.1
+pypdf==6.21.2
 pyparsing==3.3.3
 pystray==0.19.5
 python-dateutil==2.9.0.post0

@@ -20,7 +20,7 @@ from app import (autostart, briefing, chats, checklists, commands, config, engin
 
 from app import auth, builtin_engine, downloads, file_reading, file_requests, files, photo_jobs, image_jobs, speech_jobs, blackjack, followups, games, hangman, study_quiz, tictactoe, trivia
 from app.tools import scan, speech, speech_to_text
-from app import diagnostics, updates, welcome
+from app import attachments, diagnostics, updates, welcome
 
 models.initialize()
 chats.initialize()
@@ -849,18 +849,19 @@ def _ai_answer(body, content, request, followup=None, read=''):
         if not follow_up:
             file_reading.open_file(chat_id, reading)   # open for a few follow-up questions in this chat
         extra ='\n\n'.join(part for part in (extra, file_notes) if part)
-    return _answer(chat_id, history, _background(content, sent_ids, values,extra), opening, undo, question=content,
+    return _answer(chat_id, history, _background(content, sent_ids, values, extra, chat_id), opening, undo, question=content,
                    pickup=content if values['auto_facts'] else None,
                    prior_context=followup['state'] if followup else None,
                    suppress_auto=bool(followup) or bool(reading),
                    status=f'📖 Reading {reading}…' if reading and not follow_up else '', retain_on_error=True)
 
 
-def _background(question, sent_ids, values, extra=''):
+def _background(question, sent_ids, values, extra='', chat_id=None):
     """Notes for this reply only: related exchanges from older conversations (any chat), what the ratings taught,
-    and anything else for this reply (Try again's note)."""
+    anything else for this reply (Try again's note), and the parts of the chat's attached documents that fit the
+    question (Phase 48)."""
     parts = [memory.recall_block(question, sent_ids) if values['recall'] else '',
-             learning.prompt_block(question, sent_ids), extra]
+             learning.prompt_block(question, sent_ids), extra, attachments.notes_for(chat_id, question)]
     return '\n\n'.join(part for part in parts if part)
 
 
@@ -1003,7 +1004,7 @@ async def retry_question(question_id: int, request: Request):
     grounded = followups.context_notes(context, question['content']) if context else ''
     _, file_notes, _ = file_reading.for_message(chat_id, question['content'], can_manage(request))
     extra = '\n\n'.join(part for part in (grounded, file_notes) if part)
-    return _answer(chat_id, history, _background(question['content'], sent_ids, settings.load(), extra),
+    return _answer(chat_id, history, _background(question['content'], sent_ids, settings.load(), extra, chat_id),
                    {'type': 'chat', 'id': chat_id, 'new': False, 'question_id': question_id}, undo,
                    question=question['content'], retry_of=old[-1]['id'] if old else None,
                    prior_context=context, suppress_auto=bool(grounded or file_notes))
@@ -1039,7 +1040,7 @@ async def try_again(message_id: int):
     context = followups.for_message(message_id)
     grounded = followups.context_notes(context,history[-1]['content']) if context and followups.REFERENCE.search(history[-1]['content']) else ''
     extra = '\n\n'.join(part for part in (learning.retry_note(old['content']),grounded) if part)
-    background = _background(history[-1]['content'], sent_ids, settings.load(), extra)
+    background = _background(history[-1]['content'], sent_ids, settings.load(), extra, chat_id)
     return _answer(chat_id, history, background, {'type': 'retry', 'id': message_id}, undo,
                    question=history[-1]['content'], retry_of=message_id,
                    temperature=min(1.1, config.TEMPERATURE + 0.3),
@@ -1085,7 +1086,7 @@ async def adjust_answer(message_id: int, body: Adjustment):
     note = (f'[The user pressed "{label}" under your last answer. {instruction} Answer directly; don\'t apologise '
             'or mention a button.]')
     opening = {'type': 'chat', 'id': chat_id, 'new': False, 'title': '', 'question_id': question_id}
-    return _answer(chat_id, history, _background(label, sent_ids, settings.load(), note), opening, undo,
+    return _answer(chat_id, history, _background(label, sent_ids, settings.load(), note, chat_id), opening, undo,
                    question=label, suppress_auto=True, retain_on_error=True)
 
 
@@ -1316,7 +1317,9 @@ def list_chats():
 @app.get('/api/chats/{chat_id}')
 def get_chat(chat_id: int):
     chat = chats.get(chat_id)
-    return chat if chat else JSONResponse({'error': 'That chat no longer exists.'}, status_code=404)
+    if not chat:
+        return JSONResponse({'error': 'That chat no longer exists.'}, status_code=404)
+    return {**chat, 'attachments': attachments.listing(chat_id)}
 
 
 @app.patch('/api/chats/{chat_id}')
@@ -1337,7 +1340,39 @@ def branch_chat(message_id: int):
         return JSONResponse({'error': 'You can branch from an AI answer only.'}, status_code=409)
     chat_id, answer_id = made
     chats.set_buttons(answer_id, learning.rating_buttons(answer_id))   # 👍 👎 🔄 ✨ on the branch's newest answer
+    attachments.copy_to_branch(chat_id)
     return {'id': chat_id}
+
+
+# ---------- attached documents (Phase 48) ----------
+
+@app.post('/api/attachments')
+async def attach_document(request: Request, name: str = Query(min_length=1, max_length=255),
+                          chat_id: int | None = Query(default=None)):
+    """📎 Attach a document (PDF, Word or text) to a chat: the raw file is the request body, at most 20 MB. Only its
+    text is kept. With no chat_id, a new chat is started, named after the file."""
+    body = bytearray()
+    async for chunk in request.stream():
+        if len(body) + len(chunk) > attachments.MAX_BYTES:
+            return JSONResponse({'error': 'That file is larger than 20 MB. Try a smaller file, or just the pages you '
+                                          'need.'}, status_code=413)
+        body.extend(chunk)
+    try:
+        chat, message, item = await asyncio.to_thread(attachments.attach, chat_id, name, bytes(body))
+    except attachments.AttachmentError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=400)
+    return {'chat_id': chat, 'new': chat_id is None, 'title': chats.title_from(item['name']), 'message': message,
+            'attachment': item, 'attachments': attachments.listing(chat)}
+
+
+@app.delete('/api/attachments/{attachment_id}')
+def remove_attachment(attachment_id: int):
+    """✕ on an attachment: BEYOND stops using it and its text is deleted."""
+    item = attachments.get(attachment_id)
+    if item is None:
+        return JSONResponse({'error': 'That attachment was already removed.'}, status_code=404)
+    message = attachments.remove(attachment_id)
+    return {'message': message, 'attachments': attachments.listing(item['chat_id'])}
 
 
 @app.delete('/api/chats/{chat_id}')

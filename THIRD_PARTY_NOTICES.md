@@ -8,6 +8,10 @@ This index accompanies the pinned setup manifests and the Python dependency snap
 
 Highlight.js 11.11.1 (common language bundle plus PowerShell grammar) is redistributed under BSD-3-Clause. Local assets and the complete upstream license are in [app/web/vendor](app/web/vendor); [the vendor README](app/web/vendor/README.md) records pinned sources and SHA-256 values. No CDN is contacted at runtime. BEYOND's code-block stylesheet is project-owned.
 
+## Reading attached PDFs
+
+pypdf 6.21.2 (BSD-3-Clause, pure Python) reads the text of PDFs attached to a chat (Phase 48). Its license is collected in [docs/licenses](docs/licenses/python/pypdf-6.21.2) and recorded in [python-packages.json](docs/licenses/python-packages.json). Word (.docx) files are read with Python's own zipfile and XML modules.
+
 ## Engines and Python
 
 | Component | Source / terms | Included material |
@@ -37,7 +41,7 @@ The optional installer displays each selection's terms and requires explicit acc
 
 ## Python packages
 
-[python-packages.json](docs/licenses/python-packages.json) records all 91 distinct packages pinned across the legacy full lock, text lock and optional constraints/requirements. Each entry identifies the declared version(s), contributing requirements files, matched installed version, license metadata, project links and hashes of copied notice texts. Packages in the legacy full lock or constraints are not all installed by the text-only setup.
+[python-packages.json](docs/licenses/python-packages.json) records all 92 distinct packages pinned across the legacy full lock, text lock and optional constraints/requirements. Each entry identifies the declared version(s), contributing requirements files, matched installed version, license metadata, project links and hashes of copied notice texts. Packages in the legacy full lock or constraints are not all installed by the text-only setup.
 
 The snapshot collected 118 shipped notice files. Ten packages did not ship a matching notice filename in their installed distribution; upstream supplemental sources are indexed in [docs/licenses/README.md](docs/licenses/README.md). Metadata and classifier fields are retained as declared, rather than guessed or rewritten into an MIT label. These include permissive and copyleft dependencies. Blank metadata does not mean no license obligations.
 

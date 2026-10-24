@@ -66,6 +66,24 @@ def initialize():
         for column in ('branched_from INTEGER', 'branched_at INTEGER'):
             if column.split()[0] not in chat_columns:
                 db.execute('ALTER TABLE chats ADD COLUMN ' + column)
+        # Attached documents' text (Phase 48, app/attachments.py), deleted with their chat.
+        db.execute('''CREATE TABLE IF NOT EXISTS attachments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            chat_id INTEGER NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+            message_id INTEGER,
+            name TEXT NOT NULL,
+            kind TEXT NOT NULL,
+            pages INTEGER NOT NULL,
+            chars INTEGER NOT NULL,
+            truncated INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL)''')
+        db.execute('''CREATE TABLE IF NOT EXISTS attachment_passages (
+            attachment_id INTEGER NOT NULL REFERENCES attachments(id) ON DELETE CASCADE,
+            seq INTEGER NOT NULL,
+            page INTEGER,
+            text TEXT NOT NULL,
+            PRIMARY KEY (attachment_id, seq))''')
+        db.execute('CREATE INDEX IF NOT EXISTS idx_attachments_chat ON attachments(chat_id, id)')
 
 
 def title_from(text):

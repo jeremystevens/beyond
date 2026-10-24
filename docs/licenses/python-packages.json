@@ -1757,6 +1757,35 @@
       "notice_status": "copied"
     },
     {
+      "name": "pypdf",
+      "versions": [
+        "6.21.2"
+      ],
+      "requirements": [
+        "requirements-lock.txt",
+        "requirements-text-lock.txt"
+      ],
+      "notice_files": [
+        {
+          "path": "python/pypdf-6.21.2/pypdf-6.21.2.dist-info/licenses/LICENSE",
+          "sha256": "a97ac230e5f33ef10a5367a850eb01f91f1a0b064e34742c7794d2294557f524"
+        }
+      ],
+      "installed_version": "6.21.2",
+      "status": "matched",
+      "license_expression": "BSD-3-Clause",
+      "license_metadata": "",
+      "license_classifiers": [],
+      "project_urls": [
+        "Bug Reports, https://github.com/py-pdf/pypdf/issues",
+        "Changelog, https://pypdf.readthedocs.io/en/latest/meta/CHANGELOG.html",
+        "Documentation, https://pypdf.readthedocs.io/en/latest/",
+        "Source, https://github.com/py-pdf/pypdf"
+      ],
+      "homepage": "",
+      "notice_status": "copied"
+    },
+    {
       "name": "pystray",
       "versions": [
         "0.19.5"
