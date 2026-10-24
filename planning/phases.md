@@ -495,6 +495,16 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - Default and custom chat prompts receive code-fence guidance; no extra model call or Python runtime dependency.
 - Parser, filename, browser, safety, streaming/reopen and prompt checks are covered. See phase44-code-blocks.md for current validation and release status.
 
+### Phase 45: Easy updates (planned)
+
+- Item 13 of post-v1-feature-brainstorm.md. BEYOND checks the `VERSION` file on GitHub against the running version
+  and, when a newer release is out, offers **Update now** in Settings → Updates (this PC or an administrator only).
+- Update now downloads and verifies `Update-Beyond.ps1`, which waits for BEYOND to close, swaps the program files,
+  updates the libraries, keeps data, models, files and the Python environment, restarts BEYOND, and rolls back on
+  failure. 1.0.0 users run `Update-Beyond.cmd` once by hand.
+- **Done when:** a real 1.0.0 installation updates in one go with everything kept, and a failed update leaves a
+  working BEYOND. See phase45-updates.md for the full plan and the open decisions.
+
 ## Later, optional
 
 - **Shared brain with the Telegram bot:** once BEYOND's core is stable, the bot and BEYOND could share one copy of
