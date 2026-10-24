@@ -16,9 +16,21 @@ def _now():
     return datetime.now(timezone.utc).isoformat(timespec='seconds')
 
 
+class _Connection(sqlite3.Connection):
+    """A connection that also closes at the end of `with connect() as db:`, after committing (or rolling back on
+    an error). Plain sqlite3 only commits there, leaving the connection open until Python tidies it up later, with
+    an "unclosed database" warning. Read every result inside the block: the connection is closed after it."""
+
+    def __exit__(self, *problem):
+        try:
+            return super().__exit__(*problem)
+        finally:
+            self.close()
+
+
 def connect():
     config.DATA_DIR.mkdir(exist_ok=True)
-    db = sqlite3.connect(DB_PATH, timeout=10)
+    db = sqlite3.connect(DB_PATH, timeout=10, factory=_Connection)
     db.row_factory = sqlite3.Row
     db.execute('PRAGMA foreign_keys = ON')
     db.execute('PRAGMA busy_timeout = 10000')

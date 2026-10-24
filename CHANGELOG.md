@@ -15,6 +15,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Browser regression coverage for exact code downloads, code-only and whole-reply copying, reopened chats, streamed/stopped replies, safe HTML examples, clipboard fallback, and phone-width overflow.
 
 ### Changed
+- Database connections now close at the end of each `with chats.connect() as db:` block (after committing or rolling back), instead of waiting for Python to tidy them up. This removes the 813 "unclosed database" warnings that filled the test logs, and stops a long-running BEYOND from leaving connections open.
 - Chat instructions request language-labeled code fences, preserving indentation and keeping explanations outside code blocks. Highlighting runs after streaming finishes; unknown languages and very large blocks remain plain code with working controls.
 - Highlight.js 11.11.1 common languages and PowerShell are bundled locally with BSD-3-Clause notices. No runtime Python dependency, CDN request, database migration, or model download is required.
 
