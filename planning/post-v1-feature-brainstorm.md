@@ -149,9 +149,11 @@ Overlap check: extends existing /rewrite with guided drafting and document struc
 
 To discuss: current supported tones, helper layout, combining tone with document type and audience, long-document handling, and export formats. Inclusion in these notes does not assign a release phase.
 
-### 12. Code blocks with syntax highlighting and independent Copy/Save controls
+### 12. Code blocks with syntax highlighting and independent Copy/Save controls ✅ Completed
 
-HIGH PRIORITY: Jeremy explicitly requested this be one of the first items added/fixed in the next roadmap. It addresses a practical usability problem when taking generated code into an editor. Exact release phase remains to be assigned.
+COMPLETED: Built as [Phase 44](phase44-code-blocks.md) (commit 18c12fc), a v1.0.1 candidate. Code blocks now have offline syntax highlighting and their own Copy code and Save code buttons, and the GitHub test run checks them in Chromium. The notes below are kept as the original request.
+
+Originally HIGH PRIORITY: Jeremy explicitly requested this be one of the first items added/fixed in the next roadmap. It addresses a practical usability problem when taking generated code into an editor.
 
 Reported behavior: a request such as a simple Python class example does not produce a properly highlighted code block. The existing bottom Copy button copies the entire reply, including explanatory prose, which can break code when pasted into an editor.
 

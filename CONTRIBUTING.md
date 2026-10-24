@@ -51,6 +51,19 @@ example `python -m unittest tests.test_files`, and the whole suite before openin
 the whole suite on Windows for every pull request and every push to `main` (the **Tests** workflow), and shows
 the result on the pull request.
 
+The chat page's code blocks also have browser tests, which need [Node.js](https://nodejs.org/) (only for
+development, not for running BEYOND):
+
+```powershell
+cd tests\web
+npm ci
+npx playwright install chromium
+npm test
+npm run test:browser
+```
+
+The **Tests** workflow runs these too, as the "Code blocks, Chromium" job.
+
 ## How the code is organised
 
 | Where | What |

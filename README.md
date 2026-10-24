@@ -1250,6 +1250,7 @@ and the Phase 42 validation exceptions are listed below. The full history and ev
 | ✅ 35 · Model downloads | ✅ 36 · Status and health | 37 · Other AI servers (deferred) |
 | ✅ 38 · Sign-in and administrator access | ✅ 39 · Automatic setup and optional features | ✅ 40 · First-run welcome guide |
 | ✅ 41 · User guide and license notices | ◐ 42 · Separate-PC testing (exceptions below) | ✅ 43 · BEYOND 1.0.0 release |
+| ✅ 44 · Code blocks, Copy and Save (v1.0.1, not yet released) |  |  |
 
 </details>
 
@@ -1262,6 +1263,7 @@ and the Phase 42 validation exceptions are listed below. The full history and ev
 | **41 · Guide and licenses** | [User guide](docs/USER_GUIDE.md), [third-party notices](THIRD_PARTY_NOTICES.md), collected license texts, package-name check and project acknowledgment. |
 | **42 · Testing** | Separate-PC setup with existing Python 3.14.5, chat, saved conversations, installer rerun, shortcut/port-conflict recovery, Whisper tiny, Kokoro, OCR, vision and image generation confirmed by user testing. |
 | **43 · Release** | [1.0.0 published](https://github.com/jeremystevens/beyond/releases/tag/v1.0.0), with a source ZIP, SHA-256 checksums and artifact metadata. The full Windows/Python 3.14 CI suite passed at the tagged release commit. |
+| **44 · Code blocks** | Highlighted code blocks with their own Copy code and Save code buttons, plus a retry icon for interrupted replies. Built and tested on `main` for v1.0.1, which isn't published yet. See [Phase 44](planning/phase44-code-blocks.md) and the [draft release notes](docs/RELEASE_NOTES_1.0.1.md). |
 
 ### Deferred features and remaining validation
 
@@ -1283,7 +1285,8 @@ the approach.
 
 1. Fork the repository
 2. Create a branch (`git checkout -b feature/my-idea`)
-3. Make your change and run the tests (`python -m unittest discover -s tests`)
+3. Make your change and run the tests (`python -m unittest discover -s tests`; for chat-page changes, also the
+   browser tests in `tests/web`, see [CONTRIBUTING.md](CONTRIBUTING.md))
 4. Commit with a clear message and push the branch
 5. Open a pull request
 
