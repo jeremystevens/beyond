@@ -12,7 +12,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from app import chats, notify
-from app.tools import scan, vision
+from app.tools import scan, vision, troubleshoot
 
 router = APIRouter()
 _jobs = {}
@@ -25,7 +25,7 @@ def recover():
     for row in pending:
         chats.remove_message(row['id'])
         chats.add_message(row['chat_id'], 'assistant',
-                          'Photo analysis was interrupted when BEYOND stopped. Attach the photo and try /look again.',
+                          'Photo analysis was interrupted when BEYOND stopped. Attach the photo and choose the same action again.',
                           kind='vision_error', replaces=row['id'])
 
 
@@ -38,11 +38,15 @@ async def shutdown():
         await asyncio.gather(*(task for task, _ in jobs), return_exceptions=True)
 
 
-async def _finish(chat_id, pending_id, png, question, values, stop):
+async def _finish(chat_id, pending_id, png, question, values, stop, troubleshooting=False):
     try:
         try:
-            answer = await asyncio.to_thread(vision.ask, png, question, values, stop)
-            kind, popup_kind, title = 'vision', 'reply', 'BEYOND finished looking at your photo'
+            if troubleshooting:
+                answer = await troubleshoot.analyze(png, question, values, stop)
+                kind, popup_kind, title = 'troubleshoot', 'reply', 'BEYOND finished troubleshooting your screenshot'
+            else:
+                answer = await asyncio.to_thread(vision.ask, png, question, values, stop)
+                kind, popup_kind, title = 'vision', 'reply', 'BEYOND finished looking at your photo'
         except vision.VisionError as exc:
             answer, kind, popup_kind, title = str(exc), 'vision_error', 'error', 'BEYOND: photo analysis stopped'
         except Exception:
@@ -73,18 +77,21 @@ def status():
 
 
 @router.post('/api/look')
-async def start(request: Request, chat_id: int | None = None, action: str = 'describe', question: str = ''):
+async def start(request: Request, chat_id: int | None = None, action: str = 'describe', question: str = '', method: str = 'auto'):
     """Accept a raw photo and return its saved progress message; computation outlives the browser request."""
-    if action not in ('describe', 'receipt', 'ask'):
+    if action not in ('describe', 'receipt', 'ask', 'troubleshoot'):
         return JSONResponse({'error': 'Choose Describe it, Receipt / totals, or Ask a question.'}, status_code=400)
+    if action == 'troubleshoot' and method not in troubleshoot.MODES:
+        return JSONResponse({'error': 'Choose Automatic, Read error text, or Understand screen.'}, status_code=400)
     question = question.strip()
     if len(question) > 500 or (action == 'ask' and not question):
         return JSONResponse({'error': 'Type a question of 1–500 characters about the photo.'}, status_code=400)
-    prompt = question if action == 'ask' else vision.ACTIONS[action]
+    troubleshooting = action == 'troubleshoot'
+    prompt = question if action in ('ask', 'troubleshoot') else vision.ACTIONS[action]
     if chat_id is not None and not chats.exists(chat_id):
         return JSONResponse({'error': 'That chat no longer exists. Start a new one.'}, status_code=404)
     try:
-        values = vision.configuration()
+        values = troubleshoot.configuration(method) if troubleshooting else vision.configuration()
     except vision.VisionError as exc:
         return JSONResponse({'error': str(exc)}, status_code=503)
     if not vision.reserve():
@@ -103,14 +110,18 @@ async def start(request: Request, chat_id: int | None = None, action: str = 'des
             return JSONResponse({'error': str(exc)}, status_code=400)
         if chat_id is not None and not chats.exists(chat_id):
             return JSONResponse({'error': 'That chat was deleted while the photo was uploading.'}, status_code=404)
-        current = chats.create('Look at a photo') if chat_id is None else chat_id
+        current = chats.create('Troubleshoot a screenshot' if troubleshooting else 'Look at a photo') if chat_id is None else chat_id
         image = 'data:image/png;base64,' + base64.b64encode(png).decode('ascii')
         label = '/look ' + (question if action == 'ask' else ('Receipt / totals' if action == 'receipt' else 'Describe it'))
-        photo_id = chats.add_message(current, 'user', label, kind='photo', image=image)
+        if troubleshooting:
+            label = 'Troubleshoot this screenshot' + (': ' + question if question else '')
+        photo_id = chats.add_message(current, 'user', label, kind='troubleshoot' if troubleshooting else 'photo', image=image)
         progress = 'Looking at your photo on this PC… Usually about 1–2 minutes. You can keep chatting while I work.'
+        if troubleshooting:
+            progress = 'Reading screenshot evidence and preparing advice on this PC… You can keep chatting while I work.'
         pending_id = chats.add_message(current, 'assistant', progress, kind='vision_pending')
         stop = threading.Event()
-        task = asyncio.create_task(_finish(current, pending_id, png, prompt, values, stop))
+        task = asyncio.create_task(_finish(current, pending_id, png, prompt, values, stop, troubleshooting))
         _jobs[task] = stop
         task.add_done_callback(lambda done: _jobs.pop(done, None))
         started = True

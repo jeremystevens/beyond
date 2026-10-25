@@ -1,7 +1,7 @@
 # BEYOND: Post-v1.0 Feature Brainstorm
 
 Started: 2026-10-23
-Status reviewed: 2026-10-25 against the current GitHub main branch, code, changelog and v1.1.0 documentation. Seven items are implemented (Writing helper and recaps are unreleased); five have partial foundations; one remains open. Original requests below are retained for reference. Remaining scope and future release priorities are not yet approved.
+Status reviewed: 2026-10-25 against the current GitHub main branch, code, changelog and v1.1.0 documentation. Eight items are implemented (Writing helper, recaps and screenshot troubleshooting are unreleased); four have partial foundations; one remains open. Original requests below are retained for reference. Remaining scope and future release priorities are not yet approved.
 
 ## Implementation checklist
 
@@ -13,7 +13,7 @@ Status reviewed: 2026-10-25 against the current GitHub main branch, code, change
 - [ ] 6. Error tracking and recovery - partial; local history, diagnosis and retries exist; GitHub reporting remains.
 - [ ] 7. Mood-aware chat replies - partial; general tone matching exists; deliberate behavior and validation remain.
 - [ ] 8. Search your own documents - partial; attached-document retrieval exists; folder indexing/search remains.
-- [ ] 9. Screenshot troubleshooting - partial; OCR and vision exist; a dedicated guided workflow remains.
+- [x] 9. Screenshot troubleshooting - Phase 51 (unreleased).
 - [x] 10. Conversation attachments - Phase 48.
 - [x] 11. Expanded /rewrite and guided writing helper - Phase 49 (unreleased).
 - [x] 12. Code blocks with syntax highlighting and Copy/Save - Phase 44.
@@ -122,9 +122,9 @@ Overlap check: extends existing file-reading tools into a searchable document co
 
 To discuss: supported formats, scanned PDFs, explicit folder selection, indexing and refresh, local storage, CPU/RAM costs, and how to handle missing or conflicting evidence.
 
-### 9. Screenshot troubleshooting — Partially implemented
+### 9. Screenshot troubleshooting ✅ Completed (unreleased)
 
-**Current status:** Photo attachment, OCR and /look questions provide a foundation for discussing error screenshots. A dedicated troubleshooting flow with uncertain-text confirmation, relevant follow-up questions and guided next steps remains open.
+**Current status:** Implemented in [Phase 51](phase51-screenshot-troubleshooting.md): a dedicated action on attached/pasted screenshots, installed OCR-first or explicit vision, optional context, bounded evidence, focused questions and cautious first checks. Evidence and advice remain in recent chat context for follow-ups. No automated repair or model downloads. Reader/model failures and unclear evidence are explained.
 
 Paste an error screenshot and ask what happened and what to try. Combine the existing image tools with guided troubleshooting that explains the visible error and proposes clear next steps.
 

@@ -539,6 +539,12 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - Reuse a private cache until the conversation changes, allow explicit refresh, and remove it with the chat. Long history uses bounded excerpts with an explicit coverage warning. No extra AI request on normal replies or chat opening.
 - No runtime package, database schema or version/release-signal changes. See [phase50-recaps.md](phase50-recaps.md) for validation and limitations.
 
+### Phase 51: Screenshot troubleshooting
+
+- Dedicated **Troubleshoot this** photo action, clipboard-image attachment, optional user context and reader choice. Reuse optional OCR/CPU vision and existing background photo lifecycle.
+- Ground advice in bounded evidence, distinguish observations from possible causes, ask focused questions and keep evidence/advice in recent chat context. No automated repairs, dependency or schema changes, or release version changes.
+- Details and checks: [phase51-screenshot-troubleshooting.md](phase51-screenshot-troubleshooting.md).
+
 ## Later, optional
 
 - **Shared brain with the Telegram bot:** once BEYOND's core is stable, the bot and BEYOND could share one copy of

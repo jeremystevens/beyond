@@ -19,6 +19,11 @@ APP_CONTRACT = (
 )
 
 _TOOL_HELP = [
+    (r"\b(screenshot|troubleshoot|error photo)\b",
+     "Attach or paste an error screenshot, then choose Troubleshoot this. Automatic uses installed OCR first; "
+     "Understand screen uses optional vision. Add-Features.cmd installs the readers. Add what triggered the error "
+     "in the photo question field. Advice and screenshot evidence stay in this chat for follow-up questions; "
+     "no repair commands run automatically."),
     (r"\b(recap|where we left off|pick up where)\b",
      "The Recap button above a saved chat gives an on-demand summary of decisions, open questions and next steps. "
      "Unchanged chats reuse a private cached recap; Refresh recap regenerates it. Long chats may use selected excerpts. "

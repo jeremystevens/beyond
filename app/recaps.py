@@ -26,7 +26,7 @@ def snapshot(chat_id):
         attached = [dict(row) for row in db.execute(
             'SELECT id,name,kind,chars,truncated FROM attachments WHERE chat_id=? ORDER BY id', (chat_id,))]
     fingerprint = hashlib.sha256(json.dumps([rows, attached], ensure_ascii=False, sort_keys=True).encode()).hexdigest()
-    messages = [row for row in rows if row['kind'] in ('chat', 'command', 'attachment') and row['content'].strip()]
+    messages = [row for row in rows if row['kind'] in ('chat', 'command', 'attachment', 'troubleshoot') and row['content'].strip()]
     return {'fingerprint': fingerprint, 'messages': messages, 'attachments': attached}
 
 

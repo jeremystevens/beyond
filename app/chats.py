@@ -211,7 +211,7 @@ def recent_messages(chat_id, limit, with_ids=False):
     """The last `limit` conversation messages (not commands), oldest first, in the form the AI expects.
     with_ids=True also returns the set of their ids (so the old-conversation search can skip them)."""
     with connect() as db:
-        rows = db.execute("SELECT id, role, content FROM messages WHERE chat_id = ? AND kind = 'chat' "
+        rows = db.execute("SELECT id, role, content FROM messages WHERE chat_id = ? AND kind IN ('chat', 'troubleshoot') "
                           'ORDER BY id DESC LIMIT ?', (chat_id, limit)).fetchall()
     messages = [{'role': row['role'], 'content': row['content']} for row in reversed(rows)]
     return (messages, {row['id'] for row in rows}) if with_ids else messages

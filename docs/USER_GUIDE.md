@@ -63,6 +63,17 @@ Controls become available when the reply finishes or is stopped. Reopened chats 
 
 Under the newest answer, press ✨ (**Adjust this answer**) and choose **Simpler**, **More detail**, **Show an example** or **Walk me through it**. Your choice appears as your message, and BEYOND answers it below. The original answer stays, so you can compare them. It's only offered on the newest answer; for an older one, ask in your own words.
 
+### Screenshot troubleshooting (unreleased)
+
+1. Attach a PNG, JPEG or WebP error screenshot with the paperclip, drop it on chat, or paste an image into the message box. The existing limits apply: 10 MB, 25 megapixels, one still image at a time. Crop out private details before sharing it with BEYOND.
+2. Optionally describe what triggered the error or what you already tried in the photo question field.
+3. Press **Troubleshoot this**. **Automatic** uses installed **Read text in photos (OCR)** first, otherwise configured **Photo understanding (vision)**. Select **Read error text** to require OCR, or **Understand screen** to require vision for layout/icon problems. There is no silent download or switch to another reader after a failure. Use **Add-Features.cmd** to install the relevant reader; enable/configure Photo understanding in Settings for vision. You can also paste the exact error as normal text.
+4. The job runs in the background. Its reply explains visible evidence, possible causes, up to three initial checks, and up to two focused questions. Reply normally with the result or missing details. The evidence and advice remain part of this chat's recent conversation context, including after reopening. As with other long chats, older messages can leave the model's context window.
+
+The result includes the reader's bounded evidence so you can correct misread text. OCR cannot interpret layout, and vision can misread text or invent details; confirm important error codes and ask for clarification. An empty OCR result asks for a clearer crop, vision, or pasted text. The feature does not inspect your machine, run commands, make repairs, download programs, or verify a fix. It uses the configured text AI after the reader finishes; an external text AI receives that evidence if selected. The screenshot and messages are saved in this chat and removed when the chat is deleted. New troubleshooting evidence also invalidates its recap cache. Copy the answer using **Copy text**.
+
+If a reader/model fails or is busy, BEYOND replaces the progress message with an explanation. The attached image remains available to try again while the page is open; after reopening, reattach it. Restart interrupts an unfinished job rather than silently repeating it. Existing Read text, Describe it, Receipt / totals and Ask a question actions continue to work separately.
+
 ### Conversation recaps (unreleased)
 
 Open a saved chat and press **Recap** above the conversation to pick up where you left off. The recap covers the topic, user-confirmed decisions/agreed facts, unfinished questions and a suggested next step. Suggestions should remain distinct from actual decisions; review the result because a model can make mistakes. Attached file names provide context, but the recap does not read their full contents or check current web facts.

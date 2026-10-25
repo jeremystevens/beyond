@@ -91,7 +91,7 @@ async def _watch_ai():
         await asyncio.sleep(60)
 
 
-ARRIVALS = ('reminder', 'briefing', 'vision', 'vision_error', 'image', 'image_error')   # messages BEYOND posts by itself; the page asks for new ones every few seconds
+ARRIVALS = ('reminder', 'briefing', 'vision', 'vision_error', 'troubleshoot', 'image', 'image_error')   # messages BEYOND posts by itself; the page asks for new ones every few seconds
 BRIEFING_CHAT = '☀️ Morning briefing'
 
 
