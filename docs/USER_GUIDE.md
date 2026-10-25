@@ -63,6 +63,16 @@ Controls become available when the reply finishes or is stopped. Reopened chats 
 
 Under the newest answer, press ✨ (**Adjust this answer**) and choose **Simpler**, **More detail**, **Show an example** or **Walk me through it**. Your choice appears as your message, and BEYOND answers it below. The original answer stays, so you can compare them. It's only offered on the newest answer; for an older one, ask in your own words.
 
+### Conversation recaps (unreleased)
+
+Open a saved chat and press **Recap** above the conversation to pick up where you left off. The recap covers the topic, user-confirmed decisions/agreed facts, unfinished questions and a suggested next step. Suggestions should remain distinct from actual decisions; review the result because a model can make mistakes. Attached file names provide context, but the recap does not read their full contents or check current web facts.
+
+The first request generates a recap. Unchanged conversations reuse the saved recap without another model request, including after restarting BEYOND. **Refresh recap** explicitly generates another. New/edited messages, retried answers and added/removed attachments make the old cache ineligible; the next request creates a current recap. Opening chats and ordinary replies do not run recap generation.
+
+For long chats, BEYOND sends bounded excerpts from the opening and recent messages so the request fits a small CPU model. The panel shows how many messages contributed and warns that older details may be missing. This is not a complete audit of every message. Very small/external context windows may require a larger context in Models or on the external server if the model rejects the request.
+
+**Copy recap** copies the recap text. Close hides the panel; the cache remains in private **data/recaps/** until the chat is deleted. Deleting the chat removes its recap, and branches have independent caches. Keep recap files private with the rest of data/. A failed refresh leaves the existing cache intact; reopening can reuse it if the conversation has not changed. If the conversation changes during generation, BEYOND asks you to request it again rather than saving a stale result. A cache write failure still returns the generated text for copying. The configured AI connection handles the request, including an external server if selected.
+
 ### Writing helper (unreleased)
 
 On phones, the message box uses the full width, with attachment, microphone and pen icons underneath and Send on the right. Press the **pen** or send `/rewrite` by itself. Choose:

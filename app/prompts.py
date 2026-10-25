@@ -19,6 +19,10 @@ APP_CONTRACT = (
 )
 
 _TOOL_HELP = [
+    (r"\b(recap|where we left off|pick up where)\b",
+     "The Recap button above a saved chat gives an on-demand summary of decisions, open questions and next steps. "
+     "Unchanged chats reuse a private cached recap; Refresh recap regenerates it. Long chats may use selected excerpts. "
+     "Your normal reply does not save or refresh that recap."),
     (r"\b(rewrite|writing helper|email|draft|professional document|technical specification)\b",
      "Writing: /rewrite <tone> <text> polishes text. Sending /rewrite alone in the browser or pressing the pen icon "
      "opens Writing helper for email replies and documents, with 16 tones, audience/detail controls and editable "

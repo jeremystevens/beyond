@@ -20,7 +20,7 @@ from app import (autostart, briefing, chats, checklists, commands, config, engin
 
 from app import auth, builtin_engine, downloads, file_reading, file_requests, files, photo_jobs, image_jobs, speech_jobs, blackjack, followups, games, hangman, study_quiz, tictactoe, trivia
 from app.tools import scan, speech, speech_to_text, rewrite
-from app import attachments, diagnostics, updates, welcome
+from app import attachments, diagnostics, updates, welcome, recaps
 
 models.initialize()
 chats.initialize()
@@ -1314,6 +1314,64 @@ def list_chats():
     return chats.list_chats()
 
 
+RECAP_LOCK = asyncio.Lock()
+
+
+class RecapRequest(BaseModel):
+    model_config = {'extra': 'forbid'}
+    refresh: bool = False
+
+
+@app.post('/api/chats/{chat_id}/recap')
+async def recap_chat(chat_id: int, body: RecapRequest, request: Request):
+    source = recaps.snapshot(chat_id)
+    if source is None:
+        return JSONResponse({'error': 'That chat no longer exists.'}, status_code=404)
+    existing = recaps.cached(chat_id, source)
+    if existing and not body.refresh:
+        return {**existing, 'cached': True, 'saved': True}
+    if RECAP_LOCK.locked() or WRITING_LOCK.locked() or ANSWERS_IN_PROGRESS or builtin_engine.busy():
+        return JSONResponse({'error': 'The AI is busy. Try the recap after its current reply finishes.'}, status_code=409)
+    values = settings.load()
+    context = values['engine_context'] if values['ai_mode'] == 'builtin' else 8192
+    tokens = min(600, max(180, context // 4))
+    budget = min(12000, max(800, (context - tokens - 600) * 2))
+    try:
+        payload, coverage = recaps.prepare(source, budget)
+    except recaps.RecapError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=400)
+    async with RECAP_LOCK:
+        task = asyncio.create_task(engine.complete(recaps.prompt(payload, coverage['partial']), max_tokens=tokens, temperature=0.2))
+        try:
+            while not task.done():
+                if await request.is_disconnected():
+                    return Response(status_code=499)
+                await asyncio.wait({task}, timeout=0.25)
+            text = (await task).strip()
+        except engine.EngineError as exc:
+            return JSONResponse({'error': str(exc)}, status_code=503)
+        finally:
+            if not task.done():
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+    if not text or len(text) > recaps.MAX_RECAP_CHARS:
+        return JSONResponse({'error': 'The AI did not return a usable recap. Your saved recap is unchanged.'}, status_code=502)
+    latest = recaps.snapshot(chat_id)
+    if latest is None or latest['fingerprint'] != source['fingerprint']:
+        return JSONResponse({'error': 'The conversation changed while the recap was being made. Open it again for a current recap.'}, status_code=409)
+    try:
+        result = recaps.save(chat_id, source, text, coverage)
+        saved = True
+    except OSError:
+        result = {'text': text, **coverage, 'created_at': ''}
+        saved = False
+    # Deletion may race a cache write on another request; never leave that deleted chat's recap behind.
+    if not chats.exists(chat_id):
+        recaps.remove(chat_id)
+        return JSONResponse({'error': 'That chat was deleted.'}, status_code=404)
+    return {**result, 'cached': False, 'saved': saved}
+
+
 @app.get('/api/chats/{chat_id}')
 def get_chat(chat_id: int):
     chat = chats.get(chat_id)
@@ -1513,7 +1571,7 @@ async def writing_draft(body: WritingDraft, request: Request):
             rewrite.messages(**values)
     except rewrite.WritingError as exc:
         return JSONResponse({'error': str(exc)}, status_code=400)
-    if WRITING_LOCK.locked() or ANSWERS_IN_PROGRESS or builtin_engine.busy():
+    if WRITING_LOCK.locked() or RECAP_LOCK.locked() or ANSWERS_IN_PROGRESS or builtin_engine.busy():
         return JSONResponse({'error': 'The AI is busy. Try the writing helper after its current reply finishes.'}, status_code=409)
     async with WRITING_LOCK:
         task = asyncio.create_task(rewrite.draft(**values))

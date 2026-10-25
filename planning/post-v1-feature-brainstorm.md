@@ -1,12 +1,12 @@
 # BEYOND: Post-v1.0 Feature Brainstorm
 
 Started: 2026-10-23
-Status reviewed: 2026-10-24 against the current GitHub main branch, code, changelog and v1.1.0 documentation. Six items are implemented (Writing helper is unreleased); five have partial foundations; two remain open. Original requests below are retained for reference. Remaining scope and future release priorities are not yet approved.
+Status reviewed: 2026-10-24 against the current GitHub main branch, code, changelog and v1.1.0 documentation. Seven items are implemented (Writing helper and recaps are unreleased); five have partial foundations; one remains open. Original requests below are retained for reference. Remaining scope and future release priorities are not yet approved.
 
 ## Implementation checklist
 
 - [x] 1. Conversation branches - Phase 47.
-- [ ] 2. Pick up where we left off - open; no dedicated conversation recap.
+- [x] 2. Pick up where we left off - Phase 50 (unreleased).
 - [ ] 3. Voice conversation mode - partial; individual Whisper messages and spoken replies exist.
 - [ ] 4. Side-by-side comparisons - open; no dedicated editable comparison view.
 - [x] 5. Adjust this answer - Phase 46.
@@ -37,9 +37,9 @@ Example: Explore camping in one vacation-planning branch and hotels in another.
 
 To discuss: branch naming, navigation, copied attachments, and how memories and house rules apply.
 
-### 2. Pick up where we left off — Open
+### 2. Pick up where we left off ✅ Completed (unreleased)
 
-**Current status:** Old-chat recall exists, but there is no dedicated reopening recap of decisions, unfinished questions and next steps.
+**Current status:** Implemented in [Phase 50](phase50-recaps.md): a Recap control above a saved chat, on-demand generation, a private cache keyed to conversation content, explicit refresh, Copy, and deletion cleanup. Ordinary replies and opening chats do not trigger generation. Long conversations use bounded opening/recent excerpts with a visible coverage warning; this is not a full-history audit. Validation and limitations are recorded in the phase notes.
 
 When reopening a long chat, offer a short recap of decisions, unfinished questions, and the next step. Ground the recap in the conversation and let the user request or refresh it.
 

@@ -818,6 +818,10 @@ your user's startup programs.
 ---
 
 <a id="settings"></a>
+### Pick up where we left off (unreleased)
+
+Open a saved chat and press **Recap** above the conversation. BEYOND summarizes decisions, open questions and the next step on request. An unchanged chat reuses its cached recap without another AI call; **Refresh recap** explicitly creates another. Long chats use selected excerpts and say so. Ordinary chat replies incur no recap request. See the [user guide](docs/USER_GUIDE.md#conversation-recaps-unreleased).
+
 ### Writing helper (unreleased)
 
 Press the monochrome **pen** beside the message box, or send `/rewrite` alone, to polish text, draft an email reply, or write a professional/technical document. Choose a tone, optionally set the audience and detail, then review the editable draft. **Copy draft**, **Save draft**, and **Revise draft** work on the draft alone. Attached chat documents are used only if selected. The helper never sends an email or writes a host file automatically. See the [writing guide](docs/USER_GUIDE.md#writing-helper-unreleased) for every tone and document type.

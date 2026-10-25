@@ -14,6 +14,8 @@
   <script src="/static/code-blocks.js?v=1"></script>
   <link rel="stylesheet" href="/static/writing-helper.css?v=1">
   <script src="/static/writing-helper.js?v=1"></script>
+  <link rel="stylesheet" href="/static/chat-recap.css?v=1">
+  <script src="/static/chat-recap.js?v=1"></script>
   <script src="/static/auth.js?v=1"></script>
   <script src="/static/app-height.js?v=3" defer></script>
   <style>
@@ -285,6 +287,7 @@
       <ul id="chats"></ul>
     </aside>
     <div class="chatcol">
+      <div id="recap-tools" hidden><button id="recap-open" type="button" class="ghost" title="Pick up where we left off: recap this chat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2 7M3 4v7h7M12 7v5l3 2"/></svg>Recap</button></div>
       <main id="log"><div class="inner" id="messages"></div></main>
       <form id="form">
         <div id="imagine-panel" hidden>
@@ -330,6 +333,12 @@
       </form>
     </div>
   </div>
+  <dialog id="recap-dialog" aria-labelledby="recap-title">
+    <h2 id="recap-title">Where we left off</h2>
+    <p id="recap-status" role="status" aria-live="polite"></p>
+    <div id="recap-text"></div>
+    <div class="recap-actions"><button id="recap-refresh" class="ghost" type="button">Refresh recap</button><button id="recap-copy" class="ghost" type="button" disabled>Copy recap</button><button id="recap-close" class="ghost" type="button">Close</button></div>
+  </dialog>
   <dialog class="writing-dialog" id="writing-dialog" aria-labelledby="writing-title">
     <div class="writing-heading"><h2 id="writing-title">Writing helper</h2><button type="button" class="ghost" id="writing-close" aria-label="Close Writing helper">Close</button></div>
     <form id="writing-form">
@@ -359,6 +368,7 @@
     </section>
   </dialog>
   <script>
+    let recapHelper = null;
     let chatId = null;    // the open saved chat (null = a new chat that isn't saved until its first message)
     let current = null;   // the reply being written: { controller, stopped }
     let scanning = false;
@@ -660,6 +670,7 @@
       send.title = busy ? 'Stop the answer (Esc)' : '';
       $('games-open').disabled = busy;
       $('writing-open').disabled = busy;
+      recapHelper?.changed();
     }
 
     function stop() { if (current) { current.stopped = true; current.controller.abort(); } }
@@ -715,7 +726,7 @@
       }
     }
 
-    function showChatInAddress() { history.replaceState(null, '', chatId ? '#chat=' + chatId : location.pathname); }
+    function showChatInAddress() { history.replaceState(null, '', chatId ? '#chat=' + chatId : location.pathname); recapHelper?.changed(); }
 
     function newChat() {
       stop();
@@ -2253,6 +2264,7 @@
     window.addEventListener('blur', reportPresence);
     reportPresence();
     setInterval(() => { if (document.visibilityState === 'visible' && document.hasFocus()) reportPresence(); }, 10000);
+    recapHelper = BeyondRecap.init({getChatId: () => chatId, isBusy: () => !!current || scanning});
     const writingHelper = BeyondWriting.init({ getChatId: () => chatId,
       hasAttachments: () => !!list.querySelector('.attach-line'), isBusy: () => !!current || scanning });
     autoGrow();

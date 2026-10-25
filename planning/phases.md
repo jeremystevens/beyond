@@ -533,6 +533,12 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - No new runtime dependency or data migration. Both version fields and the release signal remain unchanged until a release is prepared under docs/RELEASING.md.
 - Validation and limits: [phase49-writing-helper.md](phase49-writing-helper.md). Live MSI testing requires the remote PC to reconnect.
 
+### Phase 50: Pick up where we left off
+
+- Item 2 of post-v1-feature-brainstorm.md: on-demand recap above a saved chat, with decisions, unfinished questions and suggested next steps grounded in source messages.
+- Reuse a private cache until the conversation changes, allow explicit refresh, and remove it with the chat. Long history uses bounded excerpts with an explicit coverage warning. No extra AI request on normal replies or chat opening.
+- No runtime package, database schema or version/release-signal changes. See [phase50-recaps.md](phase50-recaps.md) for validation and limitations.
+
 ## Later, optional
 
 - **Shared brain with the Telegram bot:** once BEYOND's core is stable, the bot and BEYOND could share one copy of

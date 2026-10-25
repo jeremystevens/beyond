@@ -1,0 +1,11 @@
+#recap-tools { padding:4px 16px; border-bottom:1px solid var(--border); text-align:right; }
+#recap-tools[hidden] {display:none;}
+#recap-open { display:inline-flex; gap:6px; align-items:center; font-weight:400; }
+#recap-open svg {width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;}
+#recap-dialog {width:min(640px,calc(100vw - 24px));max-height:calc(100dvh - 24px);margin:auto;overflow:auto;
+  padding:18px;box-sizing:border-box;border:1px solid var(--border);border-radius:12px;background:var(--panel);color:var(--text);}
+#recap-dialog::backdrop {background:rgba(0,0,0,.45);}
+#recap-dialog h2 {font-size:1.15rem;margin:0 0 10px;}
+#recap-status {font-size:.9rem;color:var(--muted);}
+#recap-text {white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;}
+.recap-actions {display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}

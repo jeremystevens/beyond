@@ -315,4 +315,7 @@ def rename(chat_id, title):
 
 def delete(chat_id):
     with connect() as db:
-        return db.execute('DELETE FROM chats WHERE id = ?', (chat_id,)).rowcount > 0
+        removed = db.execute('DELETE FROM chats WHERE id = ?', (chat_id,)).rowcount > 0
+    from app import recaps  # local import avoids a module cycle; cache is private derived data
+    recaps.remove(chat_id)
+    return removed
