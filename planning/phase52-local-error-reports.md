@@ -16,4 +16,11 @@ Final item in Jeremy's selected four-feature batch. Build useful local reports f
 
 - Ten focused Python checks cover safe allowlists, optional facts, common redaction patterns, unknown categories/timestamps, simulated errors, expired IDs, validation, unavailable resources, literal text and no writes/side effects. Existing diagnostics and diagnosis tests also pass locally.
 - Browser coverage exercises on-demand construction, notes/options, literal preview, exact edited Copy/Save, invalidation, expired-entry handling and mobile dark layout.
-- Full Windows/browser CI and installed-app results will be recorded after execution. Follow docs/RELEASING.md before publishing; both release-version fields remain unchanged.
+- Passed both full Windows/Python 3.14 and Chromium jobs in GitHub run 40166788097 on commit 6903d46. The first browser run exposed Windows clipboard CRLF conversion; the check now normalizes platform line endings as the existing Copy tests do, while the saved-file check remains byte-for-byte. Follow docs/RELEASING.md before publishing; both release-version fields remain unchanged.
+
+### Installed-app verification
+
+- Installed on MSI and restarted BEYOND only, leaving other applications running. The new report route validated correctly.
+- A uniquely marked simulated error passed live preview generation, simulated-test labeling, optional environment information, fixed filename and redaction of a dummy password/URL in notes. No model request or raw log/chat read is part of report construction.
+- Removed only the temporary simulated entry by its ID and unique marker. Existing test and real error history were retained. Reports/notes were not saved on the server.
+- README, user guide, changelog, phase roadmap and brainstorm status are updated. Both release-version fields are unchanged. GitHub submission and duplicate matching remain future work.
