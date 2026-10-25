@@ -30,10 +30,14 @@ VISION_QUESTION = (
 def ocr_ready():
     if scan._engine is not None:
         return True
-    if scan._onnxruntime is None or importlib.util.find_spec('rapidocr') is None:
+    spec = importlib.util.find_spec('rapidocr')
+    if scan._onnxruntime is None or spec is None:
         return False
     folder = settings.load().get('ocr_model_dir', '')
-    return bool(folder) and all((Path(folder) / name).is_file() for name in (
+    # Earlier installations cached these models inside RapidOCR, before Add-Features used data/.
+    # Require every asset before selecting OCR; constructing RapidOCR with missing assets could download them.
+    folder = Path(folder) if folder else Path(spec.origin).parent / 'models'
+    return all((folder / name).is_file() for name in (
         'PP-OCRv6_det_small.onnx', 'PP-OCRv6_rec_small.onnx', 'ch_ppocr_mobile_v2.0_cls_mobile.onnx'))
 
 

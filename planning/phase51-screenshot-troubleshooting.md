@@ -13,6 +13,6 @@ Selected by Jeremy after conversation recaps. Add a focused screenshot action us
 
 ## Validation
 
-- Ten isolated Python checks cover OCR/vision selection, missing dependencies, evidence-based generation, saved follow-up context, arrivals, unreadable evidence, validation, failures, deletion, cancellation and busy/empty models.
+- Eleven isolated Python checks cover OCR/vision selection, missing dependencies, evidence-based generation, saved follow-up context, arrivals, unreadable evidence, validation, failures, deletion, cancellation and busy/empty models.
 - Browser checks cover attachment and clipboard preview, action/context/reader submission, result rendering/Copy, literal HTML safety, recovery after missing features, and narrow mobile layout.
-- Full CI and installed-app checks will be recorded after execution. Release version fields and root VERSION remain unchanged; follow docs/RELEASING.md before publishing.
+- Feature commit 57008b4 passed full Windows/Python 3.14 and Chromium checks in GitHub run 40159901327. MSI installation/restart and live route validation passed. The live OCR attempt identified an earlier installation with all three models cached inside RapidOCR but no installer model-folder setting; readiness now recognizes that complete cache too, with a regression check. Final compatibility and live model results will be recorded after execution. Release version fields and root VERSION remain unchanged; follow docs/RELEASING.md before publishing.

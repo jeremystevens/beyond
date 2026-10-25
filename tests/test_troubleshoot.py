@@ -4,6 +4,7 @@ import tempfile
 import threading
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import httpx
@@ -147,3 +148,15 @@ class TroubleshootTests(unittest.IsolatedAsyncioTestCase):
                 with patch.object(engine,'complete',new=AsyncMock(side_effect=response if isinstance(response,Exception) else None,return_value=response)):
                     with self.assertRaises(vision.VisionError):
                         await troubleshoot.analyze(png(False),'',{'mode':'ocr'},threading.Event())
+
+    async def test_existing_cached_ocr_models_are_reused_without_an_installer_folder(self):
+        package=Path(self.temp.name)/'rapidocr';models=package/'models';models.mkdir(parents=True)
+        names=['PP-OCRv6_det_small.onnx','PP-OCRv6_rec_small.onnx','ch_ppocr_mobile_v2.0_cls_mobile.onnx']
+        with patch.object(scan,'_engine',None),patch.object(scan,'_onnxruntime',object()), \
+             patch.object(troubleshoot.importlib.util,'find_spec',return_value=SimpleNamespace(origin=str(package/'__init__.py'))):
+            self.assertFalse(troubleshoot.ocr_ready())
+            for name in names:(models/name).write_bytes(b'cached model')
+            self.assertTrue(troubleshoot.ocr_ready())
+            self.assertEqual(troubleshoot.configuration()['mode'],'ocr')
+            (models/names[-1]).unlink()
+            self.assertFalse(troubleshoot.ocr_ready())

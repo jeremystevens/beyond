@@ -1,7 +1,8 @@
 """Local text recognition, ported from PromptetheusBot's plugins/scan.py.
 
 RapidOCR's local models run on the CPU. One image is read at a time; no photo or
-recognized text is sent to an external service or the chat model.
+recognized text is sent anywhere by this reader. Screenshot troubleshooting
+explicitly passes its extracted evidence to the configured text AI separately.
 """
 import io
 import logging
