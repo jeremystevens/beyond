@@ -14,7 +14,7 @@ Help a small local model, such as google_gemma-3-4b-it-Q4_K_M, deliver a more ca
 | Think it through mode | For a difficult request, build a short plan, produce an answer, then check it against the original request. | Optional extra processing for harder questions; takes longer and needs bounded passes. A second pass alone is not reliable verification. |
 | Answer checking | **Implemented (unreleased):** [Answer checking](answer-checking.md). Verify calculations with Python, current facts through existing search tools, and document claims against source passages. | Ground answers in evidence. Distinguish checked claims from unverified ones; respect existing tool permissions. |
 | Clarify before guessing | Ask one useful question when an important detail is missing. | Avoid invented assumptions, especially in troubleshooting and technical writing. Do not interrupt straightforward requests unnecessarily. |
-| Conversation working notes | **Implemented for testing (unreleased):** [Working notes](conversation-working-notes.md). Keep compact notes of the current goal, confirmed facts, decisions and unresolved questions. | Improve continuity in long chats. Distinct from the existing on-demand recap: these notes support the model's active context. Define update timing, correction and deletion behavior before implementation. |
+| Conversation working notes | **Implemented (unreleased):** [Working notes](conversation-working-notes.md). Keep compact notes of the current goal, confirmed facts, decisions and unresolved questions. | Improve continuity in long chats. Distinct from the existing on-demand recap: these notes support the model's active context. Define update timing, correction and deletion behavior before implementation. |
 | Break down larger requests | Split a substantial request into manageable steps, complete them and combine the results into a consistent answer. | Improve completeness without overwhelming a small context window. Bound steps and provide progress/cancellation. |
 | A second look button | Let the user flag a questionable answer; recheck assumptions and available evidence, then provide a corrected answer when warranted. | More useful than simple regeneration. Explain corrections and avoid treating agreement with an earlier answer as proof. |
 | Code checking before delivery | Check supported generated code for syntax errors and missing pieces before presenting it. | Clearly distinguish syntax checking from actual program testing. Define supported languages; executing generated code requires a separately designed safe approach. |
@@ -39,7 +39,7 @@ The remaining suggestions are also candidates; this order is a recommendation, n
 
 ## Next step
 
-Answer checking was selected first and is implemented. Conversation working notes are implemented for testing. Other candidates await further instructions; no new release version has been selected.
+Answer checking was selected first and is implemented. Conversation working notes are implemented. Other candidates await further instructions; no new release version has been selected.
 
 ## Additional candidate: voice conversation and transcription
 

@@ -1,6 +1,6 @@
 # Conversation working notes
 
-Status: implemented for testing; unreleased after 1.2.0
+Status: implemented; unreleased after 1.2.0
 Date: 2026-10-25
 
 ## Behavior
@@ -16,4 +16,6 @@ Working notes sits beside Recap for a saved chat. It opens an editable, themed d
 ## Interface and checks
 The existing recap area contains the new control, leaving the composer and reply icon row unchanged. The dialog scrolls on small screens, follows the current theme and uses 44 px mobile buttons.
 Backend checks cover isolation, no inference/history scan in normal context, newer turns, source invalidation, pause/clear, conflicting saves, branches, conversation deletion, draft errors and generation races. Browser checks exercise explicit generation, review/save, pause, failure preservation, clear, and 320/390/760 px dark layouts.
-Full Windows/Python 3.14 and Chromium checks must pass before merge. Release version and phase remain unchanged.
+Full Windows/Python 3.14 and Chromium checks passed on feature commit 270fdde38dd7be9892223754e14604964df1045f (Actions run 40224748631). The documentation follow-up and post-merge main checks are validated separately. Release version and phase remain unchanged.
+
+Live testing confirmed that the real model drafted compact notes without saving them, used a fact supplied only in notes, and respected pause/clear state. The initial request for a one-word code returned CEDAR instead of CEDAR73; an explicit request to include its digits returned the complete code. Notes improve context, not precision guarantees. Only validation chats and their notes were removed.

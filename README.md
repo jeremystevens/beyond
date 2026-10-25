@@ -480,7 +480,7 @@ All appear in **/help** and the **/** command menu. Open **Settings → Status a
 
 ### Conversation working notes
 
-This is an unreleased addition after 1.2.0. Open a saved chat and choose **Working notes**, beside **Recap**. Keep a short goal, confirmed facts, decisions and open questions there.
+This is an unreleased addition after 1.2.0. Open a saved chat and choose **Working notes**, beside **Recap**. Keep a short goal, confirmed facts, decisions and open questions there. Recap helps you catch up; active working notes are included as context for later AI replies.
 
 Write notes yourself, or press **Draft from chat**, review and edit the result, then **Save and use**. Drafts are never used automatically. Saved active notes support later replies in that chat only; **Pause** keeps the text without using it, and **Clear notes** removes it. They are separate from global memories and do not add messages to the chat.
 
