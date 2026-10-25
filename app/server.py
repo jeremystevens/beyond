@@ -1062,6 +1062,77 @@ ADJUSTMENTS = {
 }
 
 
+class AnswerCheck(BaseModel):
+    model_config = {'extra': 'forbid'}
+    mode: Literal['math', 'documents', 'web']
+    claim: str = Field(default='', max_length=2000)
+    expression: str = Field(default='', max_length=200)
+    query: str = Field(default='', max_length=300)
+
+
+@app.get('/api/messages/{message_id}/check')
+def answer_check_source(message_id: int):
+    from app import answer_checks
+    try:
+        row = answer_checks.source_answer(message_id)
+    except answer_checks.CheckError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=404)
+    return {'claim': row['content'][:2000], 'expression': answer_checks.suggested_expression(row['content']), 'truncated': len(row['content']) > 2000,
+            'has_documents': bool(attachments.listing(row['chat_id']))}
+
+
+@app.post('/api/messages/{message_id}/check')
+async def check_answer(message_id: int, body: AnswerCheck, request: Request):
+    from app import answer_checks
+    try:
+        row = answer_checks.source_answer(message_id)
+        if body.mode == 'math':
+            return {**answer_checks.arithmetic(body.expression), 'at': datetime.now(timezone.utc).isoformat(timespec='seconds'), 'sources': []}
+        if not body.claim.strip():
+            raise answer_checks.CheckError('Select or enter a specific claim to check.')
+    except answer_checks.CheckError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=400)
+    if WRITING_LOCK.locked() or RECAP_LOCK.locked() or ANSWERS_IN_PROGRESS or builtin_engine.busy():
+        return JSONResponse({'error': 'The AI is busy. Check this answer after its current task finishes.'}, status_code=409)
+    async with WRITING_LOCK:
+        async def work():
+            evidence, method, limit = await asyncio.to_thread(answer_checks.evidence, row, body.mode, body.claim, body.query)
+            values = settings.load()
+            context = values['engine_context'] if values['ai_mode'] == 'builtin' else 8192
+            # Explicitly select a short claim; never silently assess a truncated claim.
+            allowance = min(6000, max(0, (context - 600) * 2 - len(body.claim)))
+            if allowance < 400:
+                raise answer_checks.CheckError('Select a shorter claim or choose a larger model context before checking.')
+            clipped = len(evidence) > allowance
+            evidence = evidence[:allowance]
+            result = {'evidence': evidence, 'method': method, 'limit': limit + (' Evidence was shortened to fit the model context.' if clipped else ''),
+                      'at': datetime.now(timezone.utc).isoformat(timespec='seconds'),
+                      'sources': answer_checks.source_links(evidence) if body.mode == 'web' else [], 'ai_used': False}
+            try:
+                text = await asyncio.wait_for(engine.complete(answer_checks.prompts(body.claim, evidence), max_tokens=300, temperature=0.1), timeout=120)
+                result.update(assessment=text.strip()[:4000] or 'No usable assessment returned. No conclusion established.', ai_used=True)
+            except (engine.EngineError, TimeoutError):
+                result['assessment'] = 'The AI assessment is unavailable. Review the evidence below; no conclusion has been established.'
+            return result
+        task = asyncio.create_task(work())
+        try:
+            while not task.done():
+                if await request.is_disconnected():
+                    return Response(status_code=499)
+                await asyncio.wait({task}, timeout=0.25)
+            result = await task
+        except answer_checks.CheckError as exc:
+            return JSONResponse({'error': str(exc)}, status_code=400)
+        finally:
+            if not task.done():
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+    latest = chats.get_message(message_id)
+    if not latest or latest['content'] != row['content']:
+        return JSONResponse({'error': 'The answer changed or was deleted. Open the checker again.'}, status_code=409)
+    return result
+
+
 class Adjustment(BaseModel):
     model_config = {'extra': 'forbid'}
     kind: Literal['simpler', 'detail', 'example', 'steps']

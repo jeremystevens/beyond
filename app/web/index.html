@@ -16,6 +16,8 @@
   <script src="/static/writing-helper.js?v=1"></script>
   <link rel="stylesheet" href="/static/chat-recap.css?v=1">
   <script src="/static/chat-recap.js?v=1"></script>
+  <script src="/static/answer-checks.js?v=1"></script>
+  <link rel="stylesheet" href="/static/answer-checks.css?v=1">
   <script src="/static/auth.js?v=1"></script>
   <script src="/static/app-height.js?v=3" defer></script>
   <style>
@@ -99,7 +101,7 @@
     /* The quiet line under an AI answer: small light icons on the left, the stats on the right */
     .foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px;
             margin-top: 8px; white-space: normal; }
-    .foot .acts { display: flex; align-items: center; gap: 2px; margin-left: -6px; }
+    .foot .acts { display: flex; align-items: center; flex-wrap: wrap; max-width:100%; gap: 2px; margin-left: -6px; }
     .foot .stats { margin-top: 0; margin-left: auto; }
     .adjust-menu { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .msg.user.attachment { background: var(--panel); color: var(--text); border: 1px solid var(--border); }
@@ -339,6 +341,17 @@
       </form>
     </div>
   </div>
+  <dialog id="check-dialog" aria-labelledby="check-title">
+    <h2 id="check-title">Check answer</h2>
+    <p id="check-status" role="status" aria-live="polite"></p>
+    <label for="check-mode">Check against</label><select id="check-mode"><option value="math">Calculator</option><option id="check-documents" value="documents">Attached documents</option><option value="web">Public web search</option></select>
+    <p id="check-notice"></p>
+    <div id="check-claim-box"><label for="check-claim">Claim to check (select a specific part of the answer)</label><textarea id="check-claim" rows="4" maxlength="2000"></textarea></div>
+    <div id="check-expression-box"><label for="check-expression">Expression or equation</label><input id="check-expression" maxlength="200" placeholder="15% of 80 = 12"></div>
+    <div id="check-query-box" hidden><label for="check-query">Search query sent to public search</label><input id="check-query" maxlength="300" placeholder="Enter a focused public-fact question"></div>
+    <div class="check-actions"><button id="check-run" type="button">Check</button><button id="check-close" type="button" class="ghost">Close</button></div>
+    <section id="check-result" hidden><h3 id="check-assessment-title">Check result</h3><p id="check-assessment"></p><h3>Evidence used</h3><pre id="check-evidence"></pre><div id="check-sources"></div><p id="check-limit"></p></section>
+  </dialog>
   <dialog id="recap-dialog" aria-labelledby="recap-title">
     <h2 id="recap-title">Where we left off</h2>
     <p id="recap-status" role="status" aria-live="polite"></p>
@@ -732,7 +745,7 @@
       }
     }
 
-    function showChatInAddress() { history.replaceState(null, '', chatId ? '#chat=' + chatId : location.pathname); recapHelper?.changed(); }
+    function showChatInAddress() { BeyondAnswerChecks.changed(); history.replaceState(null, '', chatId ? '#chat=' + chatId : location.pathname); recapHelper?.changed(); }
 
     function newChat() {
       stop();
@@ -995,6 +1008,9 @@
         chip.onclick = () => adjustAnswer(el, kind);
         menu.append(chip);
       }
+      const check=document.createElement('button');check.type='button';check.className='chip';check.textContent='Check answer';
+      check.onclick=()=>{menu.remove();button.setAttribute('aria-expanded','false');BeyondAnswerChecks.open(Number(el.dataset.messageId));};
+      menu.append(check);
       el.append(menu);
       if (nearBottom()) scrollDown(true);
     }
@@ -2276,6 +2292,7 @@
     window.addEventListener('blur', reportPresence);
     reportPresence();
     setInterval(() => { if (document.visibilityState === 'visible' && document.hasFocus()) reportPresence(); }, 10000);
+    BeyondAnswerChecks.init();
     recapHelper = BeyondRecap.init({getChatId: () => chatId, isBusy: () => !!current || scanning});
     const writingHelper = BeyondWriting.init({ getChatId: () => chatId,
       hasAttachments: () => !!list.querySelector('.attach-line'), isBusy: () => !!current || scanning });

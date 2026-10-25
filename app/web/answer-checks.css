@@ -1,0 +1,16 @@
+#check-dialog {width:min(680px,calc(100vw - 24px));max-height:calc(100dvh - 24px);margin:auto;overflow:auto;padding:18px;box-sizing:border-box;border:1px solid var(--border);border-radius:12px;background:var(--panel);color:var(--text);}
+#check-dialog::backdrop {background:rgba(0,0,0,.45);}
+#check-dialog h2 {font-size:1.15rem;margin:0 0 10px;}
+#check-dialog label {display:block;margin-top:12px;}
+#check-dialog textarea,#check-dialog input,#check-dialog select {width:100%;box-sizing:border-box;max-width:100%;}
+#check-dialog pre,#check-assessment,#check-limit,#check-sources {white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5;}
+#check-dialog pre {font-family:inherit;}
+#check-dialog .check-actions {display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+#check-status,#check-notice,#check-limit {font-size:.9rem;color:var(--muted);}
+
+@media (max-width:760px) {
+  #check-dialog {padding:14px;}
+  #check-dialog input,#check-dialog select,#check-dialog textarea {font-size:16px;min-height:44px;}
+  #check-dialog button {min-height:44px;}
+  .adjust-menu .chip {min-height:44px;}
+}

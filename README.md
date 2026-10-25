@@ -478,6 +478,16 @@ Health commands: **/status** shows host resources and AI state; **/model** ident
 **/speed** (or **/speed 1–50**) shows saved reply timings; **/selftest** runs read-only checks.
 All appear in **/help** and the **/** command menu. Open **Settings → Status and health** for the full page.
 
+### Check an answer against evidence
+
+This is an unreleased addition after 1.2.0. Under a saved AI reply, open **Adjust answer** and choose **Check answer**. The original answer stays unchanged.
+
+- **Calculator:** enter arithmetic or an equation such as `15% of 80 = 12`. Simple equations in the reply are suggested when recognized. This uses the safe calculator, without AI inference or network access; it checks that expression only.
+- **Attached documents:** select one specific claim and compare it with passages from documents attached to this chat. File/page evidence appears alongside a separate AI assessment. Missing evidence does not prove a claim false.
+- **Public web search:** enter the public query yourself, then press **Search and check**. Only that query is sent to search. Review the snippets and source links; pages are not opened, and search results are not proof that the whole answer is correct.
+
+Checks are optional and add no requests to normal replies. One model assessment is used for document/web checks when available. If it fails, evidence remains available with no conclusion. Close to cancel; check results are not saved. Editing inputs hides the previous result. The dialog follows the current theme and fits narrow phones. See [implementation notes](planning/answer-checking.md).
+
 ### Quick host and model status
 
 These commands are available on the development branch after 1.2.0; they are not in the published 1.2.0 ZIP.
@@ -1279,7 +1289,7 @@ blocking Python: allow it on private networks when asked.
 and the Phase 42 validation exceptions are listed below. The full history and evidence live in
 [`planning/phases.md`](planning/phases.md).
 
-**Completed after 1.2.0 (unreleased):** host-status chat command, direct model identity questions, runtime model context and [clearing recent error history](planning/clear-error-history.md). See [implementation notes](planning/chat-host-status.md). Future capability ideas remain [brainstorming](planning/small-model-capability-ideas.md), not an approved roadmap.
+**Completed after 1.2.0 (unreleased):** host-status chat command, direct model identity questions, runtime model context, [answer checking](planning/answer-checking.md) and [clearing recent error history](planning/clear-error-history.md). See [implementation notes](planning/chat-host-status.md). Future capability ideas remain [brainstorming](planning/small-model-capability-ideas.md), not an approved roadmap.
 
 <details open>
 <summary><b>Delivered through Phase 53 · BEYOND 1.2.0</b> (Phase 37 deferred; validation exceptions below)</summary>

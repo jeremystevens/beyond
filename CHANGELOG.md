@@ -8,6 +8,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 See [host-status notes](planning/chat-host-status.md) and [error-history notes](planning/clear-error-history.md). These additions are not yet in a published release.
 
 ### Added
+- Optional **Check answer** in the existing Adjust answer menu: safe arithmetic checks, attached-document evidence and explicit public search with a separate AI assessment. Ordinary chat stays unchanged; source snippets and limits are visible. Mobile dialog follows the existing theme.
 - Recent errors now has a confirmed **Clear error history** action for the host PC or signed-in administrators. It removes saved summaries only and continues recording new errors. Existing history is preserved during migration, and error IDs are not reused after clearing.
 - `/model` and common spoken/typed model identity questions return live engine information directly without LLM inference.
 - `/status` reports host resources, uptime, optional NVIDIA metrics and AI/model status without inference. Chat runtime context now identifies the built-in model or a recent server-reported model, distinguishing unconfirmed configured models.

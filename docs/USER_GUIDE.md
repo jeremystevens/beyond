@@ -234,3 +234,13 @@ These checks generate no AI answer, load no model and restart nothing. Explicit 
 ### Clear recent error history
 
 In **Settings → Status and health → Recent errors**, **Clear error history** removes all retained summaries (including test entries) after confirmation. It is available on the host PC or to a signed-in administrator. This cannot be undone. New errors are still recorded; chats, settings, detailed log files and already exported reports are kept. **Clear test errors** continues to remove simulated entries only. This is an unreleased addition after 1.2.0.
+
+### Check an answer against evidence
+
+This is an unreleased addition after 1.2.0. Under a saved AI reply, open **Adjust answer** and choose **Check answer**. The original answer stays unchanged.
+
+- **Calculator:** enter arithmetic or an equation such as `15% of 80 = 12`. Simple equations in the reply are suggested when recognized. This uses the safe calculator, without AI inference or network access; it checks that expression only.
+- **Attached documents:** select one specific claim and compare it with passages from documents attached to this chat. File/page evidence appears alongside a separate AI assessment. Missing evidence does not prove a claim false.
+- **Public web search:** enter the public query yourself, then press **Search and check**. Only that query is sent to search. Review the snippets and source links; pages are not opened, and search results are not proof that the whole answer is correct.
+
+Checks are optional and add no requests to normal replies. One model assessment is used for document/web checks when available. If it fails, evidence remains available with no conclusion. Close to cancel; check results are not saved. Editing inputs hides the previous result. The dialog follows the current theme and fits narrow phones. See [implementation notes](../planning/answer-checking.md).

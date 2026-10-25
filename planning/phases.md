@@ -559,6 +559,8 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 
 ## Completed after 1.2.0 (unreleased)
 
+- [Answer checking](answer-checking.md): optional calculator, attached-document and public-search evidence checks in the existing reply menu.
+
 - [Recent error history](clear-error-history.md) can be cleared after confirmation by the host PC or a signed-in administrator; raw logs are preserved.
 
 - [Host status and model awareness](chat-host-status.md): /status, /model, direct spoken/typed model identity questions and runtime context. Release version and phase remain unchanged until release preparation.

@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "test": "node --test code-blocks.test.cjs",
-    "test:browser": "node code-blocks.browser.cjs && node writing-helper.browser.cjs && node recaps.browser.cjs && node troubleshoot.browser.cjs && node error-reports.browser.cjs && node clear-errors.browser.cjs"
+    "test:browser": "node code-blocks.browser.cjs && node writing-helper.browser.cjs && node recaps.browser.cjs && node troubleshoot.browser.cjs && node error-reports.browser.cjs && node clear-errors.browser.cjs && node answer-checks.browser.cjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"
