@@ -15,7 +15,10 @@ Selected by Jeremy after Phase 49. Add a recap on request and cache it until the
 
 - 12 isolated Python tests: generation/cache reuse, source and attachment invalidation, busy/cache behavior, explicit refresh, concurrent edits/deletion, cleanup/independent caches, failed/empty outputs, malformed/unwritable cache, bounded Unicode excerpts and cancellation. Existing writing, branch, prompt and recovery regressions are also checked.
 - Added browser coverage for no automatic recap on chat opening, generated/cached status, explicit refresh, coverage warnings, Copy, literal HTML safety, errors, switching chats, and mobile dark layout.
-- Windows/full CI and live model smoke results will be recorded after running. Neither root VERSION nor app/config.py's release version is changed. Follow docs/RELEASING.md before publishing.
+- Passed GitHub Tests run 40158432317 on feature commit e9abddb: full Windows/Python 3.14 suite and Chromium browser checks. The recap, writing-helper and code-block browser checks also passed on MSI; desktop/mobile recap screenshots were inspected. Local recap (12), writing (11), chat recovery (5), branch (6) and prompt (4) tests passed.
+- Installed on MSI and restarted BEYOND only. A temporary fictional chat passed real-model recap generation, unchanged-source cache reuse, unchanged-message checks and deletion cleanup. The model preserved the distinction between an agreed option/budget and an undecided color. The temporary chat and recap were removed.
+- The full local Windows run was stopped because of memory pressure on the shared PC; full-suite validation was completed in GitHub instead. No unrelated applications were stopped.
+- Neither root VERSION nor app/config.py's release version is changed. This feature is unreleased; follow docs/RELEASING.md before publishing.
 
 ## Limits
 

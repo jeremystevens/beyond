@@ -1,7 +1,7 @@
 # BEYOND: Post-v1.0 Feature Brainstorm
 
 Started: 2026-10-23
-Status reviewed: 2026-10-24 against the current GitHub main branch, code, changelog and v1.1.0 documentation. Seven items are implemented (Writing helper and recaps are unreleased); five have partial foundations; one remains open. Original requests below are retained for reference. Remaining scope and future release priorities are not yet approved.
+Status reviewed: 2026-10-25 against the current GitHub main branch, code, changelog and v1.1.0 documentation. Seven items are implemented (Writing helper and recaps are unreleased); five have partial foundations; one remains open. Original requests below are retained for reference. Remaining scope and future release priorities are not yet approved.
 
 ## Implementation checklist
 
