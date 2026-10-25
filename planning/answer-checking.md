@@ -1,6 +1,6 @@
 # Answer checking
 
-Status: implemented for testing; unreleased after 1.2.0
+Status: implemented; unreleased after 1.2.0
 Date: 2026-10-25
 
 ## Goal and interface
@@ -18,7 +18,9 @@ Open the existing Adjust answer icon under a saved AI reply, then choose Check a
 
 ## Validation
 Focused backend tests cover correct/incorrect equations, malicious expressions, explicit-query isolation, no-result/missing-source behavior, model failure, busy state, deleted answers, source-data prompt boundaries and equation suggestions.
-Browser coverage exercises the real chat menu, no checks on chat opening, literal rendering, safe links, errors, changed inputs and narrow 320/390/760 px dark layouts. Full Windows/Python 3.14 and Chromium CI must pass before merge.
+Browser coverage exercises the real chat menu, no checks on chat opening, literal rendering, safe links, errors, changed inputs and narrow 320/390/760 px dark layouts. Full Windows/Python 3.14 and Chromium CI passed on feature commit fc817007c856ea896e99467e08a0ac0445321b1d (Actions run 40222457154).
+
+Live validation after restarting BEYOND confirmed that an incorrect equation is detected without AI inference, the original reply is unchanged, and the chat serves the checker menu/dialog. Only the validation chat was removed. The user confirmed the phone layout works. Documentation-only follow-up checks and post-merge main checks are required before moving on.
 
 ## Future possibilities
 Automatic claim extraction, full-page retrieval, multiple-source reliability ranking, deeper mathematical reasoning, code execution and automatic corrections are outside this first increment. Conversation working notes and the other brainstorm candidates remain separate work.

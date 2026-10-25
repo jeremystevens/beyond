@@ -1089,6 +1089,8 @@ BEYOND's page talks to a small JSON API, which you can use from scripts too.
 | `GET` · `POST` | `/api/auth` · `/api/auth/password` · `…/remove` · `…/sign-out-device` · `…/sign-out-all` | The password and signed-in devices (this PC only) |
 | `GET` | `/api/ai-status` | Whether the AI server is reachable, and its model |
 | `GET` | `/api/status` | PC resources, model state and configured service/port checks |
+| `GET` | `/api/messages/{id}/check` | Load a saved AI answer and a possible equation; no inference or search |
+| `POST` | `/api/messages/{id}/check` | Explicit math/document/web evidence check; original answer stays unchanged |
 | `GET` | `/api/status/speed` | Saved reply timings and averages by model; `limit=1–50` |
 | `GET` | `/api/status/errors` | Bounded app error summaries; `limit=1–200` |
 | `DELETE` | `/api/status/errors` | Clear retained summaries; host PC or signed-in administrator only |
