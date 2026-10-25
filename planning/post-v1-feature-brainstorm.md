@@ -79,7 +79,7 @@ To discuss: which actions appear, how the result joins the conversation, and int
 
 ### 6. Error tracking and recovery — Partially implemented
 
-**Current status:** Local error history, health checks, AI diagnosis and interrupted-chat retry recovery are implemented. Still open: a reviewed/redacted report, convenient report export, optional GitHub issue submission, duplicate matching and issue-status links. Do not reimplement the existing diagnostics foundation.
+**Current status:** Local error history, health checks, AI diagnosis and interrupted-chat retry recovery are implemented. Local report preview/export is implemented in [Phase 52](phase52-local-error-reports.md), with optional notes/system facts, best-effort redaction, editable preview and exact Copy/Save. Still open: optional GitHub issue submission, duplicate matching and issue-status links. Do not reimplement the existing diagnostics foundation.
 
 Jeremy noted that PromptetheusBot has built-in error tracking that BEYOND lacks. Explore capturing failures and giving users a clear message with Retry, View details, and Copy error report where appropriate.
 

@@ -7,6 +7,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Local error report preview/export (Phase 52, unreleased): Report beside recent errors adds optional user notes and local system facts, best-effort redaction, an editable preview, exact Copy/Save as text, and explicit simulated-test labeling. No raw logs/chats, AI generation, server probes, GitHub submission or uploads.
+
 - Screenshot troubleshooting (Phase 51, unreleased): Troubleshoot this on an attached/pasted screenshot, installed OCR-first or explicit CPU vision, optional context, focused advice/questions, and saved evidence for follow-ups. Background processing reuses photo job lifecycle; no automatic repair or model downloads. Missing readers and unreadable evidence are explained.
 - On-demand conversation recaps (Phase 50). **Recap** above a saved chat summarizes the topic, confirmed decisions, open questions and a suggested next step. Unchanged chats reuse a private cache, including after restart; new/edited conversation content or attachment changes invalidate it. Refresh recap explicitly regenerates. Ordinary replies and chat opening never generate a recap. Long chats use bounded opening/recent excerpts with a visible coverage warning. Deleting the chat removes its cached recap. No new runtime dependency or database migration.
 - Expanded `/rewrite` and Writing helper (Phase 49). A monochrome pen button beside the composer, or `/rewrite` alone, opens Polish my writing, Reply to an email and Draft a document. All 13 requested tones are available, plus the retained funny, polite and dramatic styles. Audience, detail and 13 document types include technical specifications, README, installation/troubleshooting guides, API references and incident reports.

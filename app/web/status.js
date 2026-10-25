@@ -77,7 +77,7 @@
   function controls() {
     const busy = refreshing || testing || diagnosing || managing;
     for (const id of ['refresh','selftest','add-test-error','clear-test-errors']) $(id).disabled = busy;
-    document.querySelectorAll('.diagnose-button').forEach(button => { button.disabled = busy; });
+    document.querySelectorAll('.diagnose-button,.report-button').forEach(button => { button.disabled = busy; });
   }
   function renderErrors(data) {
     $('errors').replaceChildren(...data.items.map(e => {
@@ -89,7 +89,11 @@
       button.setAttribute('aria-label','Diagnose ' + e.source + ' error from ' + date(e.created_at));
       button.onclick = () => diagnose(e);
       const actions = el('div',undefined,'error-actions');
-      actions.append(row.lastChild,button); row.append(actions);
+      const report = el('button','Report','ghost report-button');
+      report.type='button';report.title='Preview and export a local error report';
+      report.setAttribute('aria-label','Preview report for '+e.source+' error from '+date(e.created_at));
+      report.onclick=()=>BeyondErrorReports.open(e.id,e.source);
+      actions.append(row.lastChild,button,report); row.append(actions);
       return row;
     }));
     $('error-empty').hidden = data.items.length > 0;

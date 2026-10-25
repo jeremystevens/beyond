@@ -341,3 +341,13 @@ async def clear_test_errors():
 async def diagnose_error(request: Request, error_id: int = PathParam(gt=0)):
     from app.error_diagnosis import diagnose
     return await diagnose(error_id, request.app.state.running)
+
+
+# Reports use a separate allowlist and local readings; no health probes or model requests.
+from app.error_reports import ReportNotes
+
+
+@router.post('/api/status/errors/{error_id}/report')
+async def preview_error_report(body: ReportNotes, error_id: int = PathParam(gt=0)):
+    from app.error_reports import build
+    return await asyncio.to_thread(build, error_id, body)

@@ -545,6 +545,12 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - Ground advice in bounded evidence, distinguish observations from possible causes, ask focused questions and keep evidence/advice in recent chat context. No automated repairs, dependency or schema changes, or release version changes.
 - Details and checks: [phase51-screenshot-troubleshooting.md](phase51-screenshot-troubleshooting.md).
 
+### Phase 52: Local error report preview and export
+
+- Final item in the selected four-feature batch. Extend existing error history with user notes, optional local environment facts, best-effort redaction, editable preview and exact Copy/Save as text.
+- No raw log/chat reads, AI calls, server probes or GitHub submission. Future submission/duplicate matching remains separate. No runtime dependency, database migration or release version changes.
+- Scope and validation: [phase52-local-error-reports.md](phase52-local-error-reports.md).
+
 ## Later, optional
 
 - **Shared brain with the Telegram bot:** once BEYOND's core is stable, the bot and BEYOND could share one copy of

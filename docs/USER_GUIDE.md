@@ -63,6 +63,16 @@ Controls become available when the reply finishes or is stopped. Reopened chats 
 
 Under the newest answer, press ✨ (**Adjust this answer**) and choose **Simpler**, **More detail**, **Show an example** or **Walk me through it**. Your choice appears as your message, and BEYOND answers it below. The original answer stays, so you can compare them. It's only offered on the newest answer; for an older one, ask in your own words.
 
+### Local error reports (unreleased)
+
+Open **Status and health** and find **Recent errors**. Press **Report** beside an entry. Optionally describe what happened, what you expected, steps to reproduce and what you tried. Each field allows 2,500 characters. **Include current app and system information** adds release/Python/OS versions, AI mode/state, feature switches, processor count, RAM, free disk and uptime. Turn it off to omit those current readings. The release version may not identify unreleased code from a git installation.
+
+Press **Build preview**, then review and edit the report. **Copy report** copies exactly the preview; **Save report** downloads that same text as `beyond-error-report-<local error number>.txt`. The browser chooses the save location or asks where to save it according to your download settings. BEYOND does not write a report file into its installation, and it does not retain your notes as a saved draft. Closing/reopening or reloading starts a new draft. Changing the input notes/options disables export until you rebuild the preview; rebuilding replaces preview edits.
+
+Reports use a fixed description for the recorded error category, not raw exception text. They do not automatically collect chat content, raw logs, diagnosis/AI output, user/host names, model names, file paths, server URLs or credentials. Common secrets, URLs, email/IP addresses and local paths in your notes are removed where recognized. This is best effort: review the text carefully before sharing, including any edits you make afterward. Preview edits are exported literally and are not redacted again.
+
+No AI request, server reachability check, GitHub submission or upload is made by report preparation/export. Current information describes the app now, not necessarily the moment of the error, and a fixed summary cannot establish the exact cause. Expired errors require refreshing and choosing a retained entry. **Add test error** provides a clearly marked simulated report for practice; **Clear test errors** removes only those test entries. Existing Diagnose/self-test features remain separate. Optional GitHub submission, duplicate matching and issue links are future work.
+
 ### Screenshot troubleshooting (unreleased)
 
 1. Attach a PNG, JPEG or WebP error screenshot with the paperclip, drop it on chat, or paste an image into the message box. The existing limits apply: 10 MB, 25 megapixels, one still image at a time. Crop out private details before sharing it with BEYOND.

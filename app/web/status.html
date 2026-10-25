@@ -38,6 +38,13 @@
     #trend polyline { fill:none; stroke:currentColor; stroke-width:2.5; }
     #trend circle { fill:currentColor; } .chart-caption { font-size:.8rem; color:var(--muted); }
     .two { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    #report-dialog { width:min(760px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;
+      margin:auto;padding:20px;box-sizing:border-box;border:1px solid var(--border);border-radius:14px;background:var(--panel);color:var(--text); }
+    #report-dialog::backdrop {background:rgba(0,0,0,.45);}
+    #report-dialog label {display:block;margin:12px 0 6px;}
+    #report-dialog textarea {display:block;width:100%;box-sizing:border-box;resize:vertical;min-height:64px;}
+    #report-dialog .report-choice {display:flex;align-items:center;gap:8px;}
+    #report-preview {min-height:230px;font-family:ui-monospace,monospace;font-size:.88rem;white-space:pre-wrap;}
     [hidden] { display:none!important; } :focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
     @media(max-width:740px) { .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .two { grid-template-columns:1fr; } }
     @media(max-width:420px) { header { gap:8px; } header .right { gap:6px; } header .brand { font-size:1rem; }
@@ -81,7 +88,7 @@
     </section>
     <section><h2>Recent errors</h2><p class="muted" style="margin-bottom:12px">Up to 200 app error summaries are retained locally from this update onward, across restarts.
       Chat text, credentials and raw exception messages are excluded. Detailed logs stay on the host PC.</p>
-      <p class="muted" style="margin-bottom:12px">Diagnose checks current health and asks the loaded AI for an explanation when available. It suggests steps for you to try; it does not repair anything.</p>
+      <p class="muted" style="margin-bottom:12px">Diagnose checks current health and asks the loaded AI for an explanation when available. It suggests steps for you to try; it does not repair anything. Report builds an editable local preview you can copy or save; no GitHub submission.</p>
       <div class="actions"><button type="button" class="ghost" id="add-test-error">Add test error</button>
         <button type="button" class="ghost" id="clear-test-errors">Clear test errors</button></div>
       <p class="muted" id="test-error-note" role="status" style="margin:10px 0">Test entries simulate a timeout without failing a service.</p>
@@ -96,6 +103,22 @@
     <p class="muted">In chat, use <strong>/speed</strong> for recent timings and <strong>/selftest</strong> for checks.
       Diagnostics describe this computer, even when you open the page on a phone.</p>
   </div></main>
-  <script src="/static/status.js?v=3" defer></script>
+  <dialog id="report-dialog" aria-labelledby="report-title">
+    <div class="actions spread"><h2 id="report-title">Local error report</h2><button type="button" class="ghost" id="report-close">Close</button></div>
+    <p class="muted">Describe the problem without passwords or private conversation content. Common sensitive patterns are removed when building the preview; review it before sharing. Raw logs and chats are excluded.</p>
+    <label for="report-happened">What happened? (optional)</label><textarea id="report-happened" rows="2" maxlength="2500"></textarea>
+    <label for="report-expected">What did you expect? (optional)</label><textarea id="report-expected" rows="2" maxlength="2500"></textarea>
+    <label for="report-steps">Steps to reproduce (optional)</label><textarea id="report-steps" rows="2" maxlength="2500"></textarea>
+    <label for="report-tried">What have you tried? (optional)</label><textarea id="report-tried" rows="2" maxlength="2500"></textarea>
+    <label class="report-choice"><input id="report-environment" type="checkbox" checked>Include current app and system information</label>
+    <p class="muted">Release/Python/OS versions, AI mode/state, feature switches, processor count, RAM, free disk and uptime. No model names, addresses, paths or credentials.</p>
+    <div class="actions" style="margin-top:12px"><button type="button" id="report-build">Build preview</button>
+      <button type="button" class="ghost" id="report-copy" disabled>Copy report</button>
+      <button type="button" class="ghost" id="report-save" disabled>Save report</button></div>
+    <p id="report-status" role="status" aria-live="polite" style="margin-top:12px"></p>
+    <label for="report-preview">Review and edit report</label><textarea id="report-preview" rows="12" maxlength="20000" spellcheck="false"></textarea>
+  </dialog>
+  <script src="/static/error-reports.js?v=1" defer></script>
+  <script src="/static/status.js?v=4" defer></script>
 </body>
 </html>

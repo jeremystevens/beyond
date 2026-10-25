@@ -818,6 +818,10 @@ your user's startup programs.
 ---
 
 <a id="settings"></a>
+### Local error reports (unreleased)
+
+Open **Status and health → Recent errors**, press **Report** beside an error, add any useful details and choose **Build preview**. Review/edit the text, then **Copy report** or **Save report** as a text file. Current app/system facts are optional; raw logs, chat content, addresses, model names and credentials are not collected automatically. Common sensitive patterns in notes are removed where recognized, but review is still needed. No AI or GitHub request is made. See the [guide](docs/USER_GUIDE.md#local-error-reports-unreleased).
+
 ### Screenshot troubleshooting (unreleased)
 
 Attach an error screenshot, or paste one into the message box, then choose **Troubleshoot this**. Add what happened before the error if useful. Automatic uses installed OCR first; choose **Understand screen** for optional vision when layout or icons matter. BEYOND explains what is visible, suggests cautious first checks and asks focused questions. Advice and bounded screenshot evidence stay in the chat for follow-ups. No repair is run automatically. Install the reader using **Add-Features.cmd**. See the [guide](docs/USER_GUIDE.md#screenshot-troubleshooting-unreleased).
