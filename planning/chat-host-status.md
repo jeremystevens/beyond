@@ -1,6 +1,6 @@
 # Host status and model awareness
 
-Status: implemented after 1.2.0; awaiting merge/release
+Status: implemented after 1.2.0; unreleased
 Date: 2026-10-25
 
 ## Delivered
