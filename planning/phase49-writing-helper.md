@@ -21,6 +21,10 @@ Jeremy selected item 11 after reviewing the post-v1 brainstorm. This is unreleas
 - MSI reconnected after implementation. Its clean main checkout was fast-forwarded to b3790fb, and only BEYOND was restarted. The live writing-options API returned 16 tones and all three tasks; all 11 focused writing tests also passed on Windows there.
 - Two short live model smoke checks passed: a professional email declined Monday and offered Tuesday; a technical specification retained 12 V DC, 2 A and firmware 2.4 and marked the missing operating temperature range for confirmation. These are basic functional checks, not comprehensive tone-quality, factual-accuracy or latency certification. Other bots and user data were left in place.
 
+## Mobile composer follow-up
+
+Jeremy found that the extra writing button squeezed the phone's message box. At widths up to 760 px, the textarea now has its own full-width row and attachment/microphone/writing controls sit beneath as monochrome icons with 44 px targets. Send/Stop is on the lower right. Desktop layout and existing event handlers stay in place. Windows Chrome browser checks passed at 320/390/760 px widths with a 440 px viewport height, alongside the full writing and code-block browser regressions. This is a CSS-only application change and does not require a backend restart or version change.
+
 ## Limits
 
 Drafts are plain text/Markdown, not formatted .docx/PDF exports. Source text is bounded at 12,000 characters, previous drafts at 16,000, directions at 2,000, and combined context at 26,000. Small model context windows may require shorter sections. Long attached sources contribute selected excerpts, not their full contents. Drafts are held in page memory and disappear on refresh unless copied/downloaded. Automatic checks/updates remain governed by Phase 45; this feature does not publish or offer a new release.

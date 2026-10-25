@@ -9,6 +9,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Expanded `/rewrite` and Writing helper (Phase 49). A monochrome pen button beside the composer, or `/rewrite` alone, opens Polish my writing, Reply to an email and Draft a document. All 13 requested tones are available, plus the retained funny, polite and dramatic styles. Audience, detail and 13 document types include technical specifications, README, installation/troubleshooting guides, API references and incident reports.
 - Writing drafts can use explicitly selected attached-document excerpts, be edited or revised, and copied/downloaded separately from controls. Source text and the previous draft are preserved on errors/cancellation. One configured-model request per draft/revision; no email sending, automatic chat/memory saves, extra model or runtime dependency. Missing specifications/citations must not be invented. Text sources support up to 12,000 characters, with bounded combined context and output; work on sections for long documents.
 
+### Fixed
+- On phones/tablets up to 760 px wide, the message box now uses its full row. Attachment, microphone and Writing helper are quiet monochrome icons underneath with 44 px touch targets; Send/Stop stays on the right. This prevents the extra tools from squeezing the typing area. Browser regression checks cover 320/390/760 px widths and a reduced-height viewport.
+
 ## [1.1.0] - 2026-10-24
 
 See [the release notes](docs/RELEASE_NOTES_1.1.0.md).

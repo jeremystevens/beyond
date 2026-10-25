@@ -65,7 +65,7 @@ Under the newest answer, press ✨ (**Adjust this answer**) and choose **Simpler
 
 ### Writing helper (unreleased)
 
-Press the **pen** next to the message box or send `/rewrite` by itself. Choose:
+On phones, the message box uses the full width, with attachment, microphone and pen icons underneath and Send on the right. Press the **pen** or send `/rewrite` by itself. Choose:
 
 - **Polish my writing:** paste your text; optionally say what to change or preserve.
 - **Reply to an email:** paste the incoming email and describe what your response should say. It creates a draft; it does not send email.

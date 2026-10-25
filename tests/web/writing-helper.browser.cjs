@@ -39,6 +39,24 @@ const options={tones:keys.map((id,i)=>({id,label:labels[i]})),
       return route.fulfill({body:fs.readFileSync(file),contentType:file.endsWith('.js')?'application/javascript':file.endsWith('.css')?'text/css':'text/html'});
     });
     await page.goto('http://localhost:7770/');
+    // Mobile composer: the input owns its full row, tools sit below, and Send stays on the right.
+    for (const width of [320,390,760]) {
+      await page.setViewportSize({width,height:440});
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      const layout = await page.evaluate(() => {
+        const rect = id => document.getElementById(id).getBoundingClientRect();
+        const input = rect('input'), attach = rect('attach-photo'), mic = rect('mic'), writing = rect('writing-open'), send = rect('send');
+        const composer = document.querySelector('.composer').getBoundingClientRect();
+        return {input:input.width, composer:composer.width, inputBottom:input.bottom, toolsTop:attach.top,
+          sameRow:Math.abs(attach.top-mic.top)<1 && Math.abs(mic.top-writing.top)<1 && Math.abs(writing.top-send.top)<1,
+          bottom:send.bottom, height:innerHeight, overflow:document.body.scrollWidth>innerWidth};
+      });
+      assert.ok(layout.input >= layout.composer-1,JSON.stringify(layout));
+      assert.ok(layout.inputBottom <= layout.toolsTop && layout.sameRow,JSON.stringify(layout));
+      assert.ok(layout.bottom <= layout.height+1 && !layout.overflow,JSON.stringify(layout));
+      if (width === 390) await page.screenshot({animations:'disabled',path:process.env.BEYOND_MOBILE_SCREENSHOT || path.join(os.tmpdir(),'beyond-mobile-composer.png')});
+    }
+    await page.setViewportSize({width:1280,height:800});
     await page.locator('#input').fill('/rewrite'); await page.locator('#send').click();
     await page.locator('#writing-dialog').waitFor({state:'visible'});
     await page.waitForFunction(()=>document.querySelector('#writing-tone').options.length===16);

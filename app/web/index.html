@@ -148,6 +148,17 @@
     #cmdmenu .e { display: block; color: var(--muted); font-size: 0.8rem; }
     textarea { flex: 1; min-width: 0; resize: none; max-height: 200px; overflow-y: auto; scrollbar-width: thin; line-height: 1.4; }
     @media (max-width: 760px) {
+      /* Full-width typing, with quiet tools below instead of squeezing the message between buttons. */
+      .composer { display: grid; grid-template-columns: repeat(3, 44px) minmax(0, 1fr) auto; gap: 6px;
+                  align-items: center; }
+      .composer #input { grid-column: 1 / -1; grid-row: 1; width: 100%; box-sizing: border-box; }
+      .composer #attach-photo { grid-column: 1; grid-row: 2; }
+      .composer #mic { grid-column: 2; grid-row: 2; }
+      .composer #writing-open { grid-column: 3; grid-row: 2; }
+      .composer .ghost { width: 44px; height: 44px; min-height: 44px; padding: 0; border: none;
+                         border-radius: 8px; color: var(--muted); }
+      .composer .ghost:hover:not(:disabled) { background: var(--bg); color: var(--text); }
+      .composer #send { grid-column: 5; grid-row: 2; min-height: 44px; padding: 8px 14px; }
       .menu { display: inline-block; }
       aside { position: absolute; z-index: 5; top: 0; bottom: 0; left: 0; width: min(300px, 85vw);
               transform: translateX(-105%); transition: transform 0.2s; box-shadow: 4px 0 16px rgba(0,0,0,0.15);
