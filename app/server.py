@@ -758,6 +758,9 @@ async def chat_stream(body: SendRequest, request: Request):
     new_chat = body.chat_id is None
     if not new_chat and not chats.exists(body.chat_id):
         return JSONResponse({'error': 'That chat no longer exists. Start a new one.'}, status_code=404)
+    from app.host_status import is_model_question
+    if is_model_question(content):
+        return _command_reply(body.chat_id, content, run_as='/model')
     # "Write a python file with a simple animal class": BEYOND asks for what's missing, drafts it, and saves on request.
     file_plan = file_requests.plan(body.chat_id, content, can_manage(request))
     if file_plan:

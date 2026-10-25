@@ -224,3 +224,5 @@ Manually install official Python 3.14 (64-bit) from https://www.python.org/downl
 Type **/status** in any chat to check the computer running BEYOND: CPU, RAM, free space on BEYOND’s drive, system uptime, AI connection and model. NVIDIA GPU load, temperature and VRAM appear when `nvidia-smi` is already installed; unavailable metrics are labelled honestly. This takes no AI generation and works remotely from a phone. Saved reports are snapshots.
 
 Ask “What model are you running?” in ordinary chat. BEYOND receives current built-in engine state or a recent server-reported model (up to 60 seconds); otherwise it knows only the configured model and says its loaded state is unconfirmed. Switching server settings invalidates that observation. No extra network request is added to ordinary replies.
+
+**/model**, or say/type **“What model are you running?”** or **“Which model is currently loaded?”**, returns live model information directly. These questions bypass the LLM, so even a small model cannot invent its identity. Voice input uses the same recognition after transcription.

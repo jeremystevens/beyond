@@ -39,3 +39,17 @@ class HostStatusTests(unittest.TestCase):
         with patch.object(settings, 'load', return_value=values), patch.object(engine.time, 'monotonic', return_value=200), \
              patch.object(engine, '_observed_model', (engine._model_key(values),99,'old-model')):
             self.assertNotIn('old-model',engine.model_context())
+
+    def test_natural_model_questions_do_not_capture_other_requests(self):
+        for text in ['What model are you running?', 'Which model is currently loaded?',
+                     'Can you tell me what model are you using?', 'What LLM are you running?']:
+            self.assertTrue(host_status.is_model_question(text), text)
+        for text in ['Write a Python model class', 'What model should I download?',
+                     'What model are you running? Also delete my chats.']:
+            self.assertFalse(host_status.is_model_question(text), text)
+
+    def test_model_report_uses_live_state_without_inference(self):
+        with patch.object(engine, 'status', new=AsyncMock(return_value={
+                'state':'ok','builtin':True,'model':'actual.gguf'})), patch.object(engine,'complete') as infer:
+            self.assertEqual(host_status.model_report(), 'Currently loaded model: actual.gguf.')
+        infer.assert_not_called()

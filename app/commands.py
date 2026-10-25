@@ -1206,7 +1206,13 @@ def _status(args):
     return report(args)
 
 
+def _model(args):
+    from app.host_status import model_report
+    return model_report(args)
+
+
 COMMANDS = [
+    Command('model', 'Show the currently loaded or selected AI model', '/model', _model, group='Help'),
     Command('status', 'Live host CPU, RAM, disk, uptime, GPU and AI status', '/status', _status, group='Help'),
     Command('speed', 'Recent saved AI reply timings; no benchmark is generated', '/speed 10', _speed, group='Help'),
     Command('selftest', 'Check BEYOND services, settings, database and files without restarting anything',

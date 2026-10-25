@@ -52,3 +52,28 @@ def report(args=''):
         f'System uptime: {days}d {hours}h {minutes}m', gpu_status(),
         f'AI connection: {state}', model,
         'Snapshot of the computer running BEYOND, not the device viewing this chat.'])
+
+
+def is_model_question(text):
+    """Narrow whole-message matches: never intercept writing/code/model advice requests."""
+    import re
+    text = re.sub(r"[^a-z0-9' ]", ' ', text.lower())
+    text = ' '.join(text.split())
+    text = re.sub(r'^(?:please |can you tell me |could you tell me |tell me )', '', text)
+    return bool(re.fullmatch(
+        r"(?:(?:what|which) (?:ai |llm |language )?model (?:are you (?:currently )?(?:running|using)|"
+        r"is (?:currently )?(?:loaded|running)|(?:do you|does beyond) use)|"
+        r"what (?:llm|language model) are you(?: currently)? (?:running|using)|"
+        r"what is (?:your|the current) (?:ai |language )?model)", text))
+
+
+def model_report(args=''):
+    if args:
+        return 'Use /model with no arguments to see the active model.'
+    ai = asyncio.run(engine.status())
+    name = PureWindowsPath(str(ai.get('model') or '')).name
+    if ai.get('state') == 'ok':
+        label = 'Currently loaded model' if ai.get('builtin') else 'Selected model on the connected AI server'
+        return f'{label}: {name or "server default (name not reported)"}.'
+    return (f"AI engine: {ai.get('state', 'unknown')}. No model is confirmed loaded." +
+            (f' Configured model: {name}.' if name else ''))
