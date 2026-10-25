@@ -39,8 +39,17 @@ def error_file():
 def initialize():
     config.DATA_DIR.mkdir(exist_ok=True)
     with closing(sqlite3.connect(error_file(), timeout=2)) as db, db:
-        db.execute('CREATE TABLE IF NOT EXISTS errors (id INTEGER PRIMARY KEY, created_at TEXT NOT NULL, '
+        db.execute('BEGIN IMMEDIATE')
+        db.execute('CREATE TABLE IF NOT EXISTS errors (id INTEGER PRIMARY KEY AUTOINCREMENT, created_at TEXT NOT NULL, '
                    'source TEXT NOT NULL, summary TEXT NOT NULL)')
+        schema = db.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='errors'").fetchone()[0]
+        if 'AUTOINCREMENT' not in schema.upper():
+            # Old report links must never refer to a different error after clearing history.
+            db.execute('CREATE TABLE errors_migrated (id INTEGER PRIMARY KEY AUTOINCREMENT, created_at TEXT NOT NULL, '
+                       'source TEXT NOT NULL, summary TEXT NOT NULL)')
+            db.execute('INSERT INTO errors_migrated SELECT id,created_at,source,summary FROM errors')
+            db.execute('DROP TABLE errors')
+            db.execute('ALTER TABLE errors_migrated RENAME TO errors')
 
 
 def record_error(source, summary):

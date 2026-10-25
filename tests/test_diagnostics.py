@@ -48,12 +48,24 @@ class DiagnosticsTests(unittest.TestCase):
         marker.write_text('keep this log')
         diagnostics.record_error('server', 'A request failed.')
         diagnostics.record_error('Diagnostic test', 'A simulated error.')
+        previous_id = diagnostics.errors(1)[0]['id']
         self.assertEqual(diagnostics.clear_errors(), 2)
         self.assertEqual(diagnostics.errors(), [])
         self.assertEqual(marker.read_text(), 'keep this log')
         self.assertEqual(diagnostics.clear_errors(), 0)
         diagnostics.record_error('server', 'A new request failed.')
         self.assertEqual(len(diagnostics.errors()), 1)
+        self.assertGreater(diagnostics.errors(1)[0]['id'], previous_id)
+
+    def test_existing_history_migrates_without_reusing_report_ids(self):
+        with closing(sqlite3.connect(diagnostics.error_file())) as db, db:
+            db.execute('CREATE TABLE errors(id INTEGER PRIMARY KEY,created_at TEXT NOT NULL,source TEXT NOT NULL,summary TEXT NOT NULL)')
+            db.execute("INSERT INTO errors VALUES (42,'2026-10-25','server','Keep this entry')")
+        diagnostics.initialize()
+        self.assertEqual(diagnostics.errors()[0]['summary'], 'Keep this entry')
+        diagnostics.clear_errors()
+        diagnostics.record_error('server', 'New error')
+        self.assertGreater(diagnostics.errors()[0]['id'], 42)
 
     def test_clear_endpoint_requires_management_permission(self):
         app = FastAPI()
