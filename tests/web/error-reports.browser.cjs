@@ -43,7 +43,8 @@ const web=path.resolve(__dirname,'../../app/web');
   assert.ok((await page.locator('#report-status').textContent()).includes('SIMULATED'));
   const edited='Reviewed report\nMy exact edits: café and <b>literal text</b>\n';
   await page.locator('#report-preview').fill(edited);await page.locator('#report-copy').click();
-  assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),edited);
+  // Windows clipboard uses CRLF; compare content with only the platform line endings normalized.
+  assert.equal((await page.evaluate(()=>navigator.clipboard.readText())).replace(/\r\n/g,'\n'),edited);
   const downloadPromise=page.waitForEvent('download');await page.locator('#report-save').click();
   const download=await downloadPromise;assert.equal(download.suggestedFilename(),'beyond-error-report-7.txt');
   const target=path.join(dir,'report.txt');await download.saveAs(target);assert.equal(fs.readFileSync(target,'utf8'),edited);
