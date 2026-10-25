@@ -94,3 +94,23 @@ class ThinkTests(unittest.TestCase):
   with patch.object(engine,'complete',new=AsyncMock()) as prep:
    events=self.run_reply({'content':'/think /writefile test.txt'})
   prep.assert_not_awaited();self.assertIn('Use /think',str(events))
+
+ def test_budget_arithmetic_is_independent_of_the_claimed_total(self):
+  text='* Food: $40 (about $5 per person)\n* Drinks: $20\n* Decorations: $15\n* Activity: $20\nThis totals $100.'
+  result=think_through.budget_evidence(text,'Plan a party with a $100 budget.')
+  self.assertIn('Total $95.00',result);self.assertIn('$5.00 remains',result)
+  self.assertNotIn('Total $100.00',result)
+ def test_budget_check_declines_ambiguous_ranges_and_nested_costs(self):
+  self.assertEqual(think_through.budget_evidence('* Food: $40-$50\n* Drinks: $20','A $100 budget'), '')
+  self.assertEqual(think_through.budget_evidence('* Food: $40\n  * Pizza: $20','A $100 budget'), '')
+
+ def test_final_budget_gets_program_written_calculator_evidence(self):
+  costs='* Food: $40\n* Drinks: $20\n* Decorations: $15\n* Activity: $20\nThis totals $100.'
+  async def mistaken(*args,**kwargs):
+   yield costs
+   yield engine.Stats(model='test',tokens=40,seconds=.1,speed=20,thought=0)
+  with patch.object(engine,'complete',new=AsyncMock(side_effect=['Check all categories',costs])),patch.object(engine,'chat_stream',side_effect=mistaken):
+   events=self.run_reply({'content':'Plan a party with a $100 budget.','think_through':True})
+  text=''.join(e.get('text','') for e in events if e['type']=='token')
+  self.assertIn('Total $95.00',text);self.assertIn('$5.00 remains',text)
+  self.assertIn('Prices and completeness are not verified',text)

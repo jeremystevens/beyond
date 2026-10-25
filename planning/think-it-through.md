@@ -23,3 +23,6 @@ Recent context, checklist and draft sizes are bounded. Built-in contexts below 2
 Focused backend checks cover the normal single-stream path, two preparatory requests plus a final stream, no saved drafts, one-question slash use, failed-prompt retry, cancellation, context limits and branch metadata. Browser coverage exercises the real composer, mobile layouts, persistent toggle/one-off behavior, recording visibility and attachment access. Existing writing-helper checks are updated to open the + popup.
 
 README, user guide, API reference, changelog and brainstorm index are updated. Full Windows/Python 3.14 and Chromium CI must pass before merge. Release version and phase remain unchanged.
+
+## Arithmetic evidence
+For explicit dollar budgets and unambiguous flat labelled cost lists, Python sums recognized costs using Decimal and supplies that evidence to review. The final answer receives a separate program-written Calculator check, including the recognized sum, limit and remaining/overspent amount. This overrides conflicting model sums for those items. Ranges, mixed nesting and unsupported formats are declined; completeness and prices are never claimed verified. No additional model pass or external request is added.
