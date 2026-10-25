@@ -990,6 +990,10 @@ health cannot prove what happened earlier. No settings or services are changed.
 
 **Add test error** creates one clearly labelled simulated AI timeout without breaking a service. Press **Diagnose**
 on that entry to try the feature. **Clear test errors** removes only simulated entries, keeping real error history.
+
+### Clear recent error history
+
+In **Settings → Status and health → Recent errors**, **Clear error history** removes all retained summaries (including test entries) after confirmation. It is available on the host PC or to a signed-in administrator. This cannot be undone. New errors are still recorded; chats, settings, detailed log files and already exported reports are kept. **Clear test errors** continues to remove simulated entries only. This is an unreleased addition after 1.2.0.
 Diagnosis results stay on the open page and are not saved as chat messages.
 
 
@@ -1275,7 +1279,7 @@ blocking Python: allow it on private networks when asked.
 and the Phase 42 validation exceptions are listed below. The full history and evidence live in
 [`planning/phases.md`](planning/phases.md).
 
-**Completed after 1.2.0 (unreleased):** host-status chat command, direct model identity questions and runtime model context. See [implementation notes](planning/chat-host-status.md). Future capability ideas remain [brainstorming](planning/small-model-capability-ideas.md), not an approved roadmap.
+**Completed after 1.2.0 (unreleased):** host-status chat command, direct model identity questions, runtime model context and [clearing recent error history](planning/clear-error-history.md). See [implementation notes](planning/chat-host-status.md). Future capability ideas remain [brainstorming](planning/small-model-capability-ideas.md), not an approved roadmap.
 
 <details open>
 <summary><b>Delivered through Phase 53 · BEYOND 1.2.0</b> (Phase 37 deferred; validation exceptions below)</summary>
@@ -1365,7 +1369,3 @@ copyright and licence notice stay with it. Python packages, native engines, AI m
 **⭐ Star this repo if it's useful to you**
 
 </div>
-
-### Clear recent error history
-
-In **Settings → Status and health → Recent errors**, **Clear error history** removes all retained summaries (including test entries) after confirmation. It is available on the host PC or to a signed-in administrator. This cannot be undone. New errors are still recorded; chats, settings, detailed log files and already exported reports are kept. **Clear test errors** continues to remove simulated entries only. This is an unreleased addition after 1.2.0.
