@@ -14,6 +14,7 @@ const web=path.resolve(__dirname,'../../app/web');
       {type:'status',text:'Think it through: checking the requirements…'},{type:'token',text:'Final answer'},
       {type:'message',id:2,buttons:[]},{type:'done'}].map(e=>JSON.stringify(e)).join('\n')+'\n'});
    }
+   if(url.pathname==='/api/writing/options')return route.fulfill({json:{tasks:[{id:'rewrite',label:'Polish'}],tones:[{id:'professional',label:'Professional'}],formats:[{id:'document',label:'Document'}],details:[{id:'standard',label:'Standard'}],max_text:12000,max_draft:20000,max_directions:3000}});
    if(url.pathname==='/api/chats/1')return route.fulfill({json:{id:1,messages:[],attachments:[]}});
    if(url.pathname.startsWith('/api/')){
     let data={};if(['/api/chats','/api/commands'].includes(url.pathname))data=[];
@@ -38,6 +39,10 @@ const web=path.resolve(__dirname,'../../app/web');
    await page.keyboard.press('Escape');assert.equal(await page.locator('#composer-tools').isVisible(),false);
    assert.equal(await page.locator('#composer-more').evaluate(el=>document.activeElement===el),true);
   }
+  await page.locator('#composer-more').click();await page.locator('#writing-open').click();
+  await page.locator('#writing-dialog').waitFor({state:'visible'});
+  assert.equal(await page.locator('#composer-tools').isVisible(),false);
+  await page.locator('#writing-close').click();await page.waitForFunction(()=>document.activeElement===document.querySelector('#input'));
   await page.locator('#composer-more').click();await page.locator('#think-mode').check();
   await page.locator('#input').click();assert.equal(await page.locator('#composer-tools').isVisible(),false);
   assert.equal(await page.locator('#think-indicator').isVisible(),true);

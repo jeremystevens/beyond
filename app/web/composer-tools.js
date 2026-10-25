@@ -18,7 +18,7 @@ window.BeyondComposerTools=(()=>{
    const next=event.key==='Home'?0:event.key==='End'?choices.length-1:(index+(event.key==='ArrowDown'?1:-1)+choices.length)%choices.length;
    event.preventDefault();choices[next]?.focus();
   });
-  panel.addEventListener('focusout',()=>queueMicrotask(()=>{if(!panel.contains(document.activeElement)&&document.activeElement!==trigger)close();}));
+  panel.addEventListener('focusout',event=>{const next=event.relatedTarget;if(next&&!panel.contains(next)&&next!==trigger)close();});
   const mic=$('mic'),voice=$('voice-indicator');
   function showVoice(){const recording=mic.classList.contains('recording'),working=mic.classList.contains('working');
    voice.hidden=!recording&&!working;voice.disabled=working;voice.textContent=recording?'Stop recording':'Transcribing…';}
