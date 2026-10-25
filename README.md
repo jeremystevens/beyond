@@ -386,6 +386,8 @@ the chat but never sent to the AI.
 | Command | What it does | Example |
 |---|---|---|
 | `/help` | Every command, or details for one | `/help calc` |
+| `/status` | Host CPU, RAM, installation-drive space, uptime, optional GPU metrics and AI state | `/status` |
+| `/model` | Live loaded/selected model information without AI inference | `/model` |
 | `/remember` · `/memories` · `/forget` | Save, list and remove facts BEYOND knows in every chat | `/remember my dog is named Max` |
 | `/learned` | What BEYOND learned from your ratings, with a reset | `/learned` |
 | `/rule` · `/rules` | Add, list and delete house rules | `/rule Use metric units` |
@@ -472,8 +474,21 @@ These need this PC or a device signed in as administrator.
 
 *Click a section to open it.*
 
-Health commands: **/speed** (or **/speed 1–50**) shows saved reply timings; **/selftest** runs read-only checks.
-Both appear in **/help** and the **/** command menu. Open **Settings → Status and health** for the full page.
+Health commands: **/status** shows host resources and AI state; **/model** identifies the active model;
+**/speed** (or **/speed 1–50**) shows saved reply timings; **/selftest** runs read-only checks.
+All appear in **/help** and the **/** command menu. Open **Settings → Status and health** for the full page.
+
+### Quick host and model status
+
+These commands are available on the development branch after 1.2.0; they are not in the published 1.2.0 ZIP.
+
+- **/status** checks the computer running BEYOND, even when you chat from a phone. It reports CPU usage, RAM usage/available memory, free space on BEYOND's installation drive, system uptime, and AI connection/model state. Saved results are snapshots, not live widgets.
+- NVIDIA GPU load, temperature and VRAM appear when `nvidia-smi` is already installed. Other or unavailable GPU metrics are labelled unavailable; nothing is installed and GPU acceleration is not enabled. The optional query has a two-second timeout.
+- **/model** returns live engine/model information directly. You can also say or type **“What model are you running?”** or **“Which model is currently loaded?”**. After voice transcription these supported questions follow the same direct path, bypassing the LLM and its memories. Other wording may still go to the LLM.
+- A ready built-in engine identifies its loaded model. An external server identifies its selected model; an unavailable/loading engine is not described as having a confirmed loaded model.
+- Ordinary AI replies also receive built-in runtime state or a server-reported model observed within the last 60 seconds. Changing server settings invalidates that observation. Otherwise only the configured model is known, with its loaded state unconfirmed. This context helps the LLM but does not guarantee it will answer correctly; use **/model** for a direct check.
+
+These checks generate no AI answer, load no model and restart nothing. Explicit server-model checks can contact your configured AI server (up to five seconds); ordinary replies add no network probes.
 
 <details>
 <summary><b>⚡ The built-in AI engine</b></summary>
@@ -1259,6 +1274,8 @@ blocking Python: allow it on private networks when asked.
 and the Phase 42 validation exceptions are listed below. The full history and evidence live in
 [`planning/phases.md`](planning/phases.md).
 
+**Completed after 1.2.0 (unreleased):** host-status chat command, direct model identity questions and runtime model context. See [implementation notes](planning/chat-host-status.md). Future capability ideas remain [brainstorming](planning/small-model-capability-ideas.md), not an approved roadmap.
+
 <details open>
 <summary><b>Delivered through Phase 53 · BEYOND 1.2.0</b> (Phase 37 deferred; validation exceptions below)</summary>
 
@@ -1347,11 +1364,3 @@ copyright and licence notice stay with it. Python packages, native engines, AI m
 **⭐ Star this repo if it's useful to you**
 
 </div>
-
-### Quick host and model status
-
-Type **/status** in any chat to check the computer running BEYOND: CPU, RAM, free space on BEYOND’s drive, system uptime, AI connection and model. NVIDIA GPU load, temperature and VRAM appear when `nvidia-smi` is already installed; unavailable metrics are labelled honestly. This takes no AI generation and works remotely from a phone. Saved reports are snapshots.
-
-Ask “What model are you running?” in ordinary chat. BEYOND receives current built-in engine state or a recent server-reported model (up to 60 seconds); otherwise it knows only the configured model and says its loaded state is unconfirmed. Switching server settings invalidates that observation. No extra network request is added to ordinary replies.
-
-**/model**, or say/type **“What model are you running?”** or **“Which model is currently loaded?”**, returns live model information directly. These questions bypass the LLM, so even a small model cannot invent its identity. Voice input uses the same recognition after transcription.

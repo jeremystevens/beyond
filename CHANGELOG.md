@@ -5,6 +5,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+See [host-status implementation and validation notes](planning/chat-host-status.md). These additions are not yet in a published release.
+
 ### Added
 - `/model` and common spoken/typed model identity questions return live engine information directly without LLM inference.
 - `/status` reports host resources, uptime, optional NVIDIA metrics and AI/model status without inference. Chat runtime context now identifies the built-in model or a recent server-reported model, distinguishing unconfirmed configured models.

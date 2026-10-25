@@ -221,8 +221,12 @@ Manually install official Python 3.14 (64-bit) from https://www.python.org/downl
 
 ### Quick host and model status
 
-Type **/status** in any chat to check the computer running BEYOND: CPU, RAM, free space on BEYOND’s drive, system uptime, AI connection and model. NVIDIA GPU load, temperature and VRAM appear when `nvidia-smi` is already installed; unavailable metrics are labelled honestly. This takes no AI generation and works remotely from a phone. Saved reports are snapshots.
+These commands are available on the development branch after 1.2.0; they are not in the published 1.2.0 ZIP.
 
-Ask “What model are you running?” in ordinary chat. BEYOND receives current built-in engine state or a recent server-reported model (up to 60 seconds); otherwise it knows only the configured model and says its loaded state is unconfirmed. Switching server settings invalidates that observation. No extra network request is added to ordinary replies.
+- **/status** checks the computer running BEYOND, even when you chat from a phone. It reports CPU usage, RAM usage/available memory, free space on BEYOND's installation drive, system uptime, and AI connection/model state. Saved results are snapshots, not live widgets.
+- NVIDIA GPU load, temperature and VRAM appear when `nvidia-smi` is already installed. Other or unavailable GPU metrics are labelled unavailable; nothing is installed and GPU acceleration is not enabled. The optional query has a two-second timeout.
+- **/model** returns live engine/model information directly. You can also say or type **“What model are you running?”** or **“Which model is currently loaded?”**. After voice transcription these supported questions follow the same direct path, bypassing the LLM and its memories. Other wording may still go to the LLM.
+- A ready built-in engine identifies its loaded model. An external server identifies its selected model; an unavailable/loading engine is not described as having a confirmed loaded model.
+- Ordinary AI replies also receive built-in runtime state or a server-reported model observed within the last 60 seconds. Changing server settings invalidates that observation. Otherwise only the configured model is known, with its loaded state unconfirmed. This context helps the LLM but does not guarantee it will answer correctly; use **/model** for a direct check.
 
-**/model**, or say/type **“What model are you running?”** or **“Which model is currently loaded?”**, returns live model information directly. These questions bypass the LLM, so even a small model cannot invent its identity. Voice input uses the same recognition after transcription.
+These checks generate no AI answer, load no model and restart nothing. Explicit server-model checks can contact your configured AI server (up to five seconds); ordinary replies add no network probes.

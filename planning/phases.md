@@ -557,6 +557,11 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - Reviewed browser handoff uses GitHub sign-in and its final Submit button. No stored token or automatic issue creation; long drafts support Copy/paste. Simulated entries stay local; offline/rate-limit results are explicit.
 - Release 1.2.0 bundles Phases 49–53. See [phase53-github-reporting.md](phase53-github-reporting.md) and [release validation](release-1.2.0-validation.md).
 
+## Completed after 1.2.0 (unreleased)
+
+- [Host status and model awareness](chat-host-status.md): /status, /model, direct spoken/typed model identity questions and runtime context. Release version and phase remain unchanged until release preparation.
+- [Small-model capability ideas](small-model-capability-ideas.md) are saved for discussion only; none has been selected for implementation.
+
 ## Later, optional
 
 - **Shared brain with the Telegram bot:** once BEYOND's core is stable, the bot and BEYOND could share one copy of
