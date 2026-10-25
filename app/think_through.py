@@ -52,17 +52,25 @@ async def stream(history,background='',max_tokens=None,temperature=None):
         except TimeoutError as exc:
             raise engine.EngineError('Think it through timed out. Retry the question, or turn the mode off for a quicker reply.') from exc
     yield Progress('Think it through: checking the requirements…')
-    checklist=await complete('Return a short checklist of at most five requirements, constraints or important unknowns. '
+    checklist=await complete('Return at most five compact checklist items covering ALL explicit requirements, including quantities, budget or time limits, and requested validation. '
                              'Do not solve the task or write detailed deliberation.',payload,140)
     if not checklist:raise engine.EngineError('The requirements pass returned no text. Retry the question.')
     yield Progress('Think it through: drafting an answer…')
-    draft=await complete('Write a concise draft answer to the current question, using the checklist. '
-                         'Ask a useful clarification if crucial facts are missing. Return the draft only.',
+    draft=await complete('Write a concise, practical draft answering every checklist item. For plans, account for obvious supporting supplies, setup and fees; '
+                         'for budgets, itemize estimated costs, add them and respect the limit. Avoid disproportionate spending on optional items. '
+                         'Label assumptions and estimates instead of inventing confirmed facts. Ask a useful clarification if crucial facts are missing. Return the draft only.',
                          {**payload,'requirements_checklist':checklist[:800]},min(400,max(160,context//8)))
     if not draft:raise engine.EngineError('The draft pass returned no text. Retry the question.')
     yield Progress('Think it through: reviewing and writing the final answer…')
-    review=('Review the draft against the current question and requirements. Correct contradictions and missed requirements; '
-            'remove unsupported claims. Output only the final answer, not the checklist, draft or deliberation. '
+    review=('Improve the draft rather than merely repeating it. Check EVERY explicit requirement against the final answer. '
+            'For plans, check practical omissions such as essential supplies, servings, setup and unavoidable fees. '
+            'Include sensible supporting items or clearly state assumptions; do not silently introduce new mandatory requirements. '
+            'For budgets, recompute the itemized total, compare it with the limit, show remaining money, and fix any overspend. '
+            'Question unrealistic or disproportionate allocations; label prices as estimates unless actual sources were supplied. '
+            'For planning or budget questions, finish with a brief Final check stating what requested categories are covered and '
+            'the total versus the limit when applicable. Keep it concrete, not a vague claim that everything is verified. '
+            'Correct contradictions and remove unsupported claims. Output the improved final answer and brief check only, '
+            'not the preparatory checklist, draft or deliberation. '
             'Multiple passes are not independent factual verification. Use only real supplied evidence as evidence. '
             'If a crucial fact is missing, ask one focused question rather than inventing it. '
             + ('Only selected context is available. ' if partial else '') +

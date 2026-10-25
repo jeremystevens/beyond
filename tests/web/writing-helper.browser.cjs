@@ -39,17 +39,17 @@ const options={tones:keys.map((id,i)=>({id,label:labels[i]})),
       return route.fulfill({body:fs.readFileSync(file),contentType:file.endsWith('.js')?'application/javascript':file.endsWith('.css')?'text/css':'text/html'});
     });
     await page.goto('http://localhost:7770/');
-    // The input keeps its full row; tools now live in the + popup.
+    // The + control, input and Send share a row; tools live in the popup.
     for (const width of [320,390,760]) {
       await page.setViewportSize({width,height:440});
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)));
       const layout=await page.evaluate(()=>{
         const rect=id=>document.getElementById(id).getBoundingClientRect();
         const input=rect('input'),more=rect('composer-more'),send=rect('send'),composer=document.querySelector('.composer').getBoundingClientRect();
-        return {input:input.width,composer:composer.width,below:more.top>=input.bottom,sameRow:Math.abs(more.top-send.top)<1,
+        return {input:input.width,composer:composer.width,inline:more.right<=input.left&&input.right<=send.left,sameRow:Math.abs(more.top-send.top)<1,
           bottom:send.bottom,height:innerHeight,overflow:document.body.scrollWidth>innerWidth};
       });
-      assert.ok(layout.input>=layout.composer-1&&layout.below&&layout.sameRow,JSON.stringify(layout));
+      assert.ok(layout.input>100&&layout.inline&&layout.sameRow,JSON.stringify(layout));
       assert.ok(layout.bottom<=layout.height+1&&!layout.overflow,JSON.stringify(layout));
       await page.locator('#composer-more').click();
       assert.equal(await page.locator('#writing-open').isVisible(),true);

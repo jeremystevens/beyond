@@ -4,14 +4,14 @@ Status: implemented for testing; unreleased after 1.2.0
 Date: 2026-10-25
 
 ## User flow
-The composer keeps a full-width message box, a + control and Send. The + popup contains Attach photo or document, Voice input, Writing helper and the Think it through checkbox. Existing tools keep their own handlers and optional-feature requirements. The popup supports Escape, outside click, labelled keyboard navigation and comfortable mobile touch targets. An active recording keeps a visible Stop recording control even with the popup closed.
+The composer keeps +, a flexible message box and Send on one row on both desktop and mobile. Popup icons and labels share a left-aligned column. The + popup contains Attach photo or document, Voice input, Writing helper and the Think it through checkbox. Existing tools keep their own handlers and optional-feature requirements. The popup supports Escape, outside click, labelled keyboard navigation and comfortable mobile touch targets. An active recording keeps a visible Stop recording control even with the popup closed.
 
 The checkbox is off by default, remembers the preference on this browser/device, and applies to subsequent ordinary chat questions until disabled. A quiet Think it through: On control remains visible and can turn it off. The setting is independent of conversations and other devices. `/think <question>` requests the mode once, without changing the checkbox. `/think` alone explains usage and appears in /help and command autocomplete. Existing tools, slash commands and direct runtime lookups keep their own paths; this mode does not grant additional permissions or replace their workflows.
 
 ## Guided processing
 1. Produce a brief checklist of requirements, constraints and important unknowns.
 2. Draft an answer against that checklist and supplied context.
-3. Review for missing requirements, contradictions and unsupported assumptions, then stream the final answer.
+3. Review for all explicit requirements, practical omissions, disproportionate allocations, arithmetic and limits. Stream the improved answer and a brief Final check for planning/budget tasks, including totals and remaining money where applicable. Prices are estimates unless actual source evidence exists.
 
 Only progress labels and the final answer are shown. Intermediate checklist/draft text is not saved as chat messages, notes or memories. Stopping cancels active model work and prevents later passes. Errors preserve the saved question for existing retry recovery; mode metadata survives retry and branches. Partial final replies keep the existing stopped/incomplete behavior.
 

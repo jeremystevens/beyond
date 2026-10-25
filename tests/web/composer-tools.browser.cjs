@@ -31,8 +31,23 @@ const web=path.resolve(__dirname,'../../app/web');
   assert.equal(await page.locator('#think-indicator').isVisible(),false);
   for(const width of [320,390,760,1280]){
    await page.setViewportSize({width,height:440});await page.emulateMedia({colorScheme:'dark'});
+   {
+    const row=await page.evaluate(()=>{
+     const r=id=>document.getElementById(id).getBoundingClientRect(),input=r('input'),more=r('composer-more'),send=r('send');
+     return {inline:more.right<=input.left&&input.right<=send.left&&Math.abs(more.top-send.top)<2&&Math.abs(input.top+input.height/2-send.top-send.height/2)<2,
+       compact:document.querySelector('.composer').getBoundingClientRect().height<120};
+    });
+    assert.ok(row.inline&&row.compact,JSON.stringify(row));
+   }
    await page.locator('#composer-more').click();
    for(const id of ['attach-photo','mic','writing-open'])assert.equal(await page.locator('#'+id).isVisible(),true);
+   const alignment=await page.evaluate(()=>{
+    const rows=['attach-photo','mic','writing-open'].map(id=>document.getElementById(id));
+    const icons=rows.map(el=>el.querySelector('svg').getBoundingClientRect().left);
+    const labels=rows.map(el=>el.querySelector('span').getBoundingClientRect().left);
+    return {icons:Math.max(...icons)-Math.min(...icons),labels:Math.max(...labels)-Math.min(...labels)};
+   });
+   assert.ok(alignment.icons<1&&alignment.labels<1,JSON.stringify(alignment));
    const box=await page.locator('#composer-tools').evaluate(el=>({left:el.getBoundingClientRect().left,right:el.getBoundingClientRect().right,width:innerWidth,scroll:el.scrollWidth,client:el.clientWidth}));
    assert.ok(box.left>=0&&box.right<=box.width&&box.scroll<=box.client+1,JSON.stringify(box));
    assert.ok((await page.locator('#attach-photo').boundingBox()).height>=44);

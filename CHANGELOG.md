@@ -15,6 +15,10 @@ See [host-status notes](planning/chat-host-status.md) and [error-history notes](
 - `/model` and common spoken/typed model identity questions return live engine information directly without LLM inference.
 - `/status` reports host resources, uptime, optional NVIDIA metrics and AI/model status without inference. Chat runtime context now identifies the built-in model or a recent server-reported model, distinguishing unconfirmed configured models.
 
+### Fixed
+- Guided review now explicitly checks all requested categories, practical essentials, budget totals/limits and disproportionate allocations, with a brief final check for planning/budget answers. This remains model assessment, not independent verification.
+- The new composer keeps +, message box and Send on one row on desktop and mobile. Tools popup icons and labels align consistently to the left.
+
 ## [1.2.0] - 2026-10-24
 
 See [the release notes](docs/RELEASE_NOTES_1.2.0.md).

@@ -98,7 +98,7 @@ For long chats, BEYOND sends bounded excerpts from the opening and recent messag
 
 ### Writing helper
 
-The message box uses its full row. Open **+ → Writing helper**, or send `/rewrite` by itself. Attachments, voice and the thinking toggle share the compact + menu. Choose:
+The **+** button, flexible message box and **Send** share one row on desktop and mobile. Open **+ → Writing helper**, or send `/rewrite` by itself. Attachments, voice and the thinking toggle share the compact + menu. Choose:
 
 - **Polish my writing:** paste your text; optionally say what to change or preserve.
 - **Reply to an email:** paste the incoming email and describe what your response should say. It creates a draft; it does not send email.
@@ -118,7 +118,7 @@ For a quick edit without the helper, use `/rewrite <tone> <text>`, for example `
 
 ### Attaching documents (1.1.0)
 
-Choose **+ → Attach photo or document** below the message box, or drop a file on the chat. Photos work as before. A **PDF**, **Word (.docx)** or **text/code** file (up to 20 MB) is attached to the chat, shown as "📎 Attached …" with a ✕, and listed at the top of the chat. With no chat open, a new one starts, named after the file. Every following question in that chat can use it; answers mention the page they used.
+Choose **+ → Attach photo or document** beside the message box, or drop a file on the chat. Photos work as before. A **PDF**, **Word (.docx)** or **text/code** file (up to 20 MB) is attached to the chat, shown as "📎 Attached …" with a ✕, and listed at the top of the chat. With no chat open, a new one starts, named after the file. Every following question in that chat can use it; answers mention the page they used.
 
 A small AI on a processor can't read a long document at once, so for longer documents BEYOND sends the parts that best match your question. Name what you're looking for ("the warranty", "page 9") for the best results. "Summarise this" covers the opening and headings, not every page. A chat can have up to 5 documents.
 
@@ -257,10 +257,10 @@ Editing or deleting covered history clears the notes to prevent stale facts. Del
 
 ### Think it through and the + menu
 
-This is an unreleased addition after 1.2.0. The **+** button below the message box opens **Attach photo or document**, **Voice input**, **Writing helper**, and the **Think it through** checkbox. These tools use the same optional features and permissions as before. Active recording has a visible Stop recording control even when the popup is closed.
+This is an unreleased addition after 1.2.0. The **+** button beside the message box opens **Attach photo or document**, **Voice input**, **Writing helper**, and the **Think it through** checkbox. These tools use the same optional features and permissions as before. Active recording has a visible Stop recording control even when the popup is closed.
 
 Turn on **Think it through** before asking a harder question. BEYOND checks the requirements, drafts, and reviews with your current model, then streams the final answer. It takes longer; ordinary chat keeps its existing path while the mode is off. **Think it through: On** remains visible outside the menu; click it to turn the mode off. The preference is saved in this browser at this BEYOND address and stays on across chats until disabled.
 
 For one question, use **/think <question>**, such as `/think Help me plan a small project with a limited budget`. This does not change the checkbox. **/think** alone shows help. Commands and dedicated tools keep their normal workflows. This is separate from the model's native-thinking setting in Settings.
 
-Progress appears during preparation; intermediate text is not saved. Stop cancels the work, and Retry preserves the guided mode for a failed question. Multiple passes can still make mistakes and do not independently verify facts. **Check answer** provides evidence checks. Guided mode uses bounded recent context and needs at least a 2,048-token built-in context; shorten oversized questions or choose a larger context. See [implementation notes](../planning/think-it-through.md).
+Progress appears during preparation; intermediate text is not saved. Stop cancels the work, and Retry preserves the guided mode for a failed question. Planning and budget replies are instructed to check requested categories, practical essentials and totals, then show a brief **Final check**. Estimates remain estimates. Multiple passes can still make mistakes and do not independently verify facts. **Check answer** provides evidence checks. Guided mode uses bounded recent context and needs at least a 2,048-token built-in context; shorten oversized questions or choose a larger context. See [implementation notes](../planning/think-it-through.md).
