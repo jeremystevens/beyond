@@ -8,7 +8,7 @@ window.BeyondComposerTools=(()=>{
   function open(){panel.hidden=false;trigger.setAttribute('aria-expanded','true');panel.querySelector('button:not(:disabled),input:not(:disabled)')?.focus();}
   trigger.onclick=()=>panel.hidden?open():close(true);toggle.onchange=sync;
   badge.onclick=()=>{toggle.checked=false;sync();};
-  for(const id of ['attach-photo','mic','writing-open'])$(id).addEventListener('click',()=>close(),true);
+  for(const id of ['attach-photo','mic','writing-open'])$(id).addEventListener('click',()=>queueMicrotask(()=>close()));
   document.addEventListener('pointerdown',event=>{if(!panel.hidden&&!panel.contains(event.target)&&!trigger.contains(event.target))close();});
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!panel.hidden){event.preventDefault();event.stopImmediatePropagation();close(true);}},true);
   panel.addEventListener('keydown',event=>{

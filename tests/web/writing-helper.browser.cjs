@@ -107,7 +107,11 @@ const options={tones:keys.map((id,i)=>({id,label:labels[i]})),
     await page.locator('#writing-audience').fill('Engineers');
     await page.locator('#writing-detail').selectOption('detailed');
     await page.evaluate(()=>{chatId=1;const el=document.createElement('p');el.className='attach-line';list.prepend(el);});
-    await page.locator('#writing-close').click(); await page.locator('#composer-more').click(); await page.locator('#writing-open').click();
+    await page.locator('#writing-close').click();
+    await page.waitForFunction(()=>document.activeElement===document.querySelector('#input'));
+    await page.locator('#composer-more').click(); await page.locator('#writing-open').click();
+    await page.locator('#writing-dialog').waitFor({state:'visible'});
+    await page.waitForFunction(()=>!document.querySelector('#writing-attachments').disabled);
     await page.locator('#writing-attachments').check();
     await page.locator('#writing-generate').click();
     await page.waitForFunction(()=>!document.querySelector('#writing-generate').disabled);
@@ -123,6 +127,7 @@ const options={tones:keys.map((id,i)=>({id,label:labels[i]})),
     assert.ok(sizing.left>=0&&sizing.right<=sizing.view&&sizing.scroll<=sizing.client+1,JSON.stringify(sizing));
     await page.screenshot({path:path.join(os.tmpdir(),'beyond-writing-mobile.png')});
     await page.locator('#writing-close').click();
+    await page.waitForFunction(()=>document.activeElement===document.querySelector('#input'));
     await page.evaluate(()=>{chatId=2;document.querySelector('.attach-line').remove();});
     await page.locator('#composer-more').click(); await page.locator('#writing-open').click();
     assert.equal(await page.locator('#writing-attachments').isChecked(),false);
