@@ -1,7 +1,25 @@
 # BEYOND: Post-v1.0 Feature Brainstorm
 
 Started: 2026-10-23
-Status: Open brainstorming. Jeremy liked the five end-user ideas below; implementation scope, priority, and roadmap phases are not yet approved. Keep adding ideas here as discussion continues.
+Status reviewed: 2026-10-24 against the current GitHub main branch, code, changelog and v1.1.0 documentation. Five items are implemented; six have partial foundations; two remain open. Original requests below are retained for reference. Remaining scope and future release priorities are not yet approved.
+
+## Implementation checklist
+
+- [x] 1. Conversation branches - Phase 47.
+- [ ] 2. Pick up where we left off - open; no dedicated conversation recap.
+- [ ] 3. Voice conversation mode - partial; individual Whisper messages and spoken replies exist.
+- [ ] 4. Side-by-side comparisons - open; no dedicated editable comparison view.
+- [x] 5. Adjust this answer - Phase 46.
+- [ ] 6. Error tracking and recovery - partial; local history, diagnosis and retries exist; GitHub reporting remains.
+- [ ] 7. Mood-aware chat replies - partial; general tone matching exists; deliberate behavior and validation remain.
+- [ ] 8. Search your own documents - partial; attached-document retrieval exists; folder indexing/search remains.
+- [ ] 9. Screenshot troubleshooting - partial; OCR and vision exist; a dedicated guided workflow remains.
+- [x] 10. Conversation attachments - Phase 48.
+- [ ] 11. Expanded /rewrite and guided writing helper - partial; six styles exist; expanded tones and guided drafting remain.
+- [x] 12. Code blocks with syntax highlighting and Copy/Save - Phase 44.
+- [x] 13. Simple software updating with VERSION checks - Phase 45.
+
+Checked means the core feature is implemented in current code, not that every optional detail or future extension is included. Original requests below are historical where they differ from Current status notes.
 
 ## Direction
 
@@ -9,7 +27,9 @@ Focus on useful, interesting features for everyday users. Check current capabili
 
 ## End-user candidates
 
-### 1. Conversation branches
+### 1. Conversation branches ✅ Completed
+
+**Current status:** Implemented in [Phase 47](phase47-branches.md): branch from an answer into a new linked chat, preserve the original, and take attachments along. Covered by the v1.1.0 changelog and release notes.
 
 Branch from a selected message into a separate chat containing the conversation up to that point. Continue exploring another approach while preserving the original chat. Link branches to their original conversation for easy navigation.
 
@@ -17,13 +37,17 @@ Example: Explore camping in one vacation-planning branch and hotels in another.
 
 To discuss: branch naming, navigation, copied attachments, and how memories and house rules apply.
 
-### 2. Pick up where we left off
+### 2. Pick up where we left off — Open
+
+**Current status:** Old-chat recall exists, but there is no dedicated reopening recap of decisions, unfinished questions and next steps.
 
 When reopening a long chat, offer a short recap of decisions, unfinished questions, and the next step. Ground the recap in the conversation and let the user request or refresh it.
 
 To discuss: when to generate recaps, caching, and the CPU cost of summarizing long chats.
 
-### 3. Voice conversation mode
+### 3. Voice conversation mode — Partially implemented
+
+**Current status:** Whisper input and optional automatic spoken replies exist. Recording still requires starting/stopping individual messages. Continuous voice sessions, session controls, optional live/session transcripts and transcript export remain to be built.
 
 Continue speaking with BEYOND without pressing microphone and playback buttons for every exchange. Build on the existing Whisper input and spoken replies for a casual conversation without typing. Jeremy explicitly supported this candidate and expanded it with optional transcription/logging.
 
@@ -35,13 +59,17 @@ Continue speaking with BEYOND without pressing microphone and playback buttons f
 
 To discuss: silence detection, interruption, speaker feedback, CPU/memory use, transcript correction, and retention/deletion of unsaved logs. Clarify that Whisper transcription is required for understanding voice input; optional logging controls whether that text is retained/exported. Raw audio recording is not requested.
 
-### 4. Side-by-side comparisons
+### 4. Side-by-side comparisons — Open
+
+**Current status:** Ordinary chat can discuss choices, but a dedicated editable comparison with user-selected criteria and saved values is not implemented.
 
 Build an editable comparison from a conversation using criteria the user chooses. Examples include apartments, vacation plans, and job offers. Distinguish user-provided facts from AI suggestions and unknown information.
 
 To discuss: editing criteria and values, saving comparisons, and whether a dedicated view adds value beyond a chat table.
 
-### 5. Adjust this answer
+### 5. Adjust this answer ✅ Completed
+
+**Current status:** Implemented in [Phase 46](phase46-adjust-answer.md): the newest answer offers Simpler, More detail, Show an example and Walk me through it, keeping the original answer. Covered by v1.1.0 documentation.
 
 Offer actions such as Simpler, More detail, Show an example, and Walk me through it on an answer. Users can request a useful follow-up without composing another prompt.
 
@@ -49,7 +77,9 @@ To discuss: which actions appear, how the result joins the conversation, and int
 
 ## Additional discussion candidates
 
-### 6. Error tracking and recovery
+### 6. Error tracking and recovery — Partially implemented
+
+**Current status:** Local error history, health checks, AI diagnosis and interrupted-chat retry recovery are implemented. Still open: a reviewed/redacted report, convenient report export, optional GitHub issue submission, duplicate matching and issue-status links. Do not reimplement the existing diagnostics foundation.
 
 Jeremy noted that PromptetheusBot has built-in error tracking that BEYOND lacks. Explore capturing failures and giving users a clear message with Retry, View details, and Copy error report where appropriate.
 
@@ -66,7 +96,9 @@ Expansion requested by Jeremy: optional reporting to the main project's GitHub i
 
 Open questions: submission/authentication design, diagnostic fields and redaction, duplicate matching, and how users follow issue and fix status. This remains a brainstorming candidate, not an approved implementation plan.
 
-### 7. Mood-aware chat replies
+### 7. Mood-aware chat replies — Partially implemented
+
+**Current status:** The default prompt already says to match the user's tone. There is no dedicated mood-aware feature or speed/quality comparison on small models. Deliberate behavior and validation remain open; generic tone matching alone does not complete this item.
 
 Jeremy is interested in recognizing apparent mood during conversation, provided replies remain near their current speed. Adjust tone subtly: clearer, shorter steps for frustration; warmer replies for excitement. Avoid repeatedly announcing inferred moods.
 
@@ -78,7 +110,9 @@ Before approval, compare latency and response quality with the instruction enabl
 
 Selected for inclusion in these notes on 2026-10-23. Release scope, priority, and implementation phases remain to be decided in a separate roadmap. No additional games are wanted; focus future brainstorming on everyday usefulness.
 
-### 8. Search your own documents
+### 8. Search your own documents — Partially implemented
+
+**Current status:** [Conversation attachments](phase48-attachments.md) extract document text and select relevant passages with source/page labels within a chat. Still open: selecting and indexing a persistent folder/library, refreshing its index, and searching across that collection independently of individual chat uploads.
 
 Choose a folder of manuals, PDFs, or reference material, then ask questions with answers linked to the source passages. Help users find information in their own material without manually searching every file.
 
@@ -88,7 +122,9 @@ Overlap check: extends existing file-reading tools into a searchable document co
 
 To discuss: supported formats, scanned PDFs, explicit folder selection, indexing and refresh, local storage, CPU/RAM costs, and how to handle missing or conflicting evidence.
 
-### 9. Screenshot troubleshooting
+### 9. Screenshot troubleshooting — Partially implemented
+
+**Current status:** Photo attachment, OCR and /look questions provide a foundation for discussing error screenshots. A dedicated troubleshooting flow with uncertain-text confirmation, relevant follow-up questions and guided next steps remains open.
 
 Paste an error screenshot and ask what happened and what to try. Combine the existing image tools with guided troubleshooting that explains the visible error and proposes clear next steps.
 
@@ -96,7 +132,9 @@ Overlap check: builds on existing OCR and vision rather than adding another gene
 
 To discuss: OCR versus vision requirements, confirming uncertain text, asking for missing context, and user-controlled troubleshooting steps. Screenshot content may include private information.
 
-### 10. Conversation attachments
+### 10. Conversation attachments ✅ Completed
+
+**Current status:** Implemented in [Phase 48](phase48-attachments.md): attach PDF, Word .docx and text/code files, retain extracted text with the chat, retrieve passages for follow-ups, and carry attachments into branches. Current limits: 20 MB per file, five documents per chat; scanned/encrypted PDFs and legacy .doc files are unsupported. Summaries of long files cover selected opening/heading passages.
 
 Drop a PDF or document into a chat and discuss it, compare sections, or extract specific information. Keep the attachment available as context for follow-up questions in that conversation.
 
@@ -104,7 +142,9 @@ Overlap check: differs from a persistent searchable folder by focusing on docume
 
 To discuss: supported formats and size limits, page/section references, large-document handling on small local models, attachment retention/deletion, and behavior when branching chats.
 
-### 11. Expanded /rewrite and guided writing helper
+### 11. Expanded /rewrite and guided writing helper — Partially implemented
+
+**Current status:** Existing /rewrite has six styles: professional, friendly, funny, polite, dramatic and concise, plus aliases (including formal and casual). A guided writing helper, email replies, structured document drafting, audience/detail controls and the full tone/technical-document selection below remain open.
 
 Selected by Jeremy for inclusion in these notes. Expand /rewrite beyond basic tone changes with a guided helper similar to the /imagine helper. Keep /rewrite available as a quick command and offer guided drafting for users who want help choosing an approach.
 
@@ -151,7 +191,7 @@ To discuss: current supported tones, helper layout, combining tone with document
 
 ### 12. Code blocks with syntax highlighting and independent Copy/Save controls ✅ Completed
 
-COMPLETED: Built as [Phase 44](phase44-code-blocks.md) (commit 18c12fc), a v1.0.1 candidate. Code blocks now have offline syntax highlighting and their own Copy code and Save code buttons, and the GitHub test run checks them in Chromium. The notes below are kept as the original request.
+COMPLETED: Built as [Phase 44](phase44-code-blocks.md), initially prepared as a v1.0.1 candidate and included in the v1.1.0 changelog/release notes. Code blocks have offline syntax highlighting and independent Copy code and Save code buttons, with Chromium regression coverage. Original requirements are retained below.
 
 Originally HIGH PRIORITY: Jeremy explicitly requested this be one of the first items added/fixed in the next roadmap. It addresses a practical usability problem when taking generated code into an editor.
 
@@ -167,9 +207,11 @@ Required experience:
 
 Validation to cover: exact copied/downloaded content, Python indentation, multiple blocks, unknown languages, streamed and reopened replies, and safe rendering of code containing HTML/script text. Review current renderer support and local/offline highlighting options during planning.
 
-### 13. Simple software updating with VERSION checks
+### 13. Simple software updating with VERSION checks ✅ Completed
 
-HIGH PRIORITY: Jeremy requested easy upgrades for existing users without deleting their installation or starting over. Plan alongside code-block improvements as an early release priority; implementation remains for the separate roadmap.
+**Current status:** Implemented in [Phase 45](phase45-updates.md): VERSION-based release checks, Settings controls, verified PowerShell/CMD updater delivery, user data/model/file preservation, restart and rollback. Git checkouts are directed to git pull. Difference from the original request: automatic daily checks are available but OFF by default; manual checks and opt-in automatic checks are supported. Follow [docs/RELEASING.md](../docs/RELEASING.md); root VERSION changes only after publication and download verification.
+
+Original high-priority request (implemented as Phase 45; requirements retained below): Jeremy requested easy upgrades without deleting the installation or starting over.
 
 Version discovery and user experience:
 
