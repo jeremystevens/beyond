@@ -63,6 +63,26 @@ Controls become available when the reply finishes or is stopped. Reopened chats 
 
 Under the newest answer, press ✨ (**Adjust this answer**) and choose **Simpler**, **More detail**, **Show an example** or **Walk me through it**. Your choice appears as your message, and BEYOND answers it below. The original answer stays, so you can compare them. It's only offered on the newest answer; for an older one, ask in your own words.
 
+### Writing helper (unreleased)
+
+Press the **pen** next to the message box or send `/rewrite` by itself. Choose:
+
+- **Polish my writing:** paste your text; optionally say what to change or preserve.
+- **Reply to an email:** paste the incoming email and describe what your response should say. It creates a draft; it does not send email.
+- **Draft a document:** supply notes/specifications or describe the document you need.
+
+The tones are **Professional, Casual, Friendly, Technical and precise, Plain language, Formal, Diplomatic, Firm and assertive, Warm and empathetic, Persuasive, Instructional, Academic, and Concise and direct**. The existing **Funny, Polite and Dramatic** choices remain available too. Formal and casual are now separate tone choices. Existing shortcuts such as `pro`, `warm`, `kind` and `short` still work in the quick command.
+
+Open **Audience and document options** to specify a reader (such as a customer, beginner, technician, developer or engineer), a detail level (overview/brief, practical detail, or comprehensive reference), and a document type. Types include a general document, letter, announcement, report, proposal, policy, technical specification, README, troubleshooting guide, installation guide, API reference, incident report, and tutorial/procedure.
+
+For technical writing, paste the actual specifications, code or reference material. The helper is instructed to preserve numbers, units, versions and facts, use appropriate terminology, and mark missing details **[Needs confirmation]** instead of inventing them. Review every draft; model instructions cannot guarantee factual accuracy.
+
+**Use documents attached to this chat** optionally adds relevant excerpts from existing attachments. It starts unchecked for a different chat. Long-document retrieval does not supply every page; for a complete long document, work on one section at a time. Paste up to 12,000 characters of source text. Combined source/draft/excerpt limits may require shorter sections, particularly with a small model.
+
+Edit **Your draft** directly. **Copy draft** and **Save draft** use that text only; Save downloads `.txt`, or `README.md` for a README. Your browser controls the download folder/dialog. To revise, enter **What should change?** and press **Revise draft**; your edited draft is included in the next request. Errors and cancellation keep your source and previous draft. Drafts stay in page memory until refreshed/closed and are not automatically saved to chat or memories. The selected AI connection processes the text, just like other AI features; external servers receive it if configured.
+
+For a quick edit without the helper, use `/rewrite <tone> <text>`, for example `/rewrite diplomatic I disagree with this approach.` or `/rewrite technical The device needs 12 volts.` `/help rewrite` lists every tone. Each draft or revision makes one model request. Ordinary chats do not incur an extra writing request.
+
 ### Attaching documents (1.1.0)
 
 Press 📎 **Attach a photo or document** next to the message box, or drop a file on the chat. Photos work as before. A **PDF**, **Word (.docx)** or **text/code** file (up to 20 MB) is attached to the chat, shown as "📎 Attached …" with a ✕, and listed at the top of the chat. With no chat open, a new one starts, named after the file. Every following question in that chat can use it; answers mention the page they used.

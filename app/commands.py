@@ -1158,6 +1158,8 @@ def _help(args=''):
         command = find(wanted)
         if command is None:
             return Reply(f"There's no /{wanted} command. " + did_you_mean(wanted))
+        if command.name == 'rewrite':
+            return rewrite.USAGE
         names = ' '.join('/' + n for n in (command.name, *command.aliases))
         return f'{names}\n{command.summary}\nExample: {command.example}'
     lines = ['BEYOND commands (type / in the message box for a quick list):']
@@ -1266,8 +1268,8 @@ COMMANDS = [
             group='Extras'),
     Command('cat', 'A random cat fact', '/cat', _online(little_lookups.cat_fact, 'the cat fact service'),
             aliases=('catfact',), group='Extras'),
-    Command('rewrite', 'Say a message in another tone: professional, friendly, funny, polite, dramatic, concise',
-            "/rewrite polite I can't come tomorrow", rewrite.rewrite, group='Extras'),
+    Command('rewrite', 'Polish writing in 16 tones, including technical, formal, diplomatic and empathetic; /rewrite opens the Writing helper',
+            "/rewrite technical The device needs 12 volts.", rewrite.rewrite, group='Extras'),
     Command('qr', 'Make a QR code for a link, text, or Wi-Fi (/qr wifi Name | password)', '/qr example.com', _qr,
             group='Extras'),
     Command('so', 'Search Stack Overflow for programming questions', '/so python read a file line by line',

@@ -526,6 +526,13 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - **Done when:** questions about specific pages and summaries work with a small CPU model, and removing or deleting
   clears the text. See phase48-attachments.md.
 
+### Phase 49: Expanded rewrite and Writing helper
+
+- Item 11 of post-v1-feature-brainstorm.md, explicitly selected by Jeremy. Keep the quick command and add guided polishing, email replies and professional/technical document drafts.
+- All 13 requested tones plus the three retained legacy styles; audience/detail controls, 13 document types, opt-in attached sources, revision and draft-only Copy/Save.
+- No new runtime dependency or data migration. Both version fields and the release signal remain unchanged until a release is prepared under docs/RELEASING.md.
+- Validation and limits: [phase49-writing-helper.md](phase49-writing-helper.md). Live MSI testing requires the remote PC to reconnect.
+
 ## Later, optional
 
 - **Shared brain with the Telegram bot:** once BEYOND's core is stable, the bot and BEYOND could share one copy of

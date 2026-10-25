@@ -1,7 +1,7 @@
 # BEYOND: Post-v1.0 Feature Brainstorm
 
 Started: 2026-10-23
-Status reviewed: 2026-10-24 against the current GitHub main branch, code, changelog and v1.1.0 documentation. Five items are implemented; six have partial foundations; two remain open. Original requests below are retained for reference. Remaining scope and future release priorities are not yet approved.
+Status reviewed: 2026-10-24 against the current GitHub main branch, code, changelog and v1.1.0 documentation. Six items are implemented (Writing helper is unreleased); five have partial foundations; two remain open. Original requests below are retained for reference. Remaining scope and future release priorities are not yet approved.
 
 ## Implementation checklist
 
@@ -15,7 +15,7 @@ Status reviewed: 2026-10-24 against the current GitHub main branch, code, change
 - [ ] 8. Search your own documents - partial; attached-document retrieval exists; folder indexing/search remains.
 - [ ] 9. Screenshot troubleshooting - partial; OCR and vision exist; a dedicated guided workflow remains.
 - [x] 10. Conversation attachments - Phase 48.
-- [ ] 11. Expanded /rewrite and guided writing helper - partial; six styles exist; expanded tones and guided drafting remain.
+- [x] 11. Expanded /rewrite and guided writing helper - Phase 49 (unreleased).
 - [x] 12. Code blocks with syntax highlighting and Copy/Save - Phase 44.
 - [x] 13. Simple software updating with VERSION checks - Phase 45.
 
@@ -142,9 +142,9 @@ Overlap check: differs from a persistent searchable folder by focusing on docume
 
 To discuss: supported formats and size limits, page/section references, large-document handling on small local models, attachment retention/deletion, and behavior when branching chats.
 
-### 11. Expanded /rewrite and guided writing helper — Partially implemented
+### 11. Expanded /rewrite and guided writing helper ✅ Completed (unreleased)
 
-**Current status:** Existing /rewrite has six styles: professional, friendly, funny, polite, dramatic and concise, plus aliases (including formal and casual). A guided writing helper, email replies, structured document drafting, audience/detail controls and the full tone/technical-document selection below remain open.
+**Current status:** Implemented as [Phase 49](phase49-writing-helper.md), unreleased: all 13 requested tones plus the three retained styles, guided polishing/email replies/document drafts, audience/detail controls, technical document types, opt-in attached sources, editable revision and draft-only Copy/Save. Downloads are text, or Markdown for README; rich .docx/PDF export is not included. Validation and remaining live-model checks are recorded in the phase notes.
 
 Selected by Jeremy for inclusion in these notes. Expand /rewrite beyond basic tone changes with a guided helper similar to the /imagine helper. Keep /rewrite available as a quick command and offer guided drafting for users who want help choosing an approach.
 

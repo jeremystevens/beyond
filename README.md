@@ -423,7 +423,7 @@ the chat but never sent to the AI.
 | `/imagine <idea>` | Make a picture, with a prompt helper and presets | `/imagine a cartoon cat in space` |
 | `/calc` · `/convert` · `/time` | Maths and tips, units, world clock | `/calc tip 85.50 18% split 4` |
 | `/qr` | A QR code for a link, text or Wi-Fi (the password stays hidden) | `/qr example.com` |
-| `/rewrite` | Rewrite a message in another tone | `/rewrite polite I can't come tomorrow` |
+| `/rewrite` | Polish text in 16 tones; `/rewrite` alone opens the Writing helper for email replies and documents | `/rewrite technical The device needs 12 volts.` |
 | `/joke` · `/quote` · `/cat` | A joke, a quote, a cat fact | `/joke cats` |
 
 ### Files
@@ -818,6 +818,10 @@ your user's startup programs.
 ---
 
 <a id="settings"></a>
+### Writing helper (unreleased)
+
+Press the monochrome **pen** beside the message box, or send `/rewrite` alone, to polish text, draft an email reply, or write a professional/technical document. Choose a tone, optionally set the audience and detail, then review the editable draft. **Copy draft**, **Save draft**, and **Revise draft** work on the draft alone. Attached chat documents are used only if selected. The helper never sends an email or writes a host file automatically. See the [writing guide](docs/USER_GUIDE.md#writing-helper-unreleased) for every tone and document type.
+
 ## `▸ SETTINGS`
 
 Click **Settings** at the top of the chat page (or open `http://127.0.0.1:7770/settings`). It's grouped with the

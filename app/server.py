@@ -19,7 +19,7 @@ from app import (autostart, briefing, chats, checklists, commands, config, engin
                  https, memory, models, notes, notify, personas, ports, prompts, reminders, rules, search_history, settings)
 
 from app import auth, builtin_engine, downloads, file_reading, file_requests, files, photo_jobs, image_jobs, speech_jobs, blackjack, followups, games, hangman, study_quiz, tictactoe, trivia
-from app.tools import scan, speech, speech_to_text
+from app.tools import scan, speech, speech_to_text, rewrite
 from app import attachments, diagnostics, updates, welcome
 
 models.initialize()
@@ -1475,6 +1475,63 @@ def _settings_view(request, values=None):
 def get_settings(request: Request):
     return _settings_view(request)
 
+
+
+# Writing drafts are separate from chat: no automatic conversation, memory or email side effects.
+WRITING_LOCK = asyncio.Lock()
+
+
+class WritingDraft(BaseModel):
+    model_config = {'extra': 'forbid'}
+    task: Literal['rewrite', 'email', 'document'] = 'rewrite'
+    tone: str = Field(default='professional', max_length=32)
+    source: str = Field(default='', max_length=rewrite.MAX_TEXT)
+    instructions: str = Field(default='', max_length=rewrite.MAX_DIRECTIONS)
+    audience: str = Field(default='', max_length=200)
+    detail: str = Field(default='standard', max_length=20)
+    document_format: str = Field(default='document', max_length=32)
+    previous: str = Field(default='', max_length=rewrite.MAX_DRAFT)
+    revision: str = Field(default='', max_length=rewrite.MAX_DIRECTIONS)
+    use_attachments: bool = False
+    chat_id: StrictInt | None = Field(default=None, gt=0)
+
+
+@app.get('/api/writing/options')
+def writing_options():
+    return rewrite.options()
+
+
+@app.post('/api/writing/draft')
+async def writing_draft(body: WritingDraft, request: Request):
+    values = body.model_dump(exclude={'use_attachments', 'chat_id'})
+    try:
+        rewrite.messages(**values)  # reject missing/invalid fields before looking up sources or using the model
+        if body.use_attachments:
+            if body.chat_id is None or not chats.exists(body.chat_id) or not attachments.listing(body.chat_id):
+                raise rewrite.WritingError('Attach a document to this chat first, or turn off Use attached documents.')
+            values['attachment_notes'] = attachments.notes_for(body.chat_id, body.instructions + '\n' + body.source)
+            rewrite.messages(**values)
+    except rewrite.WritingError as exc:
+        return JSONResponse({'error': str(exc)}, status_code=400)
+    if WRITING_LOCK.locked() or ANSWERS_IN_PROGRESS or builtin_engine.busy():
+        return JSONResponse({'error': 'The AI is busy. Try the writing helper after its current reply finishes.'}, status_code=409)
+    async with WRITING_LOCK:
+        task = asyncio.create_task(rewrite.draft(**values))
+        try:
+            while not task.done():
+                if await request.is_disconnected():
+                    return Response(status_code=499)
+                await asyncio.wait({task}, timeout=0.25)
+            draft = await task
+        except engine.EngineError as exc:
+            return JSONResponse({'error': str(exc)}, status_code=503)
+        except rewrite.WritingError as exc:
+            return JSONResponse({'error': str(exc)}, status_code=502)
+        finally:
+            if not task.done():
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+    return {'draft': draft}
 
 
 class PromptChoice(BaseModel):

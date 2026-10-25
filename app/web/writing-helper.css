@@ -1,0 +1,24 @@
+#writing-open svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; }
+.writing-dialog { width:min(740px, calc(100vw - 24px)); max-height:calc(100dvh - 24px); margin:auto;
+  padding:20px; border:1px solid var(--border); border-radius:14px; background:var(--panel); color:var(--text);
+  box-sizing:border-box; overflow:auto; }
+.writing-dialog::backdrop { background:rgba(0,0,0,.45); }
+.writing-dialog h2 { font-size:1.2rem; margin:0; }
+.writing-heading { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; }
+.writing-dialog form { background:none; border:0; padding:0; }
+.writing-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.writing-dialog label { display:block; font-weight:600; margin-bottom:5px; }
+.writing-dialog input:not([type=checkbox]), .writing-dialog select, .writing-dialog textarea {
+  width:100%; max-height:none; box-sizing:border-box; padding:9px 10px; border:1px solid var(--border); border-radius:8px;
+  background:var(--bg); color:var(--text); font:inherit; min-width:0; }
+.writing-dialog textarea { resize:vertical; line-height:1.5; }
+.writing-field { margin-bottom:12px; min-width:0; }
+.writing-dialog details { margin:12px 0; }
+.writing-dialog summary { cursor:pointer; margin-bottom:10px; }
+.writing-dialog .writing-check { font-weight:400; display:flex; align-items:center; gap:8px; }
+.writing-actions { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+.writing-status { white-space:pre-wrap; color:var(--muted); font-size:.9rem; }
+.writing-status.writing-error { color:var(--text); border-left:3px solid var(--border); padding-left:10px; }
+#writing-result { margin-top:16px; border-top:1px solid var(--border); padding-top:16px; }
+#writing-draft { min-height:220px; }
+@media(max-width:520px) { .writing-grid {grid-template-columns:1fr;gap:0;} .writing-dialog {padding:14px;} }

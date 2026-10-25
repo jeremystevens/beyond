@@ -12,6 +12,8 @@
   <script src="/static/vendor/highlight.min.js?v=11.11.1"></script>
   <script src="/static/vendor/powershell.min.js?v=11.11.1"></script>
   <script src="/static/code-blocks.js?v=1"></script>
+  <link rel="stylesheet" href="/static/writing-helper.css?v=1">
+  <script src="/static/writing-helper.js?v=1"></script>
   <script src="/static/auth.js?v=1"></script>
   <script src="/static/app-height.js?v=3" defer></script>
   <style>
@@ -308,6 +310,7 @@
           <button type="button" class="ghost" id="attach-photo" aria-label="Attach a photo or document" title="Attach a photo (read its text or ask about it) or a document (PDF, Word or text) to talk about"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
           <button type="button" class="ghost" id="mic" aria-label="Speak your message" title="Speak your message"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg></button>
           <ul id="cmdmenu" role="listbox" aria-label="Commands" hidden></ul>
+          <button type="button" class="ghost" id="writing-open" aria-label="Writing helper" title="Writing helper: polish text, reply to an email, or draft a document"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m16 3 5 5-12 12-6 1 1-6z"/><path d="m13 6 5 5"/></svg></button>
           <textarea id="input" rows="1" placeholder="Message BEYOND…  (type / for commands)" aria-label="Message"
                     title="Enter sends · Shift+Enter starts a new line · / shows the commands"
                     aria-controls="cmdmenu" aria-autocomplete="list"></textarea>
@@ -316,6 +319,34 @@
       </form>
     </div>
   </div>
+  <dialog class="writing-dialog" id="writing-dialog" aria-labelledby="writing-title">
+    <div class="writing-heading"><h2 id="writing-title">Writing helper</h2><button type="button" class="ghost" id="writing-close" aria-label="Close Writing helper">Close</button></div>
+    <form id="writing-form">
+      <div class="writing-grid">
+        <div class="writing-field"><label for="writing-task">What would you like to do?</label><select id="writing-task"></select></div>
+        <div class="writing-field"><label for="writing-tone">Tone</label><select id="writing-tone"></select></div>
+      </div>
+      <div class="writing-field"><label id="writing-source-label" for="writing-source">Text to polish</label><textarea id="writing-source" rows="5" maxlength="12000" required></textarea></div>
+      <div class="writing-field"><label id="writing-instructions-label" for="writing-instructions">Anything to change or keep? (optional)</label><textarea id="writing-instructions" rows="2" maxlength="2000" placeholder="Include the purpose, facts and details that matter."></textarea></div>
+      <details><summary>Audience and document options</summary>
+        <div class="writing-field"><label for="writing-audience">Who is it for? (optional)</label><input id="writing-audience" maxlength="200" list="writing-audiences" placeholder="For example: a customer, technician or beginner"><datalist id="writing-audiences"><option value="General audience"><option value="Work colleagues"><option value="Customer"><option value="Beginner"><option value="Technician"><option value="Developer"><option value="Engineer"><option value="Academic audience"></datalist></div>
+        <div class="writing-grid">
+          <div class="writing-field" id="writing-format-field" hidden><label for="writing-format">Document type</label><select id="writing-format"></select></div>
+          <div class="writing-field"><label for="writing-detail">Level of detail</label><select id="writing-detail"></select></div>
+        </div>
+        <label class="writing-check"><input id="writing-attachments" type="checkbox">Use documents attached to this chat</label>
+        <p class="note">Long documents use relevant excerpts. For a complete long document, work on one section at a time.</p>
+      </details>
+      <div class="writing-actions"><button id="writing-generate" type="submit">Create draft</button><button id="writing-cancel" type="button" class="ghost" hidden>Cancel generation</button></div>
+    </form>
+    <p id="writing-status" class="writing-status" role="status" aria-live="polite"></p>
+    <section id="writing-result" hidden aria-label="Editable writing draft">
+      <label for="writing-draft">Your draft — edit before using</label><textarea id="writing-draft" rows="9" maxlength="16000"></textarea>
+      <div class="writing-actions"><button id="writing-copy" type="button" class="ghost">Copy draft</button><button id="writing-save" type="button" class="ghost">Save draft</button></div>
+      <label for="writing-revision">What should change?</label><textarea id="writing-revision" rows="2" maxlength="2000" placeholder="For example: make the request firmer, but keep the deadline."></textarea>
+      <div class="writing-actions"><button id="writing-revise" type="button" class="ghost">Revise draft</button></div>
+    </section>
+  </dialog>
   <script>
     let chatId = null;    // the open saved chat (null = a new chat that isn't saved until its first message)
     let current = null;   // the reply being written: { controller, stopped }
@@ -617,6 +648,7 @@
       send.type = busy ? 'button' : 'submit';
       send.title = busy ? 'Stop the answer (Esc)' : '';
       $('games-open').disabled = busy;
+      $('writing-open').disabled = busy;
     }
 
     function stop() { if (current) { current.stopped = true; current.controller.abort(); } }
@@ -893,6 +925,9 @@
         }
         $('photo-status').textContent = 'Choose an action, or send /look followed by your question.';
         return;
+      }
+      if (/^\/rewrite\s*$/i.test(text)) {
+        input.value = ''; autoGrow(); writingHelper.open(); return;
       }
       const imagine = /^\/imagine(?:\s+([\s\S]*))?$/i.exec(text);
       if (imagine) {
@@ -2207,6 +2242,8 @@
     window.addEventListener('blur', reportPresence);
     reportPresence();
     setInterval(() => { if (document.visibilityState === 'visible' && document.hasFocus()) reportPresence(); }, 10000);
+    const writingHelper = BeyondWriting.init({ getChatId: () => chatId,
+      hasAttachments: () => !!list.querySelector('.attach-line'), isBusy: () => !!current || scanning });
     autoGrow();
   </script>
   <script src="/static/welcome-check.js?v=1" defer></script>

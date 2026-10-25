@@ -19,6 +19,11 @@ APP_CONTRACT = (
 )
 
 _TOOL_HELP = [
+    (r"\b(rewrite|writing helper|email|draft|professional document|technical specification)\b",
+     "Writing: /rewrite <tone> <text> polishes text. Sending /rewrite alone in the browser or pressing the pen icon "
+     "opens Writing helper for email replies and documents, with 16 tones, audience/detail controls and editable "
+     "drafts. Copy/Save draft use only its text. It does not send email. Optional attached-document excerpts can "
+     "be used explicitly; do not invent specifications or citations."),
     (r"\b(weather|forecast|temperature|rain|snow)\b",
      "Weather: /weather <city, state/country>. Python handles place comparisons and pending confirmations. "
      "A suggested spelling needs confirmation; never supply invented conditions or coordinates."),
