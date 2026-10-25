@@ -160,7 +160,7 @@ Under the newest answer, the ✨ button offers **Simpler**, **More detail**, **S
 
 ### Attach documents to a chat
 
-Press 📎 (or drop a file on the chat) to attach a **PDF**, **Word** document or **text** file, then ask about it: "summarise this", "what does page 4 say about the warranty?", "compare the two quotes". The document stays with the chat for follow-up questions, and answers name the page they used. Only the text is kept, on your PC; ✕ removes it. Photos attached the same way still read text (`/scan`) or answer questions (`/look`).
+Choose **+ → Attach photo or document** (or drop a file on the chat) to attach a **PDF**, **Word** document or **text** file, then ask about it: "summarise this", "what does page 4 say about the warranty?", "compare the two quotes". The document stays with the chat for follow-up questions, and answers name the page they used. Only the text is kept, on your PC; ✕ removes it. Photos attached the same way still read text (`/scan`) or answer questions (`/look`).
 
 ### Conversation branches
 
@@ -205,7 +205,7 @@ ends with a quiet line: copy, rate, read aloud, try again, and the model, tokens
 ![BEYOND's chat page](screenshots/Screenshot1.png)
 
 *Saved chats on the left, the AI connection status, Games and Settings at the top, and the message box with its
-paper clip (attach) and microphone buttons.*
+attachment and microphone controls (now grouped in the + menu on the development branch).*
 
 </details>
 
@@ -386,6 +386,7 @@ the chat but never sent to the AI.
 | Command | What it does | Example |
 |---|---|---|
 | `/help` | Every command, or details for one | `/help calc` |
+| `/think` | Plan, draft and review one question with the current model | `/think Plan a small project` |
 | `/status` | Host CPU, RAM, installation-drive space, uptime, optional GPU metrics and AI state | `/status` |
 | `/model` | Live loaded/selected model information without AI inference | `/model` |
 | `/remember` · `/memories` · `/forget` | Save, list and remove facts BEYOND knows in every chat | `/remember my dog is named Max` |
@@ -477,6 +478,16 @@ These need this PC or a device signed in as administrator.
 Health commands: **/status** shows host resources and AI state; **/model** identifies the active model;
 **/speed** (or **/speed 1–50**) shows saved reply timings; **/selftest** runs read-only checks.
 All appear in **/help** and the **/** command menu. Open **Settings → Status and health** for the full page.
+
+### Think it through and the + menu
+
+This is an unreleased addition after 1.2.0. The **+** button below the message box opens **Attach photo or document**, **Voice input**, **Writing helper**, and the **Think it through** checkbox. These tools use the same optional features and permissions as before. Active recording has a visible Stop recording control even when the popup is closed.
+
+Turn on **Think it through** before asking a harder question. BEYOND checks the requirements, drafts, and reviews with your current model, then streams the final answer. It takes longer; ordinary chat keeps its existing path while the mode is off. **Think it through: On** remains visible outside the menu; click it to turn the mode off. The preference is saved in this browser at this BEYOND address and stays on across chats until disabled.
+
+For one question, use **/think <question>**, such as `/think Help me plan a small project with a limited budget`. This does not change the checkbox. **/think** alone shows help. Commands and dedicated tools keep their normal workflows. This is separate from the model's native-thinking setting in Settings.
+
+Progress appears during preparation; intermediate text is not saved. Stop cancels the work, and Retry preserves the guided mode for a failed question. Multiple passes can still make mistakes and do not independently verify facts. **Check answer** provides evidence checks. Guided mode uses bounded recent context and needs at least a 2,048-token built-in context; shorten oversized questions or choose a larger context. See [implementation notes](planning/think-it-through.md).
 
 ### Conversation working notes
 
@@ -1078,7 +1089,7 @@ BEYOND's page talks to a small JSON API, which you can use from scripts too.
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/api/chat/stream` | Send a message or command; the reply streams back as JSON lines |
+| `POST` | `/api/chat/stream` | Send a message or command; optional `think_through: true`; reply streams as JSON lines |
 | `POST` | `/api/chat` | One-shot reply without saving (for scripts) |
 | `GET` | `/api/chats` | List saved chats |
 | `GET` · `PATCH` · `DELETE` | `/api/chats/{id}` | Open, rename or delete a chat |
@@ -1304,7 +1315,7 @@ blocking Python: allow it on private networks when asked.
 and the Phase 42 validation exceptions are listed below. The full history and evidence live in
 [`planning/phases.md`](planning/phases.md).
 
-**Completed after 1.2.0 (unreleased):** host-status chat command, direct model identity questions, runtime model context, [conversation working notes](planning/conversation-working-notes.md), [answer checking](planning/answer-checking.md) and [clearing recent error history](planning/clear-error-history.md). See [implementation notes](planning/chat-host-status.md). Future capability ideas remain [brainstorming](planning/small-model-capability-ideas.md), not an approved roadmap.
+**Completed after 1.2.0 (unreleased):** [Think it through and the + tools menu](planning/think-it-through.md), host-status chat command, direct model identity questions, runtime model context, [conversation working notes](planning/conversation-working-notes.md), [answer checking](planning/answer-checking.md) and [clearing recent error history](planning/clear-error-history.md). See [implementation notes](planning/chat-host-status.md). Future capability ideas remain [brainstorming](planning/small-model-capability-ideas.md), not an approved roadmap.
 
 <details open>
 <summary><b>Delivered through Phase 53 · BEYOND 1.2.0</b> (Phase 37 deferred; validation exceptions below)</summary>

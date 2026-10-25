@@ -28,6 +28,7 @@ from app.tools.imagine import HELP as IMAGINE_HELP
 from app.tools import speech
 from app.tools.vision import HELP as LOOK_HELP
 from app.tools.scan import HELP as SCAN_HELP
+from app.think_through import HELP as THINK_HELP
 from app.tools.web import Unavailable
 from app.tools.world_time import world_time
 
@@ -1212,6 +1213,7 @@ def _model(args):
 
 
 COMMANDS = [
+    Command('think', 'Plan, draft and review a question with the current model; takes longer', '/think Plan a small project', lambda _: THINK_HELP, group='Help'),
     Command('model', 'Show the currently loaded or selected AI model', '/model', _model, group='Help'),
     Command('status', 'Live host CPU, RAM, disk, uptime, GPU and AI status', '/status', _status, group='Help'),
     Command('speed', 'Recent saved AI reply timings; no benchmark is generated', '/speed 10', _speed, group='Help'),

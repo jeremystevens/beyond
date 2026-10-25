@@ -77,7 +77,7 @@ If an existing issue matches your problem, open it and add useful details there.
 
 ### Screenshot troubleshooting
 
-1. Attach a PNG, JPEG or WebP error screenshot with the paperclip, drop it on chat, or paste an image into the message box. The existing limits apply: 10 MB, 25 megapixels, one still image at a time. Crop out private details before sharing it with BEYOND.
+1. Attach a PNG, JPEG or WebP error screenshot using **+ → Attach photo or document**, drop it on chat, or paste an image into the message box. The existing limits apply: 10 MB, 25 megapixels, one still image at a time. Crop out private details before sharing it with BEYOND.
 2. Optionally describe what triggered the error or what you already tried in the photo question field.
 3. Press **Troubleshoot this**. **Automatic** uses installed **Read text in photos (OCR)** first, otherwise configured **Photo understanding (vision)**. Select **Read error text** to require OCR, or **Understand screen** to require vision for layout/icon problems. There is no silent download or switch to another reader after a failure. Use **Add-Features.cmd** to install the relevant reader; enable/configure Photo understanding in Settings for vision. You can also paste the exact error as normal text.
 4. The job runs in the background. Its reply explains visible evidence, possible causes, up to three initial checks, and up to two focused questions. Reply normally with the result or missing details. The evidence and advice remain part of this chat's recent conversation context, including after reopening. As with other long chats, older messages can leave the model's context window.
@@ -98,7 +98,7 @@ For long chats, BEYOND sends bounded excerpts from the opening and recent messag
 
 ### Writing helper
 
-On phones, the message box uses the full width, with attachment, microphone and pen icons underneath and Send on the right. Press the **pen** or send `/rewrite` by itself. Choose:
+The message box uses its full row. Open **+ → Writing helper**, or send `/rewrite` by itself. Attachments, voice and the thinking toggle share the compact + menu. Choose:
 
 - **Polish my writing:** paste your text; optionally say what to change or preserve.
 - **Reply to an email:** paste the incoming email and describe what your response should say. It creates a draft; it does not send email.
@@ -118,7 +118,7 @@ For a quick edit without the helper, use `/rewrite <tone> <text>`, for example `
 
 ### Attaching documents (1.1.0)
 
-Press 📎 **Attach a photo or document** next to the message box, or drop a file on the chat. Photos work as before. A **PDF**, **Word (.docx)** or **text/code** file (up to 20 MB) is attached to the chat, shown as "📎 Attached …" with a ✕, and listed at the top of the chat. With no chat open, a new one starts, named after the file. Every following question in that chat can use it; answers mention the page they used.
+Choose **+ → Attach photo or document** below the message box, or drop a file on the chat. Photos work as before. A **PDF**, **Word (.docx)** or **text/code** file (up to 20 MB) is attached to the chat, shown as "📎 Attached …" with a ✕, and listed at the top of the chat. With no chat open, a new one starts, named after the file. Every following question in that chat can use it; answers mention the page they used.
 
 A small AI on a processor can't read a long document at once, so for longer documents BEYOND sends the parts that best match your question. Name what you're looking for ("the warranty", "page 9") for the best results. "Summarise this" covers the opening and headings, not every page. A chat can have up to 5 documents.
 
@@ -254,3 +254,13 @@ Write notes yourself, or press **Draft from chat**, review and edit the result, 
 Notes are limited to 1,600 characters and refreshed on request. Normal replies add no extra model calls, but the small context block can add some prompt-processing time. The dialog tells you when there are newer messages. Drafting uses bounded excerpts in long chats and may miss older details; previous reviewed notes help preserve earlier context. Newer chat messages override old notes.
 
 Editing or deleting covered history clears the notes to prevent stale facts. Deleting a chat deletes its notes; branches start with independent empty notes. If the chat changes during drafting or editing, reopen or draft again before saving. The dialog keeps unsaved text on errors. See [implementation notes](../planning/conversation-working-notes.md).
+
+### Think it through and the + menu
+
+This is an unreleased addition after 1.2.0. The **+** button below the message box opens **Attach photo or document**, **Voice input**, **Writing helper**, and the **Think it through** checkbox. These tools use the same optional features and permissions as before. Active recording has a visible Stop recording control even when the popup is closed.
+
+Turn on **Think it through** before asking a harder question. BEYOND checks the requirements, drafts, and reviews with your current model, then streams the final answer. It takes longer; ordinary chat keeps its existing path while the mode is off. **Think it through: On** remains visible outside the menu; click it to turn the mode off. The preference is saved in this browser at this BEYOND address and stays on across chats until disabled.
+
+For one question, use **/think <question>**, such as `/think Help me plan a small project with a limited budget`. This does not change the checkbox. **/think** alone shows help. Commands and dedicated tools keep their normal workflows. This is separate from the model's native-thinking setting in Settings.
+
+Progress appears during preparation; intermediate text is not saved. Stop cancels the work, and Retry preserves the guided mode for a failed question. Multiple passes can still make mistakes and do not independently verify facts. **Check answer** provides evidence checks. Guided mode uses bounded recent context and needs at least a 2,048-token built-in context; shorten oversized questions or choose a larger context. See [implementation notes](../planning/think-it-through.md).

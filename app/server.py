@@ -252,6 +252,7 @@ class ChatRequest(BaseModel):
 class SendRequest(BaseModel):
     chat_id: int | None = None      # None = start a new chat
     content: str = Field(min_length=1, max_length=20000)
+    think_through: bool = False
 
 
 class Rename(BaseModel):
@@ -755,6 +756,14 @@ async def chat_stream(body: SendRequest, request: Request):
     content = body.content.strip()
     if not content:
         return JSONResponse({'error': 'The message is empty.'}, status_code=400)
+    think_command=re.match(r'^/think(?:@\w+)?(?:\s+([\s\S]*))?$',content,re.I)
+    if think_command:
+        question=(think_command.group(1) or '').strip()
+        if not question or question.startswith('/'):
+            from app.think_through import HELP
+            return _command_reply(body.chat_id,content,prepared=commands.Reply(HELP))
+        content=question
+        body=body.model_copy(update={'content':question,'think_through':True})
     new_chat = body.chat_id is None
     if not new_chat and not chats.exists(body.chat_id):
         return JSONResponse({'error': 'That chat no longer exists. Start a new one.'}, status_code=404)
@@ -833,7 +842,7 @@ def _ai_answer(body, content, request, followup=None, read=''):
     or still open in this chat, is attached to the notes so the AI can read it (app/file_reading.py)."""
     new_chat = body.chat_id is None
     chat_id = chats.create(content) if new_chat else body.chat_id
-    question_id = chats.add_message(chat_id, 'user', content)
+    question_id = chats.add_message(chat_id, 'user', content, think_through=body.think_through)
     values = settings.load()
     history, sent_ids = chats.recent_messages(chat_id, engine.history_window(chats.message_count(chat_id)),
                                               with_ids=True)
@@ -844,7 +853,7 @@ def _ai_answer(body, content, request, followup=None, read=''):
             chats.delete(chat_id)
 
     opening = {'type': 'chat', 'id': chat_id, 'new': new_chat, 'title': chats.title_from(content),
-               'question_id': question_id}
+               'question_id': question_id, 'think_through': body.think_through}
     extra = followup.get('notes','') if followup else ''
     reading, file_notes, follow_up = file_reading.for_message(None if new_chat else chat_id, content,
                                                               can_manage(request), named=read)
@@ -856,7 +865,7 @@ def _ai_answer(body, content, request, followup=None, read=''):
                    pickup=content if values['auto_facts'] else None,
                    prior_context=followup['state'] if followup else None,
                    suppress_auto=bool(followup) or bool(reading),
-                   status=f'📖 Reading {reading}…' if reading and not follow_up else '', retain_on_error=True)
+                   status=f'📖 Reading {reading}…' if reading and not follow_up else '', retain_on_error=True, think_through=body.think_through)
 
 
 def _background(question, sent_ids, values, extra='', chat_id=None):
@@ -870,10 +879,11 @@ def _background(question, sent_ids, values, extra='', chat_id=None):
 
 
 def _answer(chat_id, history, background, opening, undo, question=None, pickup=None, retry_of=None,
-            temperature=None, prior_context=None, suppress_auto=False, status='', retain_on_error=False):
+            temperature=None, prior_context=None, suppress_auto=False, status='', retain_on_error=False, think_through=False):
     """Stream an AI answer to the end of `history` and save it with 👍 👎 🔄 under it. If the page disconnects
     (Stop), what was written so far is saved, marked as stopped; if nothing was written at all, undo() runs.
     `question`: checked for an automatic lookup (weather, news, web) first, whose results go in the notes."""
+    from app import think_through as guided
     budget = learning.max_tokens()
     wanted = lookups.detect(question) if question and not suppress_auto else None
     found = wanted if wanted and settings.load()['auto_lookup'] else None
@@ -909,7 +919,11 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 yield json.dumps({'type': 'lookup', **lookup}) + '\n'
             try:
                 thinking, stats = False, None
-                async for piece in engine.chat_stream(history, notes, max_tokens=budget, temperature=temperature):
+                stream = guided.stream(history, notes, max_tokens=budget, temperature=temperature) if think_through else engine.chat_stream(history, notes, max_tokens=budget, temperature=temperature)
+                async for piece in stream:
+                    if isinstance(piece,guided.Progress):
+                        yield json.dumps({'type':'status','text':piece.text})+'\n'
+                        continue
                     if isinstance(piece, engine.Stats):
                         stats = dict(piece)
                         continue
@@ -933,7 +947,7 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 yield json.dumps({'type': 'replace', 'text': text}) + '\n'
             if finished and text:
                 answer_id = chats.add_message(chat_id, 'assistant', text, retry_of=retry_of, lookup=lookup,
-                                              stats=stats)
+                                              stats=stats, think_through=think_through)
                 if found or prior_context:
                     followups.save(chat_id,answer_id,active_context,for_retry=True)
                 previous = chats.previous_answer(chat_id, answer_id)
@@ -968,7 +982,7 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
             if not saved:
                 text = lookups.without_fake_mark(''.join(answer))
                 if text:
-                    partial_id = chats.add_message(chat_id, 'assistant', text, stopped=True, retry_of=retry_of, lookup=lookup)
+                    partial_id = chats.add_message(chat_id, 'assistant', text, stopped=True, retry_of=retry_of, lookup=lookup, think_through=think_through)
                     if found or prior_context:
                         followups.save(chat_id,partial_id,active_context)
                 elif not failed or not retain_on_error:
@@ -1011,7 +1025,7 @@ async def retry_question(question_id: int, request: Request):
     return _answer(chat_id, history, _background(question['content'], sent_ids, settings.load(), extra, chat_id),
                    {'type': 'chat', 'id': chat_id, 'new': False, 'question_id': question_id}, undo,
                    question=question['content'], retry_of=old[-1]['id'] if old else None,
-                   prior_context=context, suppress_auto=bool(grounded or file_notes))
+                   prior_context=context, suppress_auto=bool(grounded or file_notes), think_through=bool(question.get('think_through')))
 
 
 @app.post('/api/messages/{message_id}/retry')
@@ -1048,7 +1062,7 @@ async def try_again(message_id: int):
     return _answer(chat_id, history, background, {'type': 'retry', 'id': message_id}, undo,
                    question=history[-1]['content'], retry_of=message_id,
                    temperature=min(1.1, config.TEMPERATURE + 0.3),
-                   prior_context=context if grounded else None, suppress_auto=bool(grounded))
+                   prior_context=context if grounded else None, suppress_auto=bool(grounded), think_through=bool(old.get('think_through')))
 
 # Adjust this answer (Phase 46): what the user's message says, and what the AI is asked to do with its last answer.
 ADJUSTMENTS = {

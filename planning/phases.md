@@ -559,6 +559,8 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 
 ## Completed after 1.2.0 (unreleased)
 
+- [Think it through and compact composer tools](think-it-through.md): + popup, visible device toggle, /think one-question command, bounded guided passes and retry metadata.
+
 - [Conversation working notes](conversation-working-notes.md): reviewed per-chat context, explicit drafting/updating, pause/clear and history invalidation.
 
 - [Answer checking](answer-checking.md): optional calculator, attached-document and public-search evidence checks in the existing reply menu.

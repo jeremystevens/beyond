@@ -16,6 +16,7 @@
   <script src="/static/writing-helper.js?v=1"></script>
   <link rel="stylesheet" href="/static/chat-recap.css?v=1">
   <script src="/static/chat-recap.js?v=1"></script>
+  <script src="/static/composer-tools.js?v=1"></script>
   <script src="/static/working-notes.js?v=1"></script>
   <link rel="stylesheet" href="/static/working-notes.css?v=1">
   <script src="/static/answer-checks.js?v=1"></script>
@@ -269,6 +270,7 @@
       .sidebar-nav .ghost { width: 100%; min-height: 44px; padding: 12px; text-align: center; }
     }
   </style>
+  <link rel="stylesheet" href="/static/composer-tools.css?v=1">
 </head>
 <body>
   <header>
@@ -331,10 +333,15 @@
         </div>
         <input id="photo-file" type="file" accept="image/png,image/jpeg,image/webp,.pdf,.docx,.txt,.md,.markdown,.csv,.tsv,.json,.html,.htm,.xml,.log,.ini,.cfg,.yaml,.yml,.toml,.py,.js,.ts,.css,.java,.c,.h,.cpp,.cs,.go,.rs,.rb,.php,.sh,.ps1,.bat,.sql,.rst,.tex" hidden>
         <div class="composer">
-          <button type="button" class="ghost" id="attach-photo" aria-label="Attach a photo or document" title="Attach a photo (read its text or ask about it) or a document (PDF, Word or text) to talk about"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>
-          <button type="button" class="ghost" id="mic" aria-label="Speak your message" title="Speak your message"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg></button>
+          <button type="button" class="ghost" id="composer-more" aria-label="More chat tools" aria-expanded="false" aria-controls="composer-tools" title="More chat tools"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></button>
+          <div id="composer-tools" role="group" aria-label="Chat tools" hidden>
+          <button type="button" class="ghost" id="attach-photo" aria-label="Attach a photo or document" title="Attach a photo (read its text or ask about it) or a document (PDF, Word or text) to talk about"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg><span>Attach photo or document</span></button>
+          <button type="button" class="ghost" id="mic" aria-label="Speak your message" title="Speak your message"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg><span>Voice input</span></button>
+          <button type="button" class="ghost" id="writing-open" aria-label="Writing helper" title="Writing helper: polish text, reply to an email, or draft a document"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m16 3 5 5-12 12-6 1 1-6z"/><path d="m13 6 5 5"/></svg><span>Writing helper</span></button>
+            <label for="think-mode"><input id="think-mode" type="checkbox"><span>Think it through<small>Plan, draft and review with your current model. Takes longer.</small></span></label>
+          </div>
+          <div id="composer-badges"><button type="button" class="ghost" id="think-indicator" aria-label="Turn off Think it through" title="Turn off Think it through" hidden>Think it through: On</button><button type="button" class="ghost" id="voice-indicator" hidden>Stop recording</button></div>
           <ul id="cmdmenu" role="listbox" aria-label="Commands" hidden></ul>
-          <button type="button" class="ghost" id="writing-open" aria-label="Writing helper" title="Writing helper: polish text, reply to an email, or draft a document"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m16 3 5 5-12 12-6 1 1-6z"/><path d="m13 6 5 5"/></svg></button>
           <textarea id="input" rows="1" placeholder="Message BEYOND…  (type / for commands)" aria-label="Message"
                     title="Enter sends · Shift+Enter starts a new line · / shows the commands"
                     aria-controls="cmdmenu" aria-autocomplete="list"></textarea>
@@ -399,6 +406,7 @@ Open questions:"></textarea><p id="notes-count">0 / 1,600</p>
     </section>
   </dialog>
   <script>
+    let composerTools = null;
     let recapHelper = null;
     let workingNotesHelper = null;
     let chatId = null;    // the open saved chat (null = a new chat that isn't saved until its first message)
@@ -808,6 +816,7 @@ Open questions:"></textarea><p id="notes-count">0 / 1,600</p>
                           (m.kind === 'attachment' ? ' attachment' : '') +
                           (['reminder', 'briefing'].includes(m.kind) ? ' reminder' : ''), m.content);
         el.dataset.messageId = String(m.id);
+        if (m.think_through && m.role==='user') addNote(el,'Think it through');
         if (m.stopped) addNote(el, 'Stopped / incomplete');
         if (m.kind === 'retried') { el.dataset.kind = 'retried'; addNote(el, RETRIED); }
         showLookup(el, m.lookup);
@@ -995,8 +1004,12 @@ Open questions:"></textarea><p id="notes-count">0 / 1,600</p>
       }
       if (!text) return;
       input.value = ''; autoGrow();
-      const question = bubble('user', text);
-      streamAnswer('/api/chat/stream', { chat_id: chatId, content: text }, question, () => {
+      const oneOff=/^\/think(?:@\w+)?\s+([\s\S]+)/i.exec(text);
+      const content=oneOff?oneOff[1].trim():text;
+      const guided=!!oneOff || !!composerTools?.enabled();
+      composerTools?.close();
+      const question = bubble('user', content);
+      streamAnswer('/api/chat/stream', { chat_id: chatId, content, think_through: guided }, question, () => {
         // nothing was answered, so BEYOND didn't save the question either
         if (current?.stopped && question.isConnected) addNote(question, 'Stopped before the AI started answering (not saved)');
       });
@@ -1156,6 +1169,7 @@ Open questions:"></textarea><p id="notes-count">0 / 1,600</p>
             const event = JSON.parse(line);
             if (event.type === 'chat') {
               questionId = event.question_id || questionId;
+              if(event.think_through&&!anchor.querySelector('.think-label'))addNote(anchor,'Think it through').classList.add('think-label');
               if (event.new) { chatId = mine.chatId = event.id; startedNewChat = true; showChatInAddress(); loadList(); }
             } else if (event.type === 'token') {
               const follow = nearBottom();
@@ -2119,7 +2133,7 @@ Open questions:"></textarea><p id="notes-count">0 / 1,600</p>
       mic.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (state === 'recording'
         ? '<rect x="6" y="6" width="12" height="12" rx="2"/>'          // stop
         : state === 'working' ? '<path d="M21 12a9 9 0 1 1-6.22-8.56"/>'   // a spinning circle
-        : MIC_ICON) + '</svg>';
+        : MIC_ICON) + '</svg><span>'+(state==='recording'?'Stop recording':state==='working'?'Transcribing…':'Voice input')+'</span>';
       mic.classList.toggle('recording', state === 'recording');
       mic.classList.toggle('working', state === 'working');
       mic.title = mic.ariaLabel = state === 'recording' ? 'Stop recording and send'
@@ -2305,6 +2319,7 @@ Open questions:"></textarea><p id="notes-count">0 / 1,600</p>
     window.addEventListener('blur', reportPresence);
     reportPresence();
     setInterval(() => { if (document.visibilityState === 'visible' && document.hasFocus()) reportPresence(); }, 10000);
+    composerTools = BeyondComposerTools.init();
     BeyondAnswerChecks.init();
     workingNotesHelper = BeyondWorkingNotes.init({getChatId: () => chatId, isBusy: () => !!current || scanning});
     recapHelper = BeyondRecap.init({getChatId: () => chatId, isBusy: () => !!current || scanning});

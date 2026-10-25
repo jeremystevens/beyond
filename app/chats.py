@@ -69,7 +69,7 @@ def initialize():
         for column in ('rating INTEGER', 'reason TEXT', 'retry_of INTEGER', 'lookup TEXT', 'image TEXT', 'replaces INTEGER',
                        'audio BLOB', 'speech_state TEXT', 'speech_error TEXT', 'speech_engine TEXT',
                        'speech_truncated INTEGER NOT NULL DEFAULT 0', 'game TEXT', 'stats TEXT',
-                       'copied_from INTEGER'):   # copied_from (Phase 47): the original of a message copied into a branch
+                       'think_through INTEGER NOT NULL DEFAULT 0', 'copied_from INTEGER'):   # copied_from (Phase 47): the original of a message copied into a branch
             if column.split()[0] not in columns:
                 db.execute('ALTER TABLE messages ADD COLUMN ' + column)
         # Branches (Phase 47): the chat a branch was made from, and the answer it was branched at. No foreign keys:
@@ -142,16 +142,16 @@ def _buttons(raw):
 
 
 def add_message(chat_id, role, content, stopped=False, kind='chat', buttons=None, retry_of=None, lookup=None,
-                image=None, replaces=None, game=None, stats=None):
+                image=None, replaces=None, game=None, stats=None, think_through=False):
     """Save a message. `buttons`: rows of {'label', 'action'} to show under it (see app/commands.py)."""
     now = _now()
     with connect() as db:
         message_id = db.execute('INSERT INTO messages (chat_id, role, content, stopped, created_at, kind, buttons, '
-                                'retry_of, lookup, image, replaces, game, stats) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                                'retry_of, lookup, image, replaces, game, stats, think_through) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                                 (chat_id, role, content, int(stopped), now, kind, _buttons_json(buttons),
                                  retry_of, json.dumps(lookup, ensure_ascii=False) if lookup else None,
                                  image or None, replaces, json.dumps(game, ensure_ascii=False) if game else None,
-                                 json.dumps(stats) if stats else None)).lastrowid
+                                 json.dumps(stats) if stats else None, int(think_through))).lastrowid
         db.execute('UPDATE chats SET updated_at = ? WHERE id = ?', (now, chat_id))
     return message_id
 
@@ -159,7 +159,7 @@ def add_message(chat_id, role, content, stopped=False, kind='chat', buttons=None
 def get_message(message_id):
     """One message with its buttons, or None."""
     with connect() as db:
-        row = db.execute('SELECT id, chat_id, role, content, kind, buttons, rating, reason, speech_state, speech_error, speech_engine, speech_truncated, game FROM messages WHERE id = ?',
+        row = db.execute('SELECT id, chat_id, role, content, kind, buttons, rating, reason, speech_state, speech_error, speech_engine, speech_truncated, game, think_through FROM messages WHERE id = ?',
                          (message_id,)).fetchone()
     return {**dict(row), 'buttons': _buttons(row['buttons']), 'game': _game(row['game'])} if row else None
 
@@ -264,7 +264,7 @@ def get(chat_id):
         original = db.execute('SELECT title FROM chats WHERE id = ?',
                               (chat['branched_from'],)).fetchone() if chat['branched_from'] else None
         messages = db.execute('SELECT id, role, content, stopped, created_at, kind, buttons, lookup, image, speech_state, speech_error, '
-                              'speech_engine, speech_truncated, game, stats FROM messages '
+                              'speech_engine, speech_truncated, game, stats, think_through FROM messages '
                               'WHERE chat_id = ? ORDER BY id', (chat_id,)).fetchall()
     return {**dict(chat), 'branched_from_title': original['title'] if original else None, 'messages': [{**dict(m), 'stopped': bool(m['stopped']), 'buttons': _buttons(m['buttons']),
                                         'lookup': _lookup(m['lookup']), 'speech': speech_info(m), 'game': _game(m['game']),
@@ -305,15 +305,15 @@ def branch(message_id):
         chat_id = db.execute('INSERT INTO chats (title, created_at, updated_at, branched_from, branched_at) '
                              'VALUES (?, ?, ?, ?, ?)', (title, now, now, point['chat_id'], message_id)).lastrowid
         marks = ','.join('?' * len(NOT_COPIED_KINDS))
-        rows = db.execute(f'SELECT id, role, content, stopped, created_at, kind, lookup, image, stats FROM messages '
+        rows = db.execute(f'SELECT id, role, content, stopped, created_at, kind, lookup, image, stats, think_through FROM messages '
                           f'WHERE chat_id = ? AND id <= ? AND game IS NULL AND kind NOT IN ({marks}) ORDER BY id',
                           (point['chat_id'], message_id, *NOT_COPIED_KINDS)).fetchall()
         answer_id = None
         for row in rows:
             copy_id = db.execute('INSERT INTO messages (chat_id, role, content, stopped, created_at, kind, lookup, '
-                                 'image, stats, copied_from) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                                 'image, stats, copied_from, think_through) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                                  (chat_id, row['role'], row['content'], row['stopped'], row['created_at'],
-                                  row['kind'], row['lookup'], row['image'], row['stats'], row['id'])).lastrowid
+                                  row['kind'], row['lookup'], row['image'], row['stats'], row['id'], row['think_through'])).lastrowid
             if row['id'] == message_id:
                 answer_id = copy_id
     return chat_id, answer_id
