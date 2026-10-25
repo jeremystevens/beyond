@@ -55,13 +55,38 @@ def _one_off(payload):
     return payload
 
 
+_observed_model = None
+
+
+def _model_key(values):
+    return (values['ai_mode'], values['ai_server_url'], values['ai_model'])
+
+
+def model_context():
+    """Fresh built-in state, or a recent server observation; never probes or loads a model."""
+    values = settings.load()
+    if values['ai_mode'] == 'builtin':
+        current = builtin_engine.status()
+        name = PureWindowsPath(current.get('model') or '').name
+        detail = (f'Currently loaded model: {name}.' if current['state'] == 'ok' else
+                  f"No model is confirmed loaded. Engine state: {current['state']}. Configured model: {name or 'none'}.")
+    elif (_observed_model and _observed_model[0] == _model_key(values)
+          and time.monotonic() - _observed_model[1] < 60):
+        detail = f'Recently reported by the active AI server: {_observed_model[2]}.'
+    else:
+        name = PureWindowsPath(values['ai_model'] or '').name
+        detail = f'Configured server model: {name or "server default (name unknown)"}. Its loaded state is not confirmed.'
+    return ('\n\nBEYOND runtime information: ' + detail +
+            ' Use this information when asked which model you run; do not infer identity from training or earlier replies.')
+
+
 def system_prompt():
     """Optimized default or custom prompt, app context, optional persona, house rules and saved facts.
     Read per chat reply; one-off jobs retain their task-specific instructions."""
     values = settings.load()
     personality = prompts.base_prompt(values) + prompts.APP_CONTRACT
     role = personas.prompt_block(values['persona']) if values.get('persona_enabled', False) else ''
-    return personality + role + rules.prompt_block() + memory.prompt_block()
+    return personality + role + model_context() + rules.prompt_block() + memory.prompt_block()
 
 
 def history_window(total):
@@ -270,7 +295,10 @@ async def chat_stream(messages, background='', max_tokens=None, temperature=None
                             break
                         try:
                             chunk = json.loads(data)
-                            model = model or chunk.get('model') or ''
+                            model = chunk.get('model') or model
+                            if values['ai_mode'] != 'builtin' and chunk.get('model'):
+                                global _observed_model
+                                _observed_model = (_model_key(values), time.monotonic(), PureWindowsPath(str(chunk['model'])).name)
                             timings = chunk.get('timings') or timings
                             usage = chunk.get('usage') or usage
                             if not chunk.get('choices'):

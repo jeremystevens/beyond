@@ -1201,7 +1201,13 @@ def _selftest(args):
     lines.append('\nConnections, settings and existing files only. No inference, downloads or restarts.')
     return '\n'.join(lines)
 
+def _status(args):
+    from app.host_status import report
+    return report(args)
+
+
 COMMANDS = [
+    Command('status', 'Live host CPU, RAM, disk, uptime, GPU and AI status', '/status', _status, group='Help'),
     Command('speed', 'Recent saved AI reply timings; no benchmark is generated', '/speed 10', _speed, group='Help'),
     Command('selftest', 'Check BEYOND services, settings, database and files without restarting anything',
             '/selftest', _selftest, group='Help'),

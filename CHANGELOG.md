@@ -5,6 +5,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- `/status` reports host resources, uptime, optional NVIDIA metrics and AI/model status without inference. Chat runtime context now identifies the built-in model or a recent server-reported model, distinguishing unconfirmed configured models.
+
 ## [1.2.0] - 2026-10-24
 
 See [the release notes](docs/RELEASE_NOTES_1.2.0.md).
