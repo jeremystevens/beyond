@@ -1005,8 +1005,9 @@ Open questions:"></textarea><p id="notes-count">0 / 1,600</p>
       if (!text) return;
       input.value = ''; autoGrow();
       const oneOff=/^\/think(?:@\w+)?\s+([\s\S]+)/i.exec(text);
-      const content=oneOff?oneOff[1].trim():text;
-      const guided=!!oneOff || !!composerTools?.enabled();
+      const plainQuestion=oneOff&&!oneOff[1].trim().startsWith('/');
+      const content=plainQuestion?oneOff[1].trim():text;
+      const guided=!!plainQuestion || !!composerTools?.enabled();
       composerTools?.close();
       const question = bubble('user', content);
       streamAnswer('/api/chat/stream', { chat_id: chatId, content, think_through: guided }, question, () => {

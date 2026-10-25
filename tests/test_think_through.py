@@ -14,7 +14,7 @@ class ThinkTests(unittest.TestCase):
    patch.object(server.file_reading,'for_message',return_value=('', '', False)),patch.object(server.notify,'show'),
    patch.object(server.diagnostics,'record_error'),patch.object(server.memory,'wants_pickup',return_value=False),patch.object(engine,'system_prompt',return_value='Test instructions')]
   for p in self.patches:p.start()
-  chats.initialize();server.learning.initialize();settings.save({'auto_lookup':False,'auto_facts':False,'recall':False})
+  chats.initialize();server.learning.initialize();server.followups.initialize();settings.save({'auto_lookup':False,'auto_facts':False,'recall':False})
   self.client=TestClient(server.app,client=('127.0.0.1',50000))
  def tearDown(self):
   self.client.close()
@@ -89,3 +89,8 @@ class ThinkTests(unittest.TestCase):
     with self.assertRaises(asyncio.CancelledError):await task
     await stream.aclose();self.assertEqual(prep.await_count,1);final.assert_not_called()
   asyncio.run(scenario())
+
+ def test_think_does_not_wrap_or_execute_another_slash_command(self):
+  with patch.object(engine,'complete',new=AsyncMock()) as prep:
+   events=self.run_reply({'content':'/think /writefile test.txt'})
+  prep.assert_not_awaited();self.assertIn('Use /think',str(events))
