@@ -244,3 +244,13 @@ This is an unreleased addition after 1.2.0. Under a saved AI reply, open **Adjus
 - **Public web search:** enter the public query yourself, then press **Search and check**. Only that query is sent to search. Review the snippets and source links; pages are not opened, and search results are not proof that the whole answer is correct.
 
 Checks are optional and add no requests to normal replies. One model assessment is used for document/web checks when available. If it fails, evidence remains available with no conclusion. Close to cancel; check results are not saved. Editing inputs hides the previous result. The dialog follows the current theme and fits narrow phones. See [implementation notes](../planning/answer-checking.md).
+
+### Conversation working notes
+
+This is an unreleased addition after 1.2.0. Open a saved chat and choose **Working notes**, beside **Recap**. Keep a short goal, confirmed facts, decisions and open questions there.
+
+Write notes yourself, or press **Draft from chat**, review and edit the result, then **Save and use**. Drafts are never used automatically. Saved active notes support later replies in that chat only; **Pause** keeps the text without using it, and **Clear notes** removes it. They are separate from global memories and do not add messages to the chat.
+
+Notes are limited to 1,600 characters and refreshed on request. Normal replies add no extra model calls, but the small context block can add some prompt-processing time. The dialog tells you when there are newer messages. Drafting uses bounded excerpts in long chats and may miss older details; previous reviewed notes help preserve earlier context. Newer chat messages override old notes.
+
+Editing or deleting covered history clears the notes to prevent stale facts. Deleting a chat deletes its notes; branches start with independent empty notes. If the chat changes during drafting or editing, reopen or draft again before saving. The dialog keeps unsaved text on errors. See [implementation notes](../planning/conversation-working-notes.md).

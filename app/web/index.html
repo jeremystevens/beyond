@@ -16,6 +16,8 @@
   <script src="/static/writing-helper.js?v=1"></script>
   <link rel="stylesheet" href="/static/chat-recap.css?v=1">
   <script src="/static/chat-recap.js?v=1"></script>
+  <script src="/static/working-notes.js?v=1"></script>
+  <link rel="stylesheet" href="/static/working-notes.css?v=1">
   <script src="/static/answer-checks.js?v=1"></script>
   <link rel="stylesheet" href="/static/answer-checks.css?v=1">
   <script src="/static/auth.js?v=1"></script>
@@ -289,7 +291,7 @@
       <ul id="chats"></ul>
     </aside>
     <div class="chatcol">
-      <div id="recap-tools" hidden><button id="recap-open" type="button" class="ghost" title="Pick up where we left off: recap this chat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2 7M3 4v7h7M12 7v5l3 2"/></svg>Recap</button></div>
+      <div id="recap-tools" hidden><button id="recap-open" type="button" class="ghost" title="Pick up where we left off: recap this chat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11a9 9 0 1 1 2 7M3 4v7h7M12 7v5l3 2"/></svg>Recap</button><button id="notes-open" type="button" class="ghost" title="Working notes for this conversation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14v18H5zM8 7h8M8 11h8M8 15h5"/></svg>Working notes</button></div>
       <main id="log"><div class="inner" id="messages"></div></main>
       <form id="form">
         <div id="imagine-panel" hidden>
@@ -352,6 +354,16 @@
     <div class="check-actions"><button id="check-run" type="button">Check</button><button id="check-close" type="button" class="ghost">Close</button></div>
     <section id="check-result" hidden><h3 id="check-assessment-title">Check result</h3><p id="check-assessment"></p><h3>Evidence used</h3><pre id="check-evidence"></pre><div id="check-sources"></div><p id="check-limit"></p></section>
   </dialog>
+  <dialog id="notes-dialog" aria-labelledby="notes-title">
+    <h2 id="notes-title">Conversation working notes</h2>
+    <p id="notes-status" role="status" aria-live="polite"></p>
+    <p id="notes-help">Keep this chat’s goal, confirmed facts, decisions and open questions here. Drafting uses the AI once; drafts are not used until you save them. Update when useful—notes are not refreshed automatically. A small saved note is included with future AI replies in this chat only.</p>
+    <label for="notes-text">Review or write notes</label><textarea id="notes-text" rows="8" maxlength="1600" placeholder="Goal:
+Confirmed facts:
+Decisions:
+Open questions:"></textarea><p id="notes-count">0 / 1,600</p>
+    <div class="notes-actions"><button id="notes-draft" type="button" class="ghost">Draft from chat</button><button id="notes-save" type="button">Save and use</button><button id="notes-pause" type="button" class="ghost">Pause</button><button id="notes-clear" type="button" class="ghost">Clear notes</button><button id="notes-close" type="button" class="ghost">Close</button></div>
+  </dialog>
   <dialog id="recap-dialog" aria-labelledby="recap-title">
     <h2 id="recap-title">Where we left off</h2>
     <p id="recap-status" role="status" aria-live="polite"></p>
@@ -388,6 +400,7 @@
   </dialog>
   <script>
     let recapHelper = null;
+    let workingNotesHelper = null;
     let chatId = null;    // the open saved chat (null = a new chat that isn't saved until its first message)
     let current = null;   // the reply being written: { controller, stopped }
     let scanning = false;
@@ -689,7 +702,7 @@
       send.title = busy ? 'Stop the answer (Esc)' : '';
       $('games-open').disabled = busy;
       $('writing-open').disabled = busy;
-      recapHelper?.changed();
+      recapHelper?.changed(); workingNotesHelper?.changed();
     }
 
     function stop() { if (current) { current.stopped = true; current.controller.abort(); } }
@@ -745,7 +758,7 @@
       }
     }
 
-    function showChatInAddress() { BeyondAnswerChecks.changed(); history.replaceState(null, '', chatId ? '#chat=' + chatId : location.pathname); recapHelper?.changed(); }
+    function showChatInAddress() { BeyondAnswerChecks.changed(); history.replaceState(null, '', chatId ? '#chat=' + chatId : location.pathname); recapHelper?.changed(); workingNotesHelper?.changed(); }
 
     function newChat() {
       stop();
@@ -2293,6 +2306,7 @@
     reportPresence();
     setInterval(() => { if (document.visibilityState === 'visible' && document.hasFocus()) reportPresence(); }, 10000);
     BeyondAnswerChecks.init();
+    workingNotesHelper = BeyondWorkingNotes.init({getChatId: () => chatId, isBusy: () => !!current || scanning});
     recapHelper = BeyondRecap.init({getChatId: () => chatId, isBusy: () => !!current || scanning});
     const writingHelper = BeyondWriting.init({ getChatId: () => chatId,
       hasAttachments: () => !!list.querySelector('.attach-line'), isBusy: () => !!current || scanning });

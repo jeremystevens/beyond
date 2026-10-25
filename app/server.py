@@ -863,7 +863,8 @@ def _background(question, sent_ids, values, extra='', chat_id=None):
     """Notes for this reply only: related exchanges from older conversations (any chat), what the ratings taught,
     anything else for this reply (Try again's note), and the parts of the chat's attached documents that fit the
     question (Phase 48)."""
-    parts = [memory.recall_block(question, sent_ids) if values['recall'] else '',
+    from app import working_notes
+    parts = [working_notes.prompt_block(chat_id), memory.recall_block(question, sent_ids) if values['recall'] else '',
              learning.prompt_block(question, sent_ids), extra, attachments.notes_for(chat_id, question)]
     return '\n\n'.join(part for part in parts if part)
 
@@ -1386,6 +1387,87 @@ def delete_rule(rule_id: int):
 @app.get('/api/chats')
 def list_chats():
     return chats.list_chats()
+
+
+class WorkingNotesSave(BaseModel):
+    model_config = {'extra':'forbid'}
+    text: str = Field(max_length=1600)
+    enabled: bool = True
+    revision: StrictInt = Field(ge=0)
+    fingerprint: str = Field(min_length=64,max_length=64)
+
+
+class WorkingNotesChange(BaseModel):
+    model_config = {'extra':'forbid'}
+    revision: StrictInt = Field(ge=0)
+    clear: bool = False
+
+
+@app.get('/api/chats/{chat_id}/working-notes')
+def get_working_notes(chat_id: int):
+    from app import working_notes
+    try:
+        return working_notes.read(chat_id)
+    except working_notes.NotesError as exc:
+        return JSONResponse({'error':str(exc)},status_code=404)
+
+
+@app.put('/api/chats/{chat_id}/working-notes')
+def save_working_notes(chat_id: int, body: WorkingNotesSave):
+    from app import working_notes
+    try:
+        return working_notes.save(chat_id,**body.model_dump())
+    except working_notes.NotesError as exc:
+        return JSONResponse({'error':str(exc)},status_code=409 if isinstance(exc,working_notes.NotesConflict) else 400)
+
+
+@app.post('/api/chats/{chat_id}/working-notes/pause')
+def pause_working_notes(chat_id: int, body: WorkingNotesChange):
+    from app import working_notes
+    try:
+        return working_notes.pause(chat_id,**body.model_dump())
+    except working_notes.NotesError as exc:
+        return JSONResponse({'error':str(exc)},status_code=409 if isinstance(exc,working_notes.NotesConflict) else 400)
+
+
+@app.post('/api/chats/{chat_id}/working-notes/draft')
+async def draft_working_notes(chat_id: int, request: Request):
+    from app import working_notes
+    source=recaps.snapshot(chat_id)
+    previous=working_notes.stored(chat_id)
+    if source is None:
+        return JSONResponse({'error':'That conversation no longer exists.'},status_code=404)
+    if WRITING_LOCK.locked() or RECAP_LOCK.locked() or ANSWERS_IN_PROGRESS or builtin_engine.busy():
+        return JSONResponse({'error':'The AI is busy. Draft notes after its current task finishes.'},status_code=409)
+    values=settings.load()
+    context=values['engine_context'] if values['ai_mode']=='builtin' else 8192
+    budget=min(10000,max(800,(context-1100)*2-len(previous['text'])))
+    try:
+        payload,coverage=recaps.prepare(source,budget)
+        payload['previous_reviewed_notes']=previous['text'] if not previous['invalidated'] else ''
+    except recaps.RecapError as exc:
+        return JSONResponse({'error':str(exc)},status_code=400)
+    async with WRITING_LOCK:
+        task=asyncio.create_task(engine.complete(working_notes.draft_prompt(payload,coverage['partial']),max_tokens=400,temperature=0.1))
+        try:
+            while not task.done():
+                if await request.is_disconnected():
+                    return Response(status_code=499)
+                await asyncio.wait({task},timeout=0.25)
+            text=(await task).strip()
+        except engine.EngineError as exc:
+            return JSONResponse({'error':str(exc)},status_code=503)
+        finally:
+            if not task.done():
+                task.cancel()
+                await asyncio.gather(task,return_exceptions=True)
+    if not text or len(text)>working_notes.MAX_CHARS:
+        return JSONResponse({'error':'The AI did not return compact notes. Saved notes are unchanged; try again or write them yourself.'},status_code=502)
+    latest=recaps.snapshot(chat_id)
+    if (latest is None or latest['fingerprint']!=source['fingerprint']
+            or working_notes.stored(chat_id)['revision']!=previous['revision']):
+        return JSONResponse({'error':'The chat or saved notes changed while drafting. Saved notes are unchanged.'},status_code=409)
+    return {'text':text,'fingerprint':source['fingerprint'],**coverage}
 
 
 RECAP_LOCK = asyncio.Lock()

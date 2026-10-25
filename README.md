@@ -478,6 +478,16 @@ Health commands: **/status** shows host resources and AI state; **/model** ident
 **/speed** (or **/speed 1–50**) shows saved reply timings; **/selftest** runs read-only checks.
 All appear in **/help** and the **/** command menu. Open **Settings → Status and health** for the full page.
 
+### Conversation working notes
+
+This is an unreleased addition after 1.2.0. Open a saved chat and choose **Working notes**, beside **Recap**. Keep a short goal, confirmed facts, decisions and open questions there.
+
+Write notes yourself, or press **Draft from chat**, review and edit the result, then **Save and use**. Drafts are never used automatically. Saved active notes support later replies in that chat only; **Pause** keeps the text without using it, and **Clear notes** removes it. They are separate from global memories and do not add messages to the chat.
+
+Notes are limited to 1,600 characters and refreshed on request. Normal replies add no extra model calls, but the small context block can add some prompt-processing time. The dialog tells you when there are newer messages. Drafting uses bounded excerpts in long chats and may miss older details; previous reviewed notes help preserve earlier context. Newer chat messages override old notes.
+
+Editing or deleting covered history clears the notes to prevent stale facts. Deleting a chat deletes its notes; branches start with independent empty notes. If the chat changes during drafting or editing, reopen or draft again before saving. The dialog keeps unsaved text on errors. See [implementation notes](planning/conversation-working-notes.md).
+
 ### Check an answer against evidence
 
 This is an unreleased addition after 1.2.0. Under a saved AI reply, open **Adjust answer** and choose **Check answer**. The original answer stays unchanged.
@@ -1089,6 +1099,9 @@ BEYOND's page talks to a small JSON API, which you can use from scripts too.
 | `GET` · `POST` | `/api/auth` · `/api/auth/password` · `…/remove` · `…/sign-out-device` · `…/sign-out-all` | The password and signed-in devices (this PC only) |
 | `GET` | `/api/ai-status` | Whether the AI server is reachable, and its model |
 | `GET` | `/api/status` | PC resources, model state and configured service/port checks |
+| `GET` · `PUT` | `/api/chats/{id}/working-notes` | Read/save reviewed per-chat notes; save requires current revision and source fingerprint |
+| `POST` | `/api/chats/{id}/working-notes/draft` | Explicitly draft notes without saving or enabling them |
+| `POST` | `/api/chats/{id}/working-notes/pause` | Pause, or clear notes with `clear: true`; revision checked |
 | `GET` | `/api/messages/{id}/check` | Load a saved AI answer and a possible equation; no inference or search |
 | `POST` | `/api/messages/{id}/check` | Explicit math/document/web evidence check; original answer stays unchanged |
 | `GET` | `/api/status/speed` | Saved reply timings and averages by model; `limit=1–50` |
@@ -1291,7 +1304,7 @@ blocking Python: allow it on private networks when asked.
 and the Phase 42 validation exceptions are listed below. The full history and evidence live in
 [`planning/phases.md`](planning/phases.md).
 
-**Completed after 1.2.0 (unreleased):** host-status chat command, direct model identity questions, runtime model context, [answer checking](planning/answer-checking.md) and [clearing recent error history](planning/clear-error-history.md). See [implementation notes](planning/chat-host-status.md). Future capability ideas remain [brainstorming](planning/small-model-capability-ideas.md), not an approved roadmap.
+**Completed after 1.2.0 (unreleased):** host-status chat command, direct model identity questions, runtime model context, [conversation working notes](planning/conversation-working-notes.md), [answer checking](planning/answer-checking.md) and [clearing recent error history](planning/clear-error-history.md). See [implementation notes](planning/chat-host-status.md). Future capability ideas remain [brainstorming](planning/small-model-capability-ideas.md), not an approved roadmap.
 
 <details open>
 <summary><b>Delivered through Phase 53 · BEYOND 1.2.0</b> (Phase 37 deferred; validation exceptions below)</summary>

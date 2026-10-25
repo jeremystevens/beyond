@@ -1,0 +1,9 @@
+#notes-open {display:inline-flex;align-items:center;gap:6px;font-weight:400;margin-left:6px;}
+#notes-open svg {width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;}
+#notes-dialog {width:min(660px,calc(100vw - 24px));max-height:calc(100dvh - 24px);margin:auto;overflow:auto;padding:18px;box-sizing:border-box;border:1px solid var(--border);border-radius:12px;background:var(--panel);color:var(--text);}
+#notes-dialog::backdrop {background:rgba(0,0,0,.45);}
+#notes-dialog h2 {font-size:1.15rem;margin:0 0 10px;}
+#notes-text {width:100%;box-sizing:border-box;min-height:180px;resize:vertical;}
+#notes-status,#notes-count,#notes-help {font-size:.9rem;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;}
+.notes-actions {display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+@media(max-width:760px){#notes-dialog {padding:14px;}#notes-text {font-size:16px;}#notes-dialog button,#notes-open {min-height:44px;}#recap-tools {display:flex;justify-content:flex-end;flex-wrap:wrap;gap:6px;}#notes-open {margin-left:0;}}

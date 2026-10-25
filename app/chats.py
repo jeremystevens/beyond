@@ -96,6 +96,20 @@ def initialize():
             text TEXT NOT NULL,
             PRIMARY KEY (attachment_id, seq))''')
         db.execute('CREATE INDEX IF NOT EXISTS idx_attachments_chat ON attachments(chat_id, id)')
+        db.execute("""CREATE TABLE IF NOT EXISTS working_notes (
+            chat_id INTEGER PRIMARY KEY REFERENCES chats(id) ON DELETE CASCADE,
+            text TEXT NOT NULL DEFAULT '', enabled INTEGER NOT NULL DEFAULT 0,
+            revision INTEGER NOT NULL DEFAULT 0, covered_id INTEGER NOT NULL DEFAULT 0,
+            invalidated INTEGER NOT NULL DEFAULT 0, updated_at TEXT NOT NULL DEFAULT '')""")
+        # Invalidate notes derived from edited/deleted history; do not silently keep deleted facts in context.
+        db.execute("""CREATE TRIGGER IF NOT EXISTS notes_after_message_delete AFTER DELETE ON messages BEGIN
+            UPDATE working_notes SET text='',enabled=0,invalidated=1,revision=revision+1
+            WHERE chat_id=OLD.chat_id AND covered_id>=OLD.id; END""")
+        db.execute("""CREATE TRIGGER IF NOT EXISTS notes_after_message_edit AFTER UPDATE OF content,kind,stopped ON messages
+            WHEN OLD.content!=NEW.content OR OLD.kind!=NEW.kind OR OLD.stopped!=NEW.stopped BEGIN
+            UPDATE working_notes SET text='',enabled=0,invalidated=1,revision=revision+1
+            WHERE chat_id=OLD.chat_id AND covered_id>=OLD.id; END""")
+
 
 
 def title_from(text):
