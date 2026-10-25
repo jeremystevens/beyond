@@ -76,7 +76,7 @@
   }
   function controls() {
     const busy = refreshing || testing || diagnosing || managing;
-    for (const id of ['refresh','selftest','add-test-error','clear-test-errors']) $(id).disabled = busy;
+    for (const id of ['refresh','selftest','add-test-error','clear-test-errors','clear-error-history']) $(id).disabled = busy;
     document.querySelectorAll('.diagnose-button,.report-button').forEach(button => { button.disabled = busy; });
   }
   function renderErrors(data) {
@@ -139,6 +139,20 @@
     } catch (error) { $('test-error-note').textContent = error.message || 'Could not update test errors.'; }
     finally { managing = false; controls(); schedule(); }
   }
+  $('clear-error-history').onclick = async () => {
+    if (refreshing || testing || diagnosing || managing) return;
+    if (!window.confirm('Clear all saved error summaries, including test entries? This cannot be undone. Detailed log files are kept.')) return;
+    managing = true; clearTimeout(timer); controls();
+    try {
+      const result = await api('/api/status/errors','DELETE');
+      renderErrors(result); $('diagnosis').hidden = true;
+      $('clear-error-note').textContent = result.cleared + ' saved error summaries cleared. New errors will still appear. Detailed log files were kept.';
+    } catch (error) {
+      $('clear-error-note').textContent = error.message || 'Error history could not be cleared. Please try again.';
+    } finally { managing = false; controls(); schedule(); }
+  };
+  api('/api/auth/state').then(state => { $('clear-error-history').hidden = !state.admin; })
+    .catch(() => { $('clear-error-note').textContent = 'Sign in as administrator to clear error history, or open this page on the host PC.'; });
   $('add-test-error').onclick = () => manageTest(false);
   $('clear-test-errors').onclick = () => manageTest(true);
   $('close-diagnosis').onclick = () => { $('diagnosis').hidden = true; };

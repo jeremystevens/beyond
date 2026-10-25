@@ -230,3 +230,7 @@ These commands are available on the development branch after 1.2.0; they are not
 - Ordinary AI replies also receive built-in runtime state or a server-reported model observed within the last 60 seconds. Changing server settings invalidates that observation. Otherwise only the configured model is known, with its loaded state unconfirmed. This context helps the LLM but does not guarantee it will answer correctly; use **/model** for a direct check.
 
 These checks generate no AI answer, load no model and restart nothing. Explicit server-model checks can contact your configured AI server (up to five seconds); ordinary replies add no network probes.
+
+### Clear recent error history
+
+In **Settings → Status and health → Recent errors**, **Clear error history** removes all retained summaries (including test entries) after confirmation. It is available on the host PC or to a signed-in administrator. This cannot be undone. New errors are still recorded; chats, settings, detailed log files and already exported reports are kept. **Clear test errors** continues to remove simulated entries only. This is an unreleased addition after 1.2.0.

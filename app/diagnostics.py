@@ -319,6 +319,25 @@ def get_errors(limit: int = Query(30, ge=1, le=200)):
     return {'items': errors(limit)}
 
 
+def clear_errors():
+    """Clear retained summaries only; future errors can still be recorded normally."""
+    initialize()
+    with closing(sqlite3.connect(error_file(), timeout=2)) as db, db:
+        removed = db.execute('DELETE FROM errors').rowcount
+    return removed
+
+
+@router.delete('/api/status/errors')
+def delete_errors(request: Request):
+    from app.server import can_manage, only_this_pc
+    if not can_manage(request):
+        return only_this_pc()
+    try:
+        return {'cleared': clear_errors(), 'items': errors()}
+    except (OSError, sqlite3.Error):
+        return JSONResponse({'error': 'Error history could not be cleared. Please try again.'}, status_code=503)
+
+
 @router.post('/api/status/selftest')
 async def run_self_test(request: Request):
     result = await self_test(request.app.state.running)

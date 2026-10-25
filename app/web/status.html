@@ -93,6 +93,8 @@
         <button type="button" class="ghost" id="clear-test-errors">Clear test errors</button></div>
       <p class="muted" id="test-error-note" role="status" style="margin:10px 0">Test entries simulate a timeout without failing a service.</p>
       <div class="stack" id="errors"></div><p class="muted" id="error-empty" hidden>No recorded app errors.</p>
+      <div class="actions" style="margin-top:12px"><button type="button" class="ghost" id="clear-error-history" hidden>Clear error history</button></div>
+      <p class="muted" id="clear-error-note" role="status" aria-live="polite">Clearing history removes saved summaries only. New errors will still appear; detailed log files are kept.</p>
       <div class="diagnosis" id="diagnosis" hidden aria-busy="false">
         <div class="actions spread"><h2 id="diagnosis-title">Diagnosis</h2><button type="button" class="ghost" id="close-diagnosis">Close</button></div>
         <p class="muted" id="diagnosis-note" role="status" aria-live="polite"></p>
@@ -100,7 +102,7 @@
         <p id="diagnosis-answer"></p><h3>Current checks</h3><ul id="diagnosis-evidence"></ul>
         <h3>Suggested next steps</h3><ul id="diagnosis-suggestions"></ul><p class="muted" id="diagnosis-limit"></p>
       </div></section>
-    <p class="muted">In chat, use <strong>/speed</strong> for recent timings and <strong>/selftest</strong> for checks.
+    <p class="muted">In chat, use <strong>/status</strong> for host resources, <strong>/model</strong> for the active model, <strong>/speed</strong> for recent timings and <strong>/selftest</strong> for checks.
       Diagnostics describe this computer, even when you open the page on a phone.</p>
   </div></main>
   <dialog id="report-dialog" aria-labelledby="report-title">
@@ -124,6 +126,6 @@
     <label for="report-preview">Review and edit report</label><textarea id="report-preview" rows="12" maxlength="20000" spellcheck="false"></textarea>
   </dialog>
   <script src="/static/error-reports.js?v=2" defer></script>
-  <script src="/static/status.js?v=4" defer></script>
+  <script src="/static/status.js?v=5" defer></script>
 </body>
 </html>

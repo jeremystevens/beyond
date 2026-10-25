@@ -1077,6 +1077,7 @@ BEYOND's page talks to a small JSON API, which you can use from scripts too.
 | `GET` | `/api/status` | PC resources, model state and configured service/port checks |
 | `GET` | `/api/status/speed` | Saved reply timings and averages by model; `limit=1–50` |
 | `GET` | `/api/status/errors` | Bounded app error summaries; `limit=1–200` |
+| `DELETE` | `/api/status/errors` | Clear retained summaries; host PC or signed-in administrator only |
 | `POST` | `/api/status/selftest` | Read-only connection, settings, SQLite and file checks; 409 while busy |
 | `POST` | `/api/status/errors/{id}/diagnose` | Explain a retained error with current health evidence; AI or basic fallback; 404 if missing, 409 while diagnosing |
 | `POST` | `/api/status/errors/test` | Add or replace the fixed simulated timeout entry |
@@ -1364,3 +1365,7 @@ copyright and licence notice stay with it. Python packages, native engines, AI m
 **⭐ Star this repo if it's useful to you**
 
 </div>
+
+### Clear recent error history
+
+In **Settings → Status and health → Recent errors**, **Clear error history** removes all retained summaries (including test entries) after confirmation. It is available on the host PC or to a signed-in administrator. This cannot be undone. New errors are still recorded; chats, settings, detailed log files and already exported reports are kept. **Clear test errors** continues to remove simulated entries only. This is an unreleased addition after 1.2.0.

@@ -13,7 +13,7 @@ import httpx
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app import chats, config, diagnostics, settings
+from app import chats, config, diagnostics, settings, server
 
 
 class DiagnosticsTests(unittest.TestCase):
@@ -42,6 +42,28 @@ class DiagnosticsTests(unittest.TestCase):
         with closing(sqlite3.connect(chats.DB_PATH)) as db, db:
             db.execute("INSERT INTO messages(role,kind,created_at,stats) VALUES ('assistant',?,'2026-10-20T20:00:00+00:00',?)",
                        (kind, stats if isinstance(stats,str) else json.dumps(stats)))
+
+    def test_clear_history_preserves_other_files_and_future_recording(self):
+        marker = self.root / 'beyond.log'
+        marker.write_text('keep this log')
+        diagnostics.record_error('server', 'A request failed.')
+        diagnostics.record_error('Diagnostic test', 'A simulated error.')
+        self.assertEqual(diagnostics.clear_errors(), 2)
+        self.assertEqual(diagnostics.errors(), [])
+        self.assertEqual(marker.read_text(), 'keep this log')
+        self.assertEqual(diagnostics.clear_errors(), 0)
+        diagnostics.record_error('server', 'A new request failed.')
+        self.assertEqual(len(diagnostics.errors()), 1)
+
+    def test_clear_endpoint_requires_management_permission(self):
+        app = FastAPI()
+        app.include_router(diagnostics.router)
+        diagnostics.record_error('server', 'A request failed.')
+        with TestClient(app) as client, patch('app.server.can_manage', return_value=False):
+            self.assertEqual(client.delete('/api/status/errors').status_code, 403)
+            self.assertEqual(len(diagnostics.errors()), 1)
+        with TestClient(app) as client, patch('app.server.can_manage', return_value=True):
+            self.assertEqual(client.delete('/api/status/errors').json(), {'cleared': 1, 'items': []})
 
     def test_speed_history_is_bounded_handles_bad_stats_and_groups_models(self):
         self.add({'model':'A','tokens':40,'seconds':9,'speed':8})
