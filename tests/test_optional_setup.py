@@ -114,7 +114,8 @@ class OptionalTests(unittest.TestCase):
             pidfile=Path(folder)/"child.pid"
             code=("import subprocess,sys,time; from pathlib import Path; "
                   "p=subprocess.Popen([sys.executable,'-c','import time; time.sleep(60)']); "
-                  "Path(sys.argv[1]).write_text(str(p.pid)); time.sleep(60)")
+                  "target=Path(sys.argv[1]); ready=target.with_suffix('.ready'); "
+                  "ready.write_text(str(p.pid)); ready.replace(target); time.sleep(60)")
             with JobProcess([sys.executable,"-c",code,str(pidfile)],stdout=subprocess.DEVNULL,
                             stderr=subprocess.DEVNULL,creationflags=getattr(subprocess,"CREATE_NO_WINDOW",0)) as process:
                 deadline=time.monotonic()+10
@@ -122,9 +123,10 @@ class OptionalTests(unittest.TestCase):
                 self.assertTrue(pidfile.exists())
                 child=int(pidfile.read_text())
                 self.assertTrue(psutil.pid_exists(child))
-            deadline=time.monotonic()+5
-            while psutil.pid_exists(child) and time.monotonic()<deadline:time.sleep(.05)
-            self.assertFalse(psutil.pid_exists(child))
+                owned_child=psutil.Process(child)
+            # Waiting verifies exit even while Windows retains the PID for an open handle.
+            try:owned_child.wait(timeout=5)
+            except psutil.NoSuchProcess:pass
             self.assertIsNotNone(process.poll())
 
     @unittest.skipUnless(sys.platform=="win32","Windows installer")
