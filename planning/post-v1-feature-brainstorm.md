@@ -1,21 +1,21 @@
 # BEYOND: Post-v1.0 Feature Brainstorm
 
 Started: 2026-10-23
-Status reviewed: 2026-10-25 against the current GitHub main branch, code, changelog and v1.1.0 documentation. Eight items are implemented (Writing helper, recaps and screenshot troubleshooting are unreleased); four have partial foundations; one remains open. Original requests below are retained for reference. Remaining scope and future release priorities are not yet approved.
+Status reviewed: 2026-10-24 against the current GitHub main branch, code, changelog and 1.2.0 release preparation. Nine items are implemented in 1.2.0 or earlier; three have partial foundations; one remains open. Original requests below are retained for reference. Remaining scope and future release priorities are not yet approved.
 
 ## Implementation checklist
 
 - [x] 1. Conversation branches - Phase 47.
-- [x] 2. Pick up where we left off - Phase 50 (unreleased).
+- [x] 2. Pick up where we left off - Phase 50.
 - [ ] 3. Voice conversation mode - partial; individual Whisper messages and spoken replies exist.
 - [ ] 4. Side-by-side comparisons - open; no dedicated editable comparison view.
 - [x] 5. Adjust this answer - Phase 46.
-- [ ] 6. Error tracking and recovery - partial; local history, diagnosis and retries exist; GitHub reporting remains.
+- [x] 6. Error tracking and recovery - local history/diagnosis/retry, reports and optional GitHub handoff/duplicate checks (Phases 52–53).
 - [ ] 7. Mood-aware chat replies - partial; general tone matching exists; deliberate behavior and validation remain.
 - [ ] 8. Search your own documents - partial; attached-document retrieval exists; folder indexing/search remains.
-- [x] 9. Screenshot troubleshooting - Phase 51 (unreleased).
+- [x] 9. Screenshot troubleshooting - Phase 51.
 - [x] 10. Conversation attachments - Phase 48.
-- [x] 11. Expanded /rewrite and guided writing helper - Phase 49 (unreleased).
+- [x] 11. Expanded /rewrite and guided writing helper - Phase 49.
 - [x] 12. Code blocks with syntax highlighting and Copy/Save - Phase 44.
 - [x] 13. Simple software updating with VERSION checks - Phase 45.
 
@@ -37,7 +37,7 @@ Example: Explore camping in one vacation-planning branch and hotels in another.
 
 To discuss: branch naming, navigation, copied attachments, and how memories and house rules apply.
 
-### 2. Pick up where we left off ✅ Completed (unreleased)
+### 2. Pick up where we left off ✅ Completed
 
 **Current status:** Implemented in [Phase 50](phase50-recaps.md): a Recap control above a saved chat, on-demand generation, a private cache keyed to conversation content, explicit refresh, Copy, and deletion cleanup. Ordinary replies and opening chats do not trigger generation. Long conversations use bounded opening/recent excerpts with a visible coverage warning; this is not a full-history audit. Validation and limitations are recorded in the phase notes.
 
@@ -69,7 +69,7 @@ To discuss: editing criteria and values, saving comparisons, and whether a dedic
 
 ### 5. Adjust this answer ✅ Completed
 
-**Current status:** Implemented in [Phase 46](phase46-adjust-answer.md): the newest answer offers Simpler, More detail, Show an example and Walk me through it, keeping the original answer. Covered by v1.1.0 documentation.
+**Current status:** Implemented in [Phase 46](phase46-adjust-answer.md): the newest answer offers Simpler, More detail, Show an example and Walk me through it, keeping the original answer. Covered by 1.2.0 release preparation.
 
 Offer actions such as Simpler, More detail, Show an example, and Walk me through it on an answer. Users can request a useful follow-up without composing another prompt.
 
@@ -77,9 +77,9 @@ To discuss: which actions appear, how the result joins the conversation, and int
 
 ## Additional discussion candidates
 
-### 6. Error tracking and recovery — Partially implemented
+### 6. Error tracking and recovery ✅ Completed
 
-**Current status:** Local error history, health checks, AI diagnosis and interrupted-chat retry recovery are implemented. Local report preview/export is implemented in [Phase 52](phase52-local-error-reports.md), with optional notes/system facts, best-effort redaction, editable preview and exact Copy/Save. Still open: optional GitHub issue submission, duplicate matching and issue-status links. Do not reimplement the existing diagnostics foundation.
+**Current status:** Local error history, health checks, AI diagnosis and interrupted-chat retry recovery are implemented. Local report preview/export is implemented in [Phase 52](phase52-local-error-reports.md), with optional notes/system facts, best-effort redaction, editable preview and exact Copy/Save. Phase 53 adds repeated-summary counts, explicit public GitHub search, possible-duplicate/status links and reviewed browser handoff for GitHub sign-in and final submission. No token storage, automatic issue creation or automated repairs. See [Phase 53](phase53-github-reporting.md). Do not reimplement the existing diagnostics foundation.
 
 Jeremy noted that PromptetheusBot has built-in error tracking that BEYOND lacks. Explore capturing failures and giving users a clear message with Retry, View details, and Copy error report where appropriate.
 
@@ -122,7 +122,7 @@ Overlap check: extends existing file-reading tools into a searchable document co
 
 To discuss: supported formats, scanned PDFs, explicit folder selection, indexing and refresh, local storage, CPU/RAM costs, and how to handle missing or conflicting evidence.
 
-### 9. Screenshot troubleshooting ✅ Completed (unreleased)
+### 9. Screenshot troubleshooting ✅ Completed
 
 **Current status:** Implemented in [Phase 51](phase51-screenshot-troubleshooting.md): a dedicated action on attached/pasted screenshots, installed OCR-first or explicit vision, optional context, bounded evidence, focused questions and cautious first checks. Evidence and advice remain in recent chat context for follow-ups. No automated repair or model downloads. Reader/model failures and unclear evidence are explained.
 
@@ -142,9 +142,9 @@ Overlap check: differs from a persistent searchable folder by focusing on docume
 
 To discuss: supported formats and size limits, page/section references, large-document handling on small local models, attachment retention/deletion, and behavior when branching chats.
 
-### 11. Expanded /rewrite and guided writing helper ✅ Completed (unreleased)
+### 11. Expanded /rewrite and guided writing helper ✅ Completed
 
-**Current status:** Implemented as [Phase 49](phase49-writing-helper.md), unreleased: all 13 requested tones plus the three retained styles, guided polishing/email replies/document drafts, audience/detail controls, technical document types, opt-in attached sources, editable revision and draft-only Copy/Save. Downloads are text, or Markdown for README; rich .docx/PDF export is not included. Validation and remaining live-model checks are recorded in the phase notes.
+**Current status:** Implemented as [Phase 49](phase49-writing-helper.md), included in 1.2.0: all 13 requested tones plus the three retained styles, guided polishing/email replies/document drafts, audience/detail controls, technical document types, opt-in attached sources, editable revision and draft-only Copy/Save. Downloads are text, or Markdown for README; rich .docx/PDF export is not included. Validation and remaining live-model checks are recorded in the phase notes.
 
 Selected by Jeremy for inclusion in these notes. Expand /rewrite beyond basic tone changes with a guided helper similar to the /imagine helper. Keep /rewrite available as a quick command and offer guided drafting for users who want help choosing an approach.
 

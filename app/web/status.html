@@ -88,7 +88,7 @@
     </section>
     <section><h2>Recent errors</h2><p class="muted" style="margin-bottom:12px">Up to 200 app error summaries are retained locally from this update onward, across restarts.
       Chat text, credentials and raw exception messages are excluded. Detailed logs stay on the host PC.</p>
-      <p class="muted" style="margin-bottom:12px">Diagnose checks current health and asks the loaded AI for an explanation when available. It suggests steps for you to try; it does not repair anything. Report builds an editable local preview you can copy or save; no GitHub submission.</p>
+      <p class="muted" style="margin-bottom:12px">Diagnose checks current health and asks the loaded AI for an explanation when available. It suggests steps for you to try; it does not repair anything. Report builds an editable local preview you can copy or save; optional GitHub reporting follows a duplicate check and your review.</p>
       <div class="actions"><button type="button" class="ghost" id="add-test-error">Add test error</button>
         <button type="button" class="ghost" id="clear-test-errors">Clear test errors</button></div>
       <p class="muted" id="test-error-note" role="status" style="margin:10px 0">Test entries simulate a timeout without failing a service.</p>
@@ -115,10 +115,15 @@
     <div class="actions" style="margin-top:12px"><button type="button" id="report-build">Build preview</button>
       <button type="button" class="ghost" id="report-copy" disabled>Copy report</button>
       <button type="button" class="ghost" id="report-save" disabled>Save report</button></div>
+    <p id="report-occurrences" class="muted" style="margin-top:10px"></p>
+    <div class="actions" style="margin-top:12px"><button type="button" class="ghost" id="report-github" disabled>Check GitHub for duplicates</button>
+      <a id="report-github-next" class="ghost button" target="_blank" rel="noopener noreferrer" hidden>Continue on GitHub</a></div>
+    <p class="muted">GitHub reporting is optional and public. Review for private information first. Checking sends only a category/reference; Continue sends the preview as a draft (or asks you to paste a long report). Sign in and submit on GitHub. No token is stored here. Simulated test errors stay local.</p>
+    <div id="report-github-results" class="stack" style="margin-top:10px"></div>
     <p id="report-status" role="status" aria-live="polite" style="margin-top:12px"></p>
     <label for="report-preview">Review and edit report</label><textarea id="report-preview" rows="12" maxlength="20000" spellcheck="false"></textarea>
   </dialog>
-  <script src="/static/error-reports.js?v=1" defer></script>
+  <script src="/static/error-reports.js?v=2" defer></script>
   <script src="/static/status.js?v=4" defer></script>
 </body>
 </html>

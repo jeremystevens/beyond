@@ -99,18 +99,22 @@ def environment():
 
 def build(error_id, notes):
     from app import diagnostics
-    entry = next((item for item in diagnostics.errors(200) if item['id'] == error_id), None)
+    entries = diagnostics.errors(200)
+    entry = next((item for item in entries if item['id'] == error_id), None)
     if entry is None:
         raise HTTPException(404, 'This error is no longer in recent history. Refresh the page and choose another.')
     category, summary = SOURCES.get(entry['source'], ('App operation', 'An app operation failed.'))
     simulated = entry['source'] == 'Diagnostic test'
+    repeats = [e for e in entries if e['source']==entry['source'] and e['summary']==entry['summary']]
+    occurrences = {'count':len(repeats),'first':timestamp(repeats[-1]['created_at']),'last':timestamp(repeats[0]['created_at'])}
     version = config.VERSION if re.fullmatch(r'\d+\.\d+\.\d+', config.VERSION) else 'Unknown'
     lines = ['BEYOND local error report', '=========================',
              'SIMULATED TEST — not a real failure' if simulated else 'Recorded application error',
              f'Report generated: {diagnostics.now()}', f'BEYOND release version: {version}',
              'Code may include unreleased changes when installed from git.',
              f'Local error reference: {error_id}', f'Error recorded: {timestamp(entry["created_at"])}',
-             f'Category: {category}', f'Summary: {summary}', '']
+             f'Category: {category}', f'Summary: {summary}',
+             f'Same summary in retained history: {len(repeats)} occurrence(s). This does not establish the same cause.', '']
     for field, title in [('happened','What happened'),('expected','What I expected'),
                          ('steps','Steps to reproduce'),('tried','What I tried')]:
         lines += [title, '-'*len(title), redact(getattr(notes, field)) or 'Not provided.', '']
@@ -122,6 +126,6 @@ def build(error_id, notes):
               'No chat text, raw logs, exception details, host/user names, model names, file paths, server addresses or credentials were collected automatically.',
               'Common secrets, URLs, email addresses, IP addresses and local paths in your notes were removed where recognized.',
               'Automatic redaction is best effort. Review and edit this report before sharing; later edits are exported exactly as shown.',
-              'This report was prepared locally without an AI request. Nothing was sent to GitHub or uploaded.',
+              'This preview was prepared locally without an AI request. Optional GitHub reporting is a separate action requiring your review.',
               'A fixed error category and current readings do not establish the exact cause.']
-    return {'text': '\n'.join(lines)+'\n', 'filename': f'beyond-error-report-{error_id}.txt', 'simulated': simulated}
+    return {'text': '\n'.join(lines)+'\n', 'filename': f'beyond-error-report-{error_id}.txt', 'simulated': simulated, 'occurrences':occurrences}

@@ -25,13 +25,13 @@ things up, keeps you organised, reads photos, listens, talks back and plays game
 ![Privacy](https://img.shields.io/badge/Privacy-Local%20storage-d96326?style=for-the-badge&logo=shield&logoColor=white&labelColor=0d1117)
 ![AI](https://img.shields.io/badge/AI-OpenAI--compatible%20%C2%B7%20llama.cpp-d96326?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117)
 ![Runs on](https://img.shields.io/badge/Runs%20on-CPU%20only-d96326?style=for-the-badge&logo=intel&logoColor=white&labelColor=0d1117)
-![Roadmap](https://img.shields.io/badge/Release-1.1.0%20%C2%B7%20Phase%2048-d96326?style=for-the-badge&labelColor=0d1117)
-![Status](https://img.shields.io/badge/Status-1.0.0%20released-d96326?style=for-the-badge&labelColor=0d1117)
+![Roadmap](https://img.shields.io/badge/Release-1.2.0%20%C2%B7%20Phase%2053-d96326?style=for-the-badge&labelColor=0d1117)
+![Status](https://img.shields.io/badge/Status-1.2.0%20released-d96326?style=for-the-badge&labelColor=0d1117)
 
 </div>
 
-**BEYOND 1.1.0 is available:** [Release notes and downloads](https://github.com/jeremystevens/beyond/releases/tag/v1.1.0).
-Download [BEYOND-1.1.0-source.zip](https://github.com/jeremystevens/beyond/releases/download/v1.1.0/BEYOND-1.1.0-source.zip),
+**BEYOND 1.2.0 is available:** [Release notes and downloads](https://github.com/jeremystevens/beyond/releases/tag/v1.2.0).
+Download [BEYOND-1.2.0-source.zip](https://github.com/jeremystevens/beyond/releases/download/v1.2.0/BEYOND-1.2.0-source.zip),
 extract it, and run **Setup.cmd**. Python libraries, engines and your chosen models download separately during setup.
 
 Install this assistant from this GitHub repository. The PyPI package named beyond is unrelated.
@@ -262,7 +262,7 @@ flowchart LR
 
 ### Automatic text-only setup
 
-Download the [1.1.0 source ZIP](https://github.com/jeremystevens/beyond/releases/download/v1.1.0/BEYOND-1.1.0-source.zip), extract it fully, then double-click **Setup.cmd**. Close an already-running BEYOND before continuing.
+Download the [1.2.0 source ZIP](https://github.com/jeremystevens/beyond/releases/download/v1.2.0/BEYOND-1.2.0-source.zip), extract it fully, then double-click **Setup.cmd**. Close an already-running BEYOND before continuing.
 Setup finds Python 3.14 or offers a verified per-user installation, prepares its isolated environment, installs
 the text-only libraries, checks the app starts, and downloads a pinned CPU build of llama.cpp.
 
@@ -818,21 +818,21 @@ your user's startup programs.
 ---
 
 <a id="settings"></a>
-### Local error reports (unreleased)
+### Local error reports
 
-Open **Status and health → Recent errors**, press **Report** beside an error, add any useful details and choose **Build preview**. Review/edit the text, then **Copy report** or **Save report** as a text file. Current app/system facts are optional; raw logs, chat content, addresses, model names and credentials are not collected automatically. Common sensitive patterns in notes are removed where recognized, but review is still needed. No AI or GitHub request is made. See the [guide](docs/USER_GUIDE.md#local-error-reports-unreleased).
+Open **Status and health → Recent errors**, press **Report** beside an error, add any useful details and choose **Build preview**. Review/edit the text, then **Copy report** or **Save report** as a text file. Current app/system facts are optional; raw logs, chat content, addresses, model names and credentials are not collected automatically. Common sensitive patterns in notes are removed where recognized, but review is still needed. Local preview preparation uses no AI or GitHub request. **Check GitHub for duplicates** explicitly searches possible open/closed matches; **Continue on GitHub** sends your reviewed draft to GitHub for sign-in and final submission. No token is stored. Long reports can be copied/pasted; simulated errors stay local. See the [guide](docs/USER_GUIDE.md#local-error-reports).
 
-### Screenshot troubleshooting (unreleased)
+### Screenshot troubleshooting
 
-Attach an error screenshot, or paste one into the message box, then choose **Troubleshoot this**. Add what happened before the error if useful. Automatic uses installed OCR first; choose **Understand screen** for optional vision when layout or icons matter. BEYOND explains what is visible, suggests cautious first checks and asks focused questions. Advice and bounded screenshot evidence stay in the chat for follow-ups. No repair is run automatically. Install the reader using **Add-Features.cmd**. See the [guide](docs/USER_GUIDE.md#screenshot-troubleshooting-unreleased).
+Attach an error screenshot, or paste one into the message box, then choose **Troubleshoot this**. Add what happened before the error if useful. Automatic uses installed OCR first; choose **Understand screen** for optional vision when layout or icons matter. BEYOND explains what is visible, suggests cautious first checks and asks focused questions. Advice and bounded screenshot evidence stay in the chat for follow-ups. No repair is run automatically. Install the reader using **Add-Features.cmd**. See the [guide](docs/USER_GUIDE.md#screenshot-troubleshooting).
 
-### Pick up where we left off (unreleased)
+### Pick up where we left off
 
-Open a saved chat and press **Recap** above the conversation. BEYOND summarizes decisions, open questions and the next step on request. An unchanged chat reuses its cached recap without another AI call; **Refresh recap** explicitly creates another. Long chats use selected excerpts and say so. Ordinary chat replies incur no recap request. See the [user guide](docs/USER_GUIDE.md#conversation-recaps-unreleased).
+Open a saved chat and press **Recap** above the conversation. BEYOND summarizes decisions, open questions and the next step on request. An unchanged chat reuses its cached recap without another AI call; **Refresh recap** explicitly creates another. Long chats use selected excerpts and say so. Ordinary chat replies incur no recap request. See the [user guide](docs/USER_GUIDE.md#conversation-recaps).
 
-### Writing helper (unreleased)
+### Writing helper
 
-Press the monochrome **pen** beside the message box, or send `/rewrite` alone, to polish text, draft an email reply, or write a professional/technical document. Choose a tone, optionally set the audience and detail, then review the editable draft. **Copy draft**, **Save draft**, and **Revise draft** work on the draft alone. Attached chat documents are used only if selected. The helper never sends an email or writes a host file automatically. See the [writing guide](docs/USER_GUIDE.md#writing-helper-unreleased) for every tone and document type.
+Press the monochrome **pen** beside the message box, or send `/rewrite` alone, to polish text, draft an email reply, or write a professional/technical document. Choose a tone, optionally set the audience and detail, then review the editable draft. **Copy draft**, **Save draft**, and **Revise draft** work on the draft alone. Attached chat documents are used only if selected. The helper never sends an email or writes a host file automatically. See the [writing guide](docs/USER_GUIDE.md#writing-helper) for every tone and document type.
 
 ## `▸ SETTINGS`
 
@@ -1255,12 +1255,12 @@ blocking Python: allow it on private networks when asked.
 <a id="roadmap"></a>
 ## `▸ ROADMAP`
 
-**BEYOND 1.1.0 is released**, adding Phases 44–48 to the 1.0.0 work through Phase 43. Phase 37 remains deferred,
+**BEYOND 1.2.0 is released**, adding Phases 49–53: Writing helper, recaps, screenshot troubleshooting, local reports and optional GitHub reporting/duplicate checks. Phase 37 remains deferred,
 and the Phase 42 validation exceptions are listed below. The full history and evidence live in
 [`planning/phases.md`](planning/phases.md).
 
 <details open>
-<summary><b>Delivered through Phase 48 · BEYOND 1.1.0</b> (Phase 37 deferred; validation exceptions below)</summary>
+<summary><b>Delivered through Phase 53 · BEYOND 1.2.0</b> (Phase 37 deferred; validation exceptions below)</summary>
 
 <br>
 
@@ -1298,6 +1298,7 @@ and the Phase 42 validation exceptions are listed below. The full history and ev
 | **43 · Release** | [1.0.0 published](https://github.com/jeremystevens/beyond/releases/tag/v1.0.0), with a source ZIP, SHA-256 checksums and artifact metadata. The full Windows/Python 3.14 CI suite passed at the tagged release commit. |
 | **44 · Code blocks** | Highlighted code blocks with their own Copy code and Save code buttons, plus a retry icon for interrupted replies. See [Phase 44](planning/phase44-code-blocks.md). |
 | **45–48 · 1.1.0** | [1.1.0 published](https://github.com/jeremystevens/beyond/releases/tag/v1.1.0): easy updates from Settings (tested from 1.0.0, 1.0.2 and 0.38.4), Adjust this answer, conversation branches and document attachments. See the [release notes](docs/RELEASE_NOTES_1.1.0.md). |
+| **49–53 · 1.2.0** | [1.2.0 release](https://github.com/jeremystevens/beyond/releases/tag/v1.2.0): expanded writing/email/document helper, cached chat recaps, screenshot troubleshooting, reviewed local reports, and optional GitHub reporting with possible-duplicate checks. |
 
 ### Deferred features and remaining validation
 

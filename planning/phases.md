@@ -551,6 +551,12 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - No raw log/chat reads, AI calls, server probes or GitHub submission. Future submission/duplicate matching remains separate. No runtime dependency, database migration or release version changes.
 - Scope and validation: [phase52-local-error-reports.md](phase52-local-error-reports.md).
 
+### Phase 53: Optional GitHub reporting and duplicate checks · 1.2.0
+
+- Counts repeated retained local error summaries; explicitly searches public GitHub issues by a report reference/category. Open/closed matches are suggestions, not proof of the same cause.
+- Reviewed browser handoff uses GitHub sign-in and its final Submit button. No stored token or automatic issue creation; long drafts support Copy/paste. Simulated entries stay local; offline/rate-limit results are explicit.
+- Release 1.2.0 bundles Phases 49–53. See [phase53-github-reporting.md](phase53-github-reporting.md) and [release validation](release-1.2.0-validation.md).
+
 ## Later, optional
 
 - **Shared brain with the Telegram bot:** once BEYOND's core is stable, the bot and BEYOND could share one copy of

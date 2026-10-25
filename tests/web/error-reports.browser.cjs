@@ -6,14 +6,19 @@ const web=path.resolve(__dirname,'../../app/web');
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'beyond-report-'));
  try{
   const context=await browser.newContext({permissions:['clipboard-read','clipboard-write']});
-  const page=await context.newPage(),errors=[],reports=[];let fail=false;
+  const page=await context.newPage(),errors=[],reports=[];let fail=false,simulated=true,checks=0;
   page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',async route=>{
    const url=new URL(route.request().url());
    if(url.pathname.endsWith('/report')){
     reports.push(route.request().postDataJSON());
     if(fail)return route.fulfill({status:404,json:{detail:'This error is no longer in recent history.'}});
-    return route.fulfill({json:{filename:'beyond-error-report-7.txt',text:'BEYOND local error report\n[secret removed]\n<script>window.pwned=true</script>\n',simulated:true}});
+    return route.fulfill({json:{filename:'beyond-error-report-7.txt',text:'BEYOND local error report\n[secret removed]\n<script>window.pwned=true</script>\n',simulated}});
+   }
+   if(url.pathname.endsWith('/github/check')){
+    checks++;return route.fulfill({json:{checked:true,note:'Possible matches only.',needs_paste:false,
+      draft_url:'https://github.com/jeremystevens/beyond/issues/new?title=Report',
+      matches:[{number:123,state:'open',title:'<script>window.pwned=true</script>',match:'Similar category',url:'https://github.com/jeremystevens/beyond/issues/123'}]}});
    }
    if(url.pathname.startsWith('/api/')){
     let data={};
@@ -59,6 +64,17 @@ const web=path.resolve(__dirname,'../../app/web');
      scroll:el.scrollWidth,client:el.clientWidth,bottom:el.getBoundingClientRect().bottom,height:innerHeight}));
    assert.ok(bounds.right<=bounds.width&&bounds.scroll<=bounds.client+1&&bounds.bottom<=bounds.height+1);
   }
+  assert.equal(await page.locator('#report-github').isDisabled(),true,'simulated errors stay local');
+  await page.locator('#report-close').click();
+  simulated=false;fail=false;await page.locator('.report-button').click();await page.locator('#report-build').click();
+  await page.waitForFunction(()=>!document.querySelector('#report-github').disabled);
+  assert.equal(checks,0,'no automatic GitHub search');
+  await page.locator('#report-github').click();await page.waitForFunction(()=>!document.querySelector('#report-github-next').hidden);
+  assert.equal(checks,1);assert.equal(await page.evaluate(()=>window.pwned),undefined);
+  assert.equal(await page.locator('#report-github-results a').count(),1);
+  assert.equal(await page.locator('#report-github-next').getAttribute('rel'),'noopener noreferrer');
+  await page.locator('#report-preview').fill('Edited report after check');
+  assert.equal(await page.locator('#report-github-next').isVisible(),false,'edits invalidate GitHub handoff');
   await page.locator('#report-close').click();assert.equal(await page.locator('#report-dialog').isVisible(),false);
   assert.deepEqual(errors,[]);
   console.log('PASS local error reports: on-demand preview, notes/options, safe editable text, exact Copy/Save, stale/expired errors and mobile dark layout.');

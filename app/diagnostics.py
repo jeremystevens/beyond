@@ -351,3 +351,12 @@ from app.error_reports import ReportNotes
 async def preview_error_report(body: ReportNotes, error_id: int = PathParam(gt=0)):
     from app.error_reports import build
     return await asyncio.to_thread(build, error_id, body)
+
+
+from app.github_reports import ReviewedReport
+
+
+@router.post('/api/status/errors/{error_id}/github/check')
+async def check_github_report(body: ReviewedReport, error_id: int = PathParam(gt=0)):
+    from app.github_reports import check
+    return await check(error_id, body)

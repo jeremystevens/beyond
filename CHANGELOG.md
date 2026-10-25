@@ -5,11 +5,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-24
+
+See [the release notes](docs/RELEASE_NOTES_1.2.0.md).
+
 ### Added
 
-- Local error report preview/export (Phase 52, unreleased): Report beside recent errors adds optional user notes and local system facts, best-effort redaction, an editable preview, exact Copy/Save as text, and explicit simulated-test labeling. No raw logs/chats, AI generation, server probes, GitHub submission or uploads.
+- Optional GitHub error reporting and duplicate checks (Phase 53): counts repeated local summaries, explicitly searches public issues using a report reference/category, shows open/closed possible matches, and hands the reviewed report to GitHub for sign-in and final submission. No stored token or automatic issue creation. Long reports use Copy/paste; simulated errors stay local.
+- Local error report preview/export (Phase 52): Report beside recent errors adds optional user notes and local system facts, best-effort redaction, an editable preview, exact Copy/Save as text, and explicit simulated-test labeling. Local preview/export uses no raw logs/chats, AI generation, server probes or uploads; GitHub reporting is separate and optional.
 
-- Screenshot troubleshooting (Phase 51, unreleased): Troubleshoot this on an attached/pasted screenshot, installed OCR-first or explicit CPU vision, optional context, focused advice/questions, and saved evidence for follow-ups. Background processing reuses photo job lifecycle; no automatic repair or model downloads. Missing readers and unreadable evidence are explained.
+- Screenshot troubleshooting (Phase 51): Troubleshoot this on an attached/pasted screenshot, installed OCR-first or explicit CPU vision, optional context, focused advice/questions, and saved evidence for follow-ups. Background processing reuses photo job lifecycle; no automatic repair or model downloads. Missing readers and unreadable evidence are explained.
 - On-demand conversation recaps (Phase 50). **Recap** above a saved chat summarizes the topic, confirmed decisions, open questions and a suggested next step. Unchanged chats reuse a private cache, including after restart; new/edited conversation content or attachment changes invalidate it. Refresh recap explicitly regenerates. Ordinary replies and chat opening never generate a recap. Long chats use bounded opening/recent excerpts with a visible coverage warning. Deleting the chat removes its cached recap. No new runtime dependency or database migration.
 - Expanded `/rewrite` and Writing helper (Phase 49). A monochrome pen button beside the composer, or `/rewrite` alone, opens Polish my writing, Reply to an email and Draft a document. All 13 requested tones are available, plus the retained funny, polite and dramatic styles. Audience, detail and 13 document types include technical specifications, README, installation/troubleshooting guides, API references and incident reports.
 - Writing drafts can use explicitly selected attached-document excerpts, be edited or revised, and copied/downloaded separately from controls. Source text and the previous draft are preserved on errors/cancellation. One configured-model request per draft/revision; no email sending, automatic chat/memory saves, extra model or runtime dependency. Missing specifications/citations must not be invented. Text sources support up to 12,000 characters, with bounded combined context and output; work on sections for long documents.
@@ -978,7 +983,8 @@ The first published release: everything from Phase 1 to Phase 38, plus the file 
 - `/api/health` reports that BEYOND is running, its version and phase.
 - Planning documents moved into `planning/`.
 
-[Unreleased]: https://github.com/jeremystevens/beyond/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/jeremystevens/beyond/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/jeremystevens/beyond/releases/tag/v1.2.0
 [1.1.0]: https://github.com/jeremystevens/beyond/releases/tag/v1.1.0
 [1.0.0]: https://github.com/jeremystevens/beyond/releases/tag/v1.0.0
 [0.38.4]: https://github.com/jeremystevens/beyond/releases/tag/v0.38.4

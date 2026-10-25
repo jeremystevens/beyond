@@ -63,7 +63,7 @@ Controls become available when the reply finishes or is stopped. Reopened chats 
 
 Under the newest answer, press ✨ (**Adjust this answer**) and choose **Simpler**, **More detail**, **Show an example** or **Walk me through it**. Your choice appears as your message, and BEYOND answers it below. The original answer stays, so you can compare them. It's only offered on the newest answer; for an older one, ask in your own words.
 
-### Local error reports (unreleased)
+### Local error reports
 
 Open **Status and health** and find **Recent errors**. Press **Report** beside an entry. Optionally describe what happened, what you expected, steps to reproduce and what you tried. Each field allows 2,500 characters. **Include current app and system information** adds release/Python/OS versions, AI mode/state, feature switches, processor count, RAM, free disk and uptime. Turn it off to omit those current readings. The release version may not identify unreleased code from a git installation.
 
@@ -71,9 +71,11 @@ Press **Build preview**, then review and edit the report. **Copy report** copies
 
 Reports use a fixed description for the recorded error category, not raw exception text. They do not automatically collect chat content, raw logs, diagnosis/AI output, user/host names, model names, file paths, server URLs or credentials. Common secrets, URLs, email/IP addresses and local paths in your notes are removed where recognized. This is best effort: review the text carefully before sharing, including any edits you make afterward. Preview edits are exported literally and are not redacted again.
 
-No AI request, server reachability check, GitHub submission or upload is made by report preparation/export. Current information describes the app now, not necessarily the moment of the error, and a fixed summary cannot establish the exact cause. Expired errors require refreshing and choosing a retained entry. **Add test error** provides a clearly marked simulated report for practice; **Clear test errors** removes only those test entries. Existing Diagnose/self-test features remain separate. Optional GitHub submission, duplicate matching and issue links are future work.
+No AI request, server reachability check, GitHub submission or upload is made by local report preparation/export. Current information describes the app now, not necessarily the moment of the error, and a fixed summary cannot establish the exact cause. Expired errors require refreshing and choosing a retained entry. **Add test error** provides a clearly marked simulated report for practice; **Clear test errors** removes only those test entries. Existing Diagnose/self-test features remain separate. **Optional GitHub reporting:** after reviewing the preview, press **Check GitHub for duplicates**. This sends only a fixed category and a hashed report reference to GitHub search, never the report body. Related open/closed issues appear as links. Matches are suggestions, not proof of the same cause; no matches does not guarantee a new issue (indexing can lag). The preview also counts identical summaries in retained local history without deleting or merging entries.
 
-### Screenshot troubleshooting (unreleased)
+If an existing issue matches your problem, open it and add useful details there. Otherwise **Continue on GitHub** opens a prefilled issue in the main project repository. That explicit action sends the draft to GitHub; sign in and press GitHub's Submit button to publish it. BEYOND does not store tokens or create issues automatically. A long report may exceed the safe link size: Copy report first, continue, and paste it below the prefilled reference. Edits to the preview require another check before continuing. Offline/rate-limited searches are clearly marked; check issues manually before submitting. Simulated errors cannot be reported. Search results are cached briefly and include issue status; nothing is polled automatically.
+
+### Screenshot troubleshooting
 
 1. Attach a PNG, JPEG or WebP error screenshot with the paperclip, drop it on chat, or paste an image into the message box. The existing limits apply: 10 MB, 25 megapixels, one still image at a time. Crop out private details before sharing it with BEYOND.
 2. Optionally describe what triggered the error or what you already tried in the photo question field.
@@ -84,7 +86,7 @@ The result includes the reader's bounded evidence so you can correct misread tex
 
 If a reader/model fails or is busy, BEYOND replaces the progress message with an explanation. The attached image remains available to try again while the page is open; after reopening, reattach it. Restart interrupts an unfinished job rather than silently repeating it. Existing Read text, Describe it, Receipt / totals and Ask a question actions continue to work separately.
 
-### Conversation recaps (unreleased)
+### Conversation recaps
 
 Open a saved chat and press **Recap** above the conversation to pick up where you left off. The recap covers the topic, user-confirmed decisions/agreed facts, unfinished questions and a suggested next step. Suggestions should remain distinct from actual decisions; review the result because a model can make mistakes. Attached file names provide context, but the recap does not read their full contents or check current web facts.
 
@@ -94,7 +96,7 @@ For long chats, BEYOND sends bounded excerpts from the opening and recent messag
 
 **Copy recap** copies the recap text. Close hides the panel; the cache remains in private **data/recaps/** until the chat is deleted. Deleting the chat removes its recap, and branches have independent caches. Keep recap files private with the rest of data/. A failed refresh leaves the existing cache intact; reopening can reuse it if the conversation has not changed. If the conversation changes during generation, BEYOND asks you to request it again rather than saving a stale result. A cache write failure still returns the generated text for copying. The configured AI connection handles the request, including an external server if selected.
 
-### Writing helper (unreleased)
+### Writing helper
 
 On phones, the message box uses the full width, with attachment, microphone and pen icons underneath and Send on the right. Press the **pen** or send `/rewrite` by itself. Choose:
 
