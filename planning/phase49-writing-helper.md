@@ -17,8 +17,9 @@ Jeremy selected item 11 after reviewing the post-v1 brainstorm. This is unreleas
 
 - Local Python 3.12 checks: 11 focused tests cover all tones, aliases, quick-command compatibility, fact-preserving prompt construction, email intent, technical formats, revision, size/enum validation, opt-in sources, API schema, errors, cancellation and no chat/memory writes. Four existing prompt tests also pass.
 - Browser regression added to the existing Chromium CI job: real page with isolated API/model stand-ins; all tone labels, email validation, technical/audience/detail controls, revision of edited text, exact draft Copy/Save, error/cancel preservation, optional attachments, safe literal text, phone width and dark mode.
-- GitHub Windows Python 3.14/full-suite and browser CI must pass before considering the change ready. Record their results after running.
-- MSI was offline during implementation. No live small-model quality/latency or Windows desktop smoke test is claimed. The code can be tested there after updating and restarting when the machine reconnects.
+- Full GitHub Windows Python 3.14 and Chromium CI passed for b3790fb: https://github.com/jeremystevens/beyond/actions/runs/40155426689. PR #6 was integrated into main without changing either version field or the release signal.
+- MSI reconnected after implementation. Its clean main checkout was fast-forwarded to b3790fb, and only BEYOND was restarted. The live writing-options API returned 16 tones and all three tasks; all 11 focused writing tests also passed on Windows there.
+- Two short live model smoke checks passed: a professional email declined Monday and offered Tuesday; a technical specification retained 12 V DC, 2 A and firmware 2.4 and marked the missing operating temperature range for confirmation. These are basic functional checks, not comprehensive tone-quality, factual-accuracy or latency certification. Other bots and user data were left in place.
 
 ## Limits
 
