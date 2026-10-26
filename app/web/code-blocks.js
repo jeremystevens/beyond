@@ -152,13 +152,13 @@
       block.querySelector('.code-check')?.remove();
       const note = document.createElement('div'); note.className = 'code-check';
       if (report.status === 'passed') {
-        note.textContent = 'Syntax checked—not run';
+        note.textContent = 'No Python syntax errors found';
       } else if (report.status === 'error') {
-        note.textContent = 'Syntax error' + (report.line ? ' on line ' + report.line : '') + ': ' + report.reason + ' — not run';
+        note.textContent = 'Python syntax error' + (report.line ? ' on line ' + report.line : '') + ': ' + report.reason;
       } else {
-        note.textContent = 'Not checked: ' + (report.reason || 'Check unavailable') + ' — not run';
+        note.textContent = 'Not checked: ' + (report.reason || 'Check unavailable');
       }
-      note.title = 'Python ' + (report.python || 'on this host') + ' syntax only. No execution, dependency, correctness or safety testing.';
+      note.title = "The code wasn't run. Logic and dependencies haven't been checked. Python " + (report.python || 'on this host') + ' syntax only; no safety testing.';
       block.querySelector('.code-toolbar').after(note);
     }
   }
