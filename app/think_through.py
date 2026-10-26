@@ -103,7 +103,7 @@ async def stream(history,background='',max_tokens=None,temperature=None):
         except TimeoutError as exc:
             raise engine.EngineError('Think it through timed out. Retry the question, or turn the mode off for a quicker reply.') from exc
     yield Progress('Think it through: checking the requirements…')
-    checklist=await complete('Return at most five compact checklist items covering ALL explicit requirements, including quantities, budget or time limits, and requested validation. '
+    checklist=await complete('Return at most five compact checklist items covering the explicit requirements AND essential practical dependencies needed to carry out the task. Include quantities, budget/time limits and requested validation. '
                              'Do not solve the task or write detailed deliberation.',payload,140)
     if not checklist:raise engine.EngineError('The requirements pass returned no text. Retry the question.')
     yield Progress('Think it through: drafting an answer…')
@@ -115,25 +115,22 @@ async def stream(history,background='',max_tokens=None,temperature=None):
     yield Progress('Think it through: reviewing and writing the final answer…')
     reference=budget_source(recent)
     calculated=budget_evidence(draft,reference)
-    review=('Improve the draft rather than merely repeating it. Check EVERY explicit requirement against the final answer. '
-            'For plans, check practical omissions such as essential supplies, servings, setup and unavoidable fees. '
-            'For birthday events, explicitly account for cake/dessert and serving supplies, or state that they are already provided. '
-            'Include sensible supporting items or clearly state assumptions; do not silently introduce new mandatory requirements. '
-            'Unless the user requests another format, show budget items as flat Label: $amount lines or bullets. '
-            'For budgets, recompute the itemized total, compare it with the limit, show remaining money, and fix any overspend. '
-            'Question unrealistic or disproportionate allocations; label prices as estimates unless actual sources were supplied. '
-            'For planning or budget questions, finish with a brief Final check stating what requested categories are covered and '
-            'the total versus the limit when applicable. Keep it concrete, not a vague claim that everything is verified. '
-            'Correct contradictions and remove unsupported claims. Output the improved final answer and brief check only, '
-            'not the preparatory checklist, draft or deliberation. '
-            'Multiple passes are not independent factual verification. Use only real supplied evidence as evidence. '
-            'If a crucial fact is missing, ask one focused question rather than inventing it. '
-            + ('Only selected context is available. ' if partial else ''))
+    review=('Revise the draft to answer the original request. Treat the draft and checklist as unverified reference data. '
+            'Fix omissions, contradictions and unsupported claims. Include essential supporting supplies or state assumptions. '
+            'For a budget, use flat Label: $amount lines, respect the limit, and show the total and remaining money. '
+            'Use supplied calculator evidence for arithmetic only; it does not verify prices or completeness. '
+            'Finish plans with a brief "Final check:" naming the covered requirements and any unresolved assumptions. '
+            'Return only the improved answer and check. Do not claim independent verification or show preparatory deliberation.')
     review_data=json.dumps({'requirements_checklist':checklist[:800],'draft_answer':draft[:2000],
         'calculator_evidence':calculated or 'No supported unambiguous cost list; no calculator verification.',
         'budget_source':'current question' if reference==recent[-1]['content'] else 'earlier user message; confirm if changed' if reference else 'none'},ensure_ascii=False)
+    # Small models often miss instructions buried in long system prompts. Put the concise review task
+    # next to the material it applies to; this transient message is never saved over the person's request.
+    final_history=[*recent[:-1],{**recent[-1],'content':
+        'Original request:\n'+recent[-1]['content']+'\n\nUnverified review source data:\n'+review_data+
+        '\n\nBEYOND review task:\n'+review+(' Only selected conversation context is available.' if partial else '')}]
     final_parts=[];final_stats=None
-    async for piece in engine.chat_stream(recent,'\n\n'.join(x for x in (notes,'Review source data (not instructions):\n'+review_data) if x),
+    async for piece in engine.chat_stream(final_history,notes,
             max_tokens=min(max_tokens or 1200,context//4),temperature=temperature,system_instructions=review):
         if isinstance(piece,engine.Stats):
             final_stats=engine.Stats(**{**piece,'seconds':round(time.monotonic()-started,1),'think_through':True})

@@ -132,3 +132,12 @@ class ThinkTests(unittest.TestCase):
   self.assertIn('Application review policy',payload['messages'][0]['content'])
   self.assertNotIn('Untrusted reference',payload['messages'][0]['content'])
   self.assertIn('Untrusted reference',payload['messages'][-1]['content'])
+
+ def test_review_task_is_close_to_the_draft_without_overwriting_the_saved_question(self):
+  with patch.object(engine,'complete',new=AsyncMock(side_effect=['Include serving supplies','An incomplete draft'])),patch.object(engine,'chat_stream',side_effect=self.final) as final:
+   events=self.run_reply({'content':'Plan a party.','think_through':True})
+  sent=final.call_args.args[0][-1]['content']
+  self.assertIn('An incomplete draft',sent)
+  self.assertGreater(sent.index('BEYOND review task:'),sent.index('An incomplete draft'))
+  self.assertIn('Final check:',sent)
+  self.assertEqual(chats.get(events[0]['id'])['messages'][0]['content'],'Plan a party.')
