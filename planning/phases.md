@@ -577,4 +577,4 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
   own planning and the owner's go-ahead.
 - **BEYOND tab in Local AI Studio**, a plugin system suggested to Tech Jarves, or other ideas from the brainstorm.
 
-- [Python code syntax checks](python-code-checks.md): completed labelled Python blocks, bounded local checks, persisted results, no execution or automatic repair (unreleased; implemented for testing).
+- [Python code syntax checks](python-code-checks.md): completed labelled Python blocks, bounded local checks, persisted results, no execution or automatic repair (unreleased; implemented).

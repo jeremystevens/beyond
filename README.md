@@ -1323,7 +1323,7 @@ blocking Python: allow it on private networks when asked.
 and the Phase 42 validation exceptions are listed below. The full history and evidence live in
 [`planning/phases.md`](planning/phases.md).
 
-**Completed after 1.2.0 (unreleased):** [Think it through and the + tools menu](planning/think-it-through.md), host-status chat command, direct model identity questions, runtime model context, [conversation working notes](planning/conversation-working-notes.md), [answer checking](planning/answer-checking.md) and [clearing recent error history](planning/clear-error-history.md). See [implementation notes](planning/chat-host-status.md). Future capability ideas remain [brainstorming](planning/small-model-capability-ideas.md), not an approved roadmap.
+**Completed after 1.2.0 (unreleased):** [Python syntax checks](planning/python-code-checks.md), [Think it through and the + tools menu](planning/think-it-through.md), host-status chat command, direct model identity questions, runtime model context, [conversation working notes](planning/conversation-working-notes.md), [answer checking](planning/answer-checking.md) and [clearing recent error history](planning/clear-error-history.md). See [implementation notes](planning/chat-host-status.md). Future capability ideas remain [brainstorming](planning/small-model-capability-ideas.md), not an approved roadmap.
 
 <details open>
 <summary><b>Delivered through Phase 53 · BEYOND 1.2.0</b> (Phase 37 deferred; validation exceptions below)</summary>
