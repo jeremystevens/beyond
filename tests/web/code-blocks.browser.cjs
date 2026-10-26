@@ -12,7 +12,7 @@ const web = path.resolve(__dirname, '../../app/web');
     const context = await browser.newContext({acceptDownloads:true, permissions:['clipboard-read','clipboard-write']});
     const page = await context.newPage();
     const errors = [];
-    let savedReply = '', savedStopped = false, savedQuestionOnly = false;
+    let savedReply = '', savedStopped = false, savedQuestionOnly = false, savedChecks = [];
     let streamedReply = '';
     let streamMode = 'ok', recoveryRequests = 0;
     page.on('pageerror', err => errors.push(err.message));
@@ -44,7 +44,7 @@ const web = path.resolve(__dirname, '../../app/web');
         let body = {};
         if (url.pathname === '/api/chats/1') body = {id:1,messages:[
           {id:1,role:'user',kind:'chat',content:'Show an example'},
-          ...(!savedQuestionOnly ? [{id:2,role:'assistant',kind:'chat',stopped:savedStopped,content:savedReply,buttons:[],stats:{tokens:20,seconds:1}}] : [])
+          ...(!savedQuestionOnly ? [{id:2,role:'assistant',kind:'chat',stopped:savedStopped,content:savedReply,buttons:[],stats:{tokens:20,seconds:1,code_checks:savedChecks}}] : [])
         ]};
         if (url.pathname === '/api/chats') body = [];
         if (url.pathname === '/api/commands') body = [];
@@ -82,11 +82,37 @@ const web = path.resolve(__dirname, '../../app/web');
     await page.locator('#test-reply .foot [data-kind="copy"]').click();
     assert.equal((await page.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g,'\n'),reply);
 
+    // Syntax evidence is per-block, source-bound, and never enters copy/save content.
+    await page.evaluate(() => {
+      const el = document.querySelector('#test-reply');
+      const code = el.querySelector('pre code').textContent;
+      showStats(el, {code_checks:[{block:1,language:'python',fingerprint:BeyondCode.fingerprint(code),status:'passed',python:'3.14'}]});
+    });
+    assert.equal(await page.locator('#test-reply .code-check').textContent(), 'Syntax checked—not run');
+    assert.equal(await page.evaluate(() => answerText(document.querySelector('#test-reply'))), reply);
+    await page.evaluate(() => {
+      const el = bubble('assistant', '```py\ndef bad(\n```'); el.id='syntax-error';
+      const source = el.querySelector('code').textContent;
+      BeyondCode.checks(el,[{block:1,language:'py',fingerprint:BeyondCode.fingerprint(source),status:'error',line:1,reason:'<img src=x onerror=alert(1)>',python:'3.14'}]);
+    });
+    assert.ok((await page.locator('#syntax-error .code-check').textContent()).includes('Syntax error on line 1'));
+    assert.equal(await page.locator('#syntax-error .code-check img').count(),0);
+    await page.evaluate(() => {
+      const el=bubble('assistant','```python\nx=1\n```');el.id='stale-check';
+      BeyondCode.checks(el,[{block:1,language:'python',fingerprint:'wrong-source',status:'passed'}]);
+    });
+    assert.equal(await page.locator('#stale-check .code-check').count(),0);
+    await page.setViewportSize({width:320,height:740});
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),false);
+    await page.setViewportSize({width:1280,height:800});
+
     // Reopening uses the same bubble/fill path; no highlighting/control labels leak into source.
     savedReply = reply;
+    savedChecks = [{block:1,language:'python',fingerprint:await page.evaluate(source => BeyondCode.fingerprint(source),python),status:'passed',python:'3.14'}];
     await page.evaluate(() => openChat(1));
     await page.locator('.msg.assistant').first().evaluate(el => {el.id='test-reply';});
     assert.equal(await page.locator('#test-reply pre code').first().textContent(),python);
+    assert.equal(await page.locator('#test-reply .code-check').textContent(),'Syntax checked—not run');
     await page.evaluate(() => {
       const el=bubble('assistant writing','```python\nclass Pa'); el.id='stream-test';
     });

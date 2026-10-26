@@ -8,10 +8,10 @@
   <meta name="theme-color" content="#141210" media="(prefers-color-scheme: dark)">
   <title>BEYOND</title>
   <link rel="stylesheet" href="/static/style.css?v=5">
-  <link rel="stylesheet" href="/static/code-blocks.css?v=1">
+  <link rel="stylesheet" href="/static/code-blocks.css?v=2">
   <script src="/static/vendor/highlight.min.js?v=11.11.1"></script>
   <script src="/static/vendor/powershell.min.js?v=11.11.1"></script>
-  <script src="/static/code-blocks.js?v=1"></script>
+  <script src="/static/code-blocks.js?v=2"></script>
   <link rel="stylesheet" href="/static/writing-helper.css?v=1">
   <script src="/static/writing-helper.js?v=1"></script>
   <link rel="stylesheet" href="/static/chat-recap.css?v=1">
@@ -657,6 +657,7 @@ Open questions:"></textarea><p id="notes-count">0 / 1,600</p>
 
     // The small line under an AI answer: which model wrote it, how many tokens, how long and how fast.
     function showStats(el, stats) {
+      BeyondCode.checks(el, stats?.code_checks);
       if (!stats || !stats.tokens || el.querySelector('.stats')) return;
       const line = document.createElement('div');
       line.className = 'stats';

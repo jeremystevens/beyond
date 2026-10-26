@@ -31,3 +31,8 @@ test('suggested names use controlled extensions and cannot contain source-provid
   assert.equal(code.filename('../../evil.exe',3),'code-3.txt');
   assert.equal(code.filename('__proto__',4),'code-4.txt');
 });
+
+test('syntax evidence fingerprints include Unicode and exact line endings', () => {
+  assert.equal(code.fingerprint('name = "café"\r\n'), '929956b0');
+  assert.notEqual(code.fingerprint('x=1\r\n'),code.fingerprint('x=1\n'));
+});

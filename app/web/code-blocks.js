@@ -136,12 +136,39 @@
     }
   }
 
+  function fingerprint(source) {
+    let value = 2166136261;
+    for (const byte of new TextEncoder().encode(source)) value = Math.imul(value ^ byte, 16777619) >>> 0;
+    return value.toString(16).padStart(8, '0');
+  }
+
+  function checks(el, reports) {
+    if (!Array.isArray(reports)) return;
+    const blocks = el.querySelectorAll('.code-block');
+    for (const report of reports) {
+      const block = blocks[report.block - 1];
+      const code = block?.querySelector('code');
+      if (!code || code.dataset.language !== report.language || fingerprint(rawCode.get(code)) !== report.fingerprint) continue;
+      block.querySelector('.code-check')?.remove();
+      const note = document.createElement('div'); note.className = 'code-check';
+      if (report.status === 'passed') {
+        note.textContent = 'Syntax checked—not run';
+      } else if (report.status === 'error') {
+        note.textContent = 'Syntax error' + (report.line ? ' on line ' + report.line : '') + ': ' + report.reason + ' — not run';
+      } else {
+        note.textContent = 'Not checked: ' + (report.reason || 'Check unavailable') + ' — not run';
+      }
+      note.title = 'Python ' + (report.python || 'on this host') + ' syntax only. No execution, dependency, correctness or safety testing.';
+      block.querySelector('.code-toolbar').after(note);
+    }
+  }
+
   function complete(el) {
     el.querySelectorAll('.code-block pre code').forEach(code => highlight(code, code.dataset.language));
     el.querySelectorAll('.code-action').forEach(button => { button.disabled = false; });
   }
 
-  const api = { split, filename, render, complete, source: el => sources.get(el) };
+  const api = { split, filename, render, complete, checks, fingerprint, source: el => sources.get(el) };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.BeyondCode = api;
 })(typeof window !== 'undefined' ? window : globalThis);

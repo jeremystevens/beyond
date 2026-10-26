@@ -946,6 +946,10 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 text = cleaned
                 yield json.dumps({'type': 'replace', 'text': text}) + '\n'
             if finished and text:
+                from app import code_checks
+                checked = await asyncio.to_thread(code_checks.check_reply, text)
+                if checked:
+                    stats = {**(stats or {}), 'code_checks': checked}
                 answer_id = chats.add_message(chat_id, 'assistant', text, retry_of=retry_of, lookup=lookup,
                                               stats=stats, think_through=think_through)
                 if found or prior_context:

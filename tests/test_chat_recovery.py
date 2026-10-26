@@ -128,3 +128,33 @@ class ChatRecoveryTests(unittest.TestCase):
             asyncio.run(run(''))
         self.assertEqual(asyncio.run(run('data: [DONE]\n\n'))[0], 'partial')
         self.assertEqual(asyncio.run(run('data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\n'))[0], 'partial')
+
+    def test_completed_python_reply_saves_and_streams_syntax_result_without_extra_ai_calls(self):
+        content = 'Example:\n```python\nclass Cat:\n    pass\n```\n'
+        calls = []
+        async def succeed(*args, **kwargs):
+            calls.append(1)
+            yield content
+        with patch.object(engine, 'chat_stream', succeed):
+            events = self.consume(server._ai_answer(server.SendRequest(chat_id=self.chat, content='Show a class'),
+                                                   'Show a class', local_request()))
+        result = next(e for e in events if e['type'] == 'message')
+        self.assertEqual(result['stats']['code_checks'][0]['status'], 'passed')
+        self.assertEqual(len(calls), 1)
+        saved = chats.get(self.chat)['messages'][-1]
+        self.assertEqual(saved['content'], content.strip())
+        self.assertEqual(saved['stats'], result['stats'])
+        branch, _ = chats.branch(result['id'])
+        self.assertEqual(chats.get(branch)['messages'][-1]['stats'], result['stats'])
+
+    def test_invalid_code_is_retained_with_specific_error_not_silently_rewritten(self):
+        content = '```python\ndef broken(\n    pass\n```'
+        async def succeed(*args, **kwargs):
+            yield content
+        with patch.object(engine, 'chat_stream', succeed):
+            events = self.consume(server._ai_answer(server.SendRequest(chat_id=self.chat, content='Show a function'),
+                                                   'Show a function', local_request()))
+        result = next(e for e in events if e['type'] == 'message')
+        self.assertEqual(result['stats']['code_checks'][0]['status'], 'error')
+        self.assertTrue(result['stats']['code_checks'][0]['line'])
+        self.assertEqual(chats.get_message(result['id'])['content'], content)

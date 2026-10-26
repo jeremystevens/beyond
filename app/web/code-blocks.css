@@ -35,3 +35,5 @@
   .code-action { min-height: 36px; }
   .code-block pre { padding: 10px; }
 }
+
+.code-check { padding: 6px 10px; border-bottom: 1px solid #384353; color: #ced8e5; font: 12px/1.5 system-ui, sans-serif; overflow-wrap: anywhere; }

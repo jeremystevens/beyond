@@ -255,6 +255,14 @@ Notes are limited to 1,600 characters and refreshed on request. Normal replies a
 
 Editing or deleting covered history clears the notes to prevent stale facts. Deleting a chat deletes its notes; branches start with independent empty notes. If the chat changes during drafting or editing, reopen or draft again before saving. The dialog keeps unsaved text on errors. See [implementation notes](../planning/conversation-working-notes.md).
 
+### Python code syntax checks
+
+This is an unreleased addition after 1.2.0.
+
+Completed AI chat replies automatically check closed code fences labelled `python`, `python3` or `py` with the host's Python interpreter. A quiet line under the code toolbar shows **Syntax checked—not run**, a syntax error with a code-block line number, or **Not checked** with a reason. Source is compiled for syntax in a separate bounded worker; it is never executed, imported, installed or silently rewritten. Copy and Save still contain only the original code. Results persist with the reply and its conversation branches; older and stopped/failed replies have no new check claim.
+
+This first version checks syntax only—not dependencies, undefined names, missing logic, program behavior, security or compatibility with other Python versions. Other languages and unfenced code are not checked. Incomplete/empty blocks, blocks over 100,000 UTF-8 bytes, and work beyond eight blocks or 200,000 total bytes per reply are skipped. The worker has a three-second timeout; failure keeps the reply with a Not checked label. No model request or runtime dependency is added. Streaming stays visible while completion controls remain disabled until the reply is finalized.
+
 ### Think it through and the + menu
 
 This is an unreleased addition after 1.2.0. The **+** button beside the message box opens **Attach photo or document**, **Voice input**, **Writing helper**, and the **Think it through** checkbox. These tools use the same optional features and permissions as before. Active recording has a visible Stop recording control even when the popup is closed.
