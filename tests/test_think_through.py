@@ -114,3 +114,21 @@ class ThinkTests(unittest.TestCase):
   text=''.join(e.get('text','') for e in events if e['type']=='token')
   self.assertIn('Total $95.00',text);self.assertIn('$5.00 remains',text)
   self.assertIn('Prices and completeness are not verified',text)
+
+ def test_named_supply_summary_is_not_counted_twice(self):
+  costs='* Plates: $5\n* Napkins: $3\n* Utensils: $7\n* Food: $40\n* Drinks: $20\n* Decorations: $15\n* Activity: $25\n* Supplies (plates, napkins, utensils): $15'
+  result=think_through.budget_evidence(costs,'A $100 budget')
+  self.assertIn('Total $115.00',result);self.assertIn('Over budget by $15.00',result)
+  self.assertIn('avoid double-counting',result)
+ def test_followup_uses_the_latest_explicit_user_budget(self):
+  history=[{'role':'user','content':'A $100 budget'},{'role':'assistant','content':'A $200 budget'},
+           {'role':'user','content':'What about plates?'}]
+  self.assertEqual(think_through.budget_source(history),'A $100 budget')
+  history.append({'role':'user','content':'Use a $120 budget instead.'})
+  self.assertEqual(think_through.budget_source(history),'Use a $120 budget instead.')
+ def test_trusted_review_instructions_are_separate_from_reference_data(self):
+  with patch.object(engine,'_server',return_value=('http://localhost:1234','')),patch.object(engine.rules,'all_rules',return_value=[]):
+   _,_,payload=engine._prepare([{'role':'user','content':'Question'}],False,background='Untrusted reference',system_instructions='Application review policy')
+  self.assertIn('Application review policy',payload['messages'][0]['content'])
+  self.assertNotIn('Untrusted reference',payload['messages'][0]['content'])
+  self.assertIn('Untrusted reference',payload['messages'][-1]['content'])

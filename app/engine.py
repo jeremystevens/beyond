@@ -171,13 +171,13 @@ def _server():
     return url, values['ai_model']
 
 
-def _prepare(messages, stream, background='', max_tokens=None, temperature=None):
+def _prepare(messages, stream, background='', max_tokens=None, temperature=None, system_instructions=''):
     """The server address and the request body for a chat reply, or a plain-words error if no AI is set up."""
     url, model = _server()
     # The personality comes first and never changes between messages, so the AI server can reuse it (see
     # history_window); the conversation follows, newest message last, with any notes for this reply attached to it.
     messages = with_reply_notes(trim(messages), background)
-    payload = {'messages': [{'role': 'system', 'content': system_prompt()}, *messages], 'stream': stream,
+    payload = {'messages': [{'role': 'system', 'content': system_prompt() + ('\n\n' + system_instructions if system_instructions else '')}, *messages], 'stream': stream,
                'max_tokens': (max_tokens or config.ANSWER_MAX_TOKENS) + (THINKING_EXTRA_TOKENS if _thinking_on() else 0),
                'temperature': config.TEMPERATURE if temperature is None else temperature, 'cache_prompt': True}
     if model:
@@ -266,7 +266,7 @@ async def chat(messages):
             raise EngineError("The AI server's answer wasn't in the expected format.") from exc
 
 
-async def chat_stream(messages, background='', max_tokens=None, temperature=None):
+async def chat_stream(messages, background='', max_tokens=None, temperature=None, system_instructions=''):
     """Like chat(), but yields the reply piece by piece as the AI writes it, and THINKING while a thinking model
     is thinking, then one Stats at the end. `background`: notes for this reply only (for example related old
     conversations).
@@ -276,7 +276,7 @@ async def chat_stream(messages, background='', max_tokens=None, temperature=None
     llama.cpp to stop writing, so the AI is free again for the next question (or for the Telegram bot)."""
     with builtin_engine.using_model():
         endpoint, url, payload = _prepare(messages, stream=True, background=background, max_tokens=max_tokens,
-                                         temperature=temperature)
+                                         temperature=temperature, system_instructions=system_instructions)
         payload['stream_options'] = {'include_usage': True}   # token counts at the end, from servers that offer them
         values = settings.load()
         model = builtin_engine.model_name(values) if values['ai_mode'] == 'builtin' else values['ai_model']
