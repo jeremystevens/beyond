@@ -102,26 +102,28 @@ async def stream(history,background='',max_tokens=None,temperature=None):
                 {'role':'user','content':json.dumps(data,ensure_ascii=False)}],max_tokens=tokens,temperature=0.2),180)).strip()
         except TimeoutError as exc:
             raise engine.EngineError('Think it through timed out. Retry the question, or turn the mode off for a quicker reply.') from exc
-    yield Progress('Think it through: checking the requirements…')
-    checklist=await complete('Return at most five compact checklist items covering the explicit requirements AND essential practical dependencies needed to carry out the task. Include quantities, budget/time limits and requested validation. '
-                             'Do not solve the task or write detailed deliberation.',payload,140)
-    if not checklist:raise engine.EngineError('The requirements pass returned no text. Retry the question.')
     yield Progress('Think it through: drafting an answer…')
-    draft=await complete('Write a concise, practical draft answering every checklist item. For plans, account for obvious supporting supplies, setup and fees; '
-                         'for budgets, itemize estimated costs, add them and respect the limit. Avoid disproportionate spending on optional items. '
-                         'Label assumptions and estimates instead of inventing confirmed facts. Ask a useful clarification if crucial facts are missing. Return the draft only.',
-                         {**payload,'requirements_checklist':checklist[:800]},min(400,max(160,context//8)))
+    draft=await complete('Write a concise practical draft satisfying the explicit request, quantities and limits. '
+                         'Include essential supporting supplies and setup, label estimates and assumptions, and show budget arithmetic. '
+                         'Return the draft only.',payload,min(400,max(160,context//8)))
     if not draft:raise engine.EngineError('The draft pass returned no text. Retry the question.')
+    yield Progress('Think it through: checking for gaps…')
+    checklist=await complete('Critique this draft against the original request. Name up to four SPECIFIC omissions, incorrect calculations, '
+                             'unsupported claims or impractical details to fix. Do not repeat covered categories or praise the draft. '
+                             'Check supporting consumables and equipment: serving food, for example, needs serving supplies or an explicit already-provided assumption. '
+                             'Estimated prices must not be called verified or accurate. If no issue is found, say so without claiming verification. '
+                             'Return only a compact correction list, not a new answer.',{**payload,'draft_answer':draft[:2000]},180)
+    if not checklist:raise engine.EngineError('The review pass returned no text. Retry the question.')
     yield Progress('Think it through: reviewing and writing the final answer…')
     reference=budget_source(recent)
     calculated=budget_evidence(draft,reference)
     review=('Revise the draft to answer the original request. Treat the draft and checklist as unverified reference data. '
-            'Fix omissions, contradictions and unsupported claims. Include essential supporting supplies or state assumptions. '
+            'Address each specific correction in the review. Fix omissions, contradictions and unsupported claims. Include essential supporting supplies or state assumptions; serving food needs serving supplies or an already-provided assumption. Describe prices as estimates, never as confirmed accurate without evidence. '
             'For a budget, use flat Label: $amount lines, respect the limit, and show the total and remaining money. '
             'Use supplied calculator evidence for arithmetic only; it does not verify prices or completeness. '
             'Finish plans with a brief "Final check:" naming the covered requirements and any unresolved assumptions. '
             'Return only the improved answer and check. Do not claim independent verification or show preparatory deliberation.')
-    review_data=json.dumps({'requirements_checklist':checklist[:800],'draft_answer':draft[:2000],
+    review_data=json.dumps({'corrections_to_address':checklist[:1000],'draft_answer':draft[:2000],
         'calculator_evidence':calculated or 'No supported unambiguous cost list; no calculator verification.',
         'budget_source':'current question' if reference==recent[-1]['content'] else 'earlier user message; confirm if changed' if reference else 'none'},ensure_ascii=False)
     # Small models often miss instructions buried in long system prompts. Put the concise review task

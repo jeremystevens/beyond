@@ -483,7 +483,7 @@ All appear in **/help** and the **/** command menu. Open **Settings → Status a
 
 This is an unreleased addition after 1.2.0. The **+** button beside the message box opens **Attach photo or document**, **Voice input**, **Writing helper**, and the **Think it through** checkbox. These tools use the same optional features and permissions as before. Active recording has a visible Stop recording control even when the popup is closed.
 
-Turn on **Think it through** before asking a harder question. BEYOND checks the requirements, drafts, and reviews with your current model, then streams the final answer. It takes longer; ordinary chat keeps its existing path while the mode is off. **Think it through: On** remains visible outside the menu; click it to turn the mode off. The preference is saved in this browser at this BEYOND address and stays on across chats until disabled.
+Turn on **Think it through** before asking a harder question. BEYOND drafts, critiques the draft for specific gaps, and revises with your current model, then streams the final answer. It takes longer; ordinary chat keeps its existing path while the mode is off. **Think it through: On** remains visible outside the menu; click it to turn the mode off. The preference is saved in this browser at this BEYOND address and stays on across chats until disabled.
 
 For one question, use **/think <question>**, such as `/think Help me plan a small project with a limited budget`. This does not change the checkbox. **/think** alone shows help. Commands and dedicated tools keep their normal workflows. This is separate from the model's native-thinking setting in Settings.
 
