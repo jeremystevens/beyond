@@ -1,6 +1,6 @@
 # Think it through and compact composer tools
 
-Status: implemented for testing; merge held for live answer-quality failures; unreleased after 1.2.0
+Status: implemented; approved for merge with known limitations; unreleased after 1.2.0
 Date: 2026-10-25
 
 ## User flow
@@ -31,5 +31,5 @@ Follow-up arithmetic may use the latest explicit user budget in selected history
 
 Review policy is concise and repeated next to the draft in a transient request so small models can follow it more readily. The original user message stays unchanged in storage. Practical dependency checks are general rather than tied to one test scenario; a model can still miss items or disregard the requested final check.
 
-## Live quality gate
-All 17 focused Windows tests and full Windows/Python 3.14 and Chromium CI passed on 03d1cd3. Live Gemma 3 4B Q4 testing did not meet the practical-completeness goal: the birthday plan offered two sandwiches for eight people and omitted serving supplies despite a critique pass. Runtime validation passed metadata/streaming checks, but those checks do not establish semantic answer quality. Do not treat their PASS output as approval to merge. Guided replies took roughly 3–4 minutes on this host. Keep this feature branch open pending a substantive approach or an explicit decision to narrow its scope; further prompt tweaks alone have not shown dependable improvement.
+## Known limitations and follow-up
+All 17 focused Windows tests and full Windows/Python 3.14 and Chromium CI passed on 03d1cd3. Live Gemma 3 4B Q4 testing did not meet the practical-completeness goal: the birthday plan offered two sandwiches for eight people and omitted serving supplies despite a critique pass. Runtime validation passed metadata/streaming checks, but those checks do not establish semantic answer quality. Automated checks establish runtime behavior, not semantic answer quality. Guided replies took roughly 3–4 minutes on this host. The user approved merging the optional, off-by-default feature with these limitations documented. Further answer-quality and arithmetic improvements are deferred; no additional prompt tuning is part of this merge.

@@ -5,8 +5,6 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-- Keep guided review instructions close to the draft, check practical dependencies, and preserve the original saved question.
-
 See [host-status notes](planning/chat-host-status.md) and [error-history notes](planning/clear-error-history.md). These additions are not yet in a published release.
 
 ### Added
@@ -18,9 +16,10 @@ See [host-status notes](planning/chat-host-status.md) and [error-history notes](
 - `/status` reports host resources, uptime, optional NVIDIA metrics and AI/model status without inference. Chat runtime context now identifies the built-in model or a recent server-reported model, distinguishing unconfirmed configured models.
 
 ### Fixed
+- Guided review keeps concise instructions close to the draft and preserves the original saved question.
 - Guided budget follow-ups can reuse the most recent explicit user budget, with an earlier-context label. Exact named aggregate rows are excluded from arithmetic to prevent duplicate supply costs.
 - Supported flat dollar-budget lists now receive independent Python arithmetic evidence during review and a separate final Calculator check; prices and completeness remain unverified.
-- Guided review now explicitly checks all requested categories, practical essentials, budget totals/limits and disproportionate allocations, with a brief final check for planning/budget answers. This remains model assessment, not independent verification.
+- Guided review now explicitly checks all requested categories, practical essentials, budget totals/limits and disproportionate allocations, with a brief final check for planning/budget answers. This remains model assessment, not independent verification. Known small-model omissions and serving-quantity errors remain; further answer-quality work is deferred.
 - The new composer keeps +, message box and Send on one row on desktop and mobile. Tools popup icons and labels align consistently to the left.
 
 ## [1.2.0] - 2026-10-24
