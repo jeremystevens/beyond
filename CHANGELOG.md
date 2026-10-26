@@ -17,6 +17,7 @@ See [host-status notes](planning/chat-host-status.md) and [error-history notes](
 - `/status` reports host resources, uptime, optional NVIDIA metrics and AI/model status without inference. Chat runtime context now identifies the built-in model or a recent server-reported model, distinguishing unconfirmed configured models.
 
 ### Fixed
+- Clear spoken/typed requests now run existing read-only Python tools directly: cat facts, quotes, jokes, definitions, Wikipedia/Stack Overflow, live world time, arithmetic, conversions and selected listings. Feature awareness now derives a compact complete inventory and named-command usage from the actual registry, with coverage tests for all 54 commands and their aliases. Negation, quoted/multiple actions, writes and pending file contents are not silently reinterpreted; no extra model call for routing.
 - Guided review keeps concise instructions close to the draft and preserves the original saved question.
 - Guided budget follow-ups can reuse the most recent explicit user budget, with an earlier-context label. Exact named aggregate rows are excluded from arithmetic to prevent duplicate supply costs.
 - Supported flat dollar-budget lists now receive independent Python arithmetic evidence during review and a separate final Calculator check; prices and completeness remain unverified.

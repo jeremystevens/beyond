@@ -479,6 +479,12 @@ Health commands: **/status** shows host resources and AI state; **/model** ident
 **/speed** (or **/speed 1–50**) shows saved reply timings; **/selftest** runs read-only checks.
 All appear in **/help** and the **/** command menu. Open **Settings → Status and health** for the full page.
 
+### Ask for tools in ordinary words
+
+You can type or speak clear requests such as **Tell me a fact about cats**, **Give me a random quote**, **Tell me a joke about cats**, **Define serendipity**, **Search Wikipedia for Apollo 11**, **Search Stack Overflow for python read a file**, **What is the time in Tokyo**, **Calculate 25 times 48**, or **Convert 72 f to c**. BEYOND routes recognized requests directly to the existing Python command instead of asking the model to imitate a result. **What modules do you have?** lists the actual registered commands. Simple requests to show notes, upcoming reminders, house rules or host status use the matching existing command too.
+
+All 54 registered commands are included in a compact inventory in the chat prompt; help for a named command or alias uses its current registered summary and example. The complete [routing audit](planning/tool-routing-audit.md) is maintained alongside the registry. Typed and transcribed messages use the same routes. Explicit read-only tool requests work independently of automatic web lookup; tools retain their normal internet requirements and error handling. Routing itself makes no AI request. Only recognized complete requests are matched: ordinary explanations, quoted commands, negation, multiple actions and ambiguous wording stay in chat. Writes/deletions and other side effects keep their existing explicit commands and confirmation flows. Pending file contents take precedence. Slash commands remain the reliable fallback for unrecognized wording; this is not unrestricted natural-language control of every module.
+
 ### Python code syntax checks
 
 This is an unreleased addition after 1.2.0.

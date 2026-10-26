@@ -84,7 +84,7 @@ def system_prompt():
     """Optimized default or custom prompt, app context, optional persona, house rules and saved facts.
     Read per chat reply; one-off jobs retain their task-specific instructions."""
     values = settings.load()
-    personality = prompts.base_prompt(values) + prompts.APP_CONTRACT
+    personality = prompts.base_prompt(values) + prompts.APP_CONTRACT + prompts.command_catalog()
     role = personas.prompt_block(values['persona']) if values.get('persona_enabled', False) else ''
     return personality + role + model_context() + rules.prompt_block() + memory.prompt_block()
 

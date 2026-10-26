@@ -812,6 +812,10 @@ async def chat_stream(body: SendRequest, request: Request):
             return _command_reply(body.chat_id, content, status=file_requests.status(plan),
                                   runner=lambda: file_requests.run(body.chat_id, plan))
         return _command_reply(body.chat_id, content, prepared=commands.write_pending(pending_file, body.content))
+    from app import natural_requests
+    natural_command = natural_requests.command(content)
+    if natural_command:
+        return _command_reply(body.chat_id, content, run_as=natural_command)
     recalled = search_history.recall_request(content)
     if recalled is not None:
         return _command_reply(body.chat_id, content, run_as='/searchhistory ' + recalled)

@@ -255,6 +255,12 @@ Notes are limited to 1,600 characters and refreshed on request. Normal replies a
 
 Editing or deleting covered history clears the notes to prevent stale facts. Deleting a chat deletes its notes; branches start with independent empty notes. If the chat changes during drafting or editing, reopen or draft again before saving. The dialog keeps unsaved text on errors. See [implementation notes](../planning/conversation-working-notes.md).
 
+### Ask for tools in ordinary words
+
+You can type or speak clear requests such as **Tell me a fact about cats**, **Give me a random quote**, **Tell me a joke about cats**, **Define serendipity**, **Search Wikipedia for Apollo 11**, **Search Stack Overflow for python read a file**, **What is the time in Tokyo**, **Calculate 25 times 48**, or **Convert 72 f to c**. BEYOND routes recognized requests directly to the existing Python command instead of asking the model to imitate a result. **What modules do you have?** lists the actual registered commands. Simple requests to show notes, upcoming reminders, house rules or host status use the matching existing command too.
+
+All registered commands are included in a compact inventory in the chat prompt, with current usage help for named commands and aliases. Typed and transcribed messages use the same routes. Explicit read-only tool requests work independently of automatic web lookup; tools retain their normal internet requirements and error handling. Routing itself makes no AI request. Only recognized complete requests are matched: ordinary explanations, quoted commands, negation, multiple actions and ambiguous wording stay in chat. Writes/deletions and other side effects keep their existing explicit commands and confirmation flows. Pending file contents take precedence. Slash commands remain the reliable fallback for unrecognized wording; this is not unrestricted natural-language control of every module.
+
 ### Python code syntax checks
 
 This is an unreleased addition after 1.2.0.
