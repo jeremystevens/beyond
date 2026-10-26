@@ -579,4 +579,4 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 
 - [Python code syntax checks](python-code-checks.md): completed labelled Python blocks, bounded local checks, persisted results, no execution or automatic repair (unreleased; implemented).
 
-- [Natural tool requests](natural-tool-requests.md): direct read-only tool dispatch for clear spoken/typed requests, including cat facts and live world time (unreleased; implemented for testing).
+- [Natural tool requests](natural-tool-requests.md): direct read-only tool dispatch for clear spoken/typed requests, including cat facts and live world time (unreleased; implemented).

@@ -63,3 +63,5 @@ Natural routing is intentionally conservative: explicit supported requests run e
 
 ## Regression coverage
 Tests require the inventory and this table to cover every canonical registered command; usage lookup is tested for every command and alias. Adding a command without updating this audit fails coverage. Exact cat-fact and Tokyo-time requests, polite variants, additional read-only tools and ordinary-chat/pending-file guards have focused routing tests. Side effects retain existing command permissions and confirmation flows. No tool is executed merely to build help or the inventory.
+
+Validation: full Windows/Python 3.14 and Chromium CI passed, both reported requests passed live checks, and the user confirmed improved mobile behavior. Approved for the upcoming release as a bug fix; no release version is changed here.
