@@ -76,6 +76,11 @@ _TOOL_HELP = [
      "Photos: attach one and use /scan for printed text, or /look for visual questions. You do not see the photo "
      "unless results are supplied. /imagine <idea> generates pictures in the background; Quick/Good/Best and "
      "Improve prompt are chat controls. Completion popups follow Settings."),
+    (r"\b(voice conversation|hands.free conversation|voice transcript)\b",
+     "Voice conversation: open + → Voice conversation, optionally choose Save a transcript, and press Start. "
+     "Whisper listens and transcribes, then Kokoro or Piper speaks the reply. Pause or End in the session bar; "
+     "the microphone is off during replies. Transcript export is optional; normal chat messages remain saved. "
+     "Voice input and spoken replies must be installed and enabled, and a secure browser origin is needed."),
     (r"\b(speak|speech|voice|microphone|read aloud|listen|audio)\b",
      "Speech: /speak or Read aloud reads an answer; /speak <text> reads text. The microphone transcribes speech "
      "into ordinary user messages. Settings controls voices and optional automatic spoken replies."),

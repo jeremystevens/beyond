@@ -584,3 +584,5 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - [Clarify before guessing](clarify-before-guessing.md): shared chat guidance for one essential question, existing-context reuse and direct answers to clear requests (unreleased; live-tested with question-bundling limits).
 
 - [Prose-in-code-blocks bug](bug-prose-in-code-blocks.md): fixed email/letter formatting guidance, verified through live chat with actual Python formatting preserved; owner confirmed; fixed with further testing needed (unreleased).
+
+- [Voice conversation mode](voice-conversation.md): optional hands-free voice turns and transcript export (unreleased; implemented for testing).

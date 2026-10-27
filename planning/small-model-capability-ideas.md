@@ -16,9 +16,8 @@ Help a small local model, such as google_gemma-3-4b-it-Q4_K_M, deliver a more ca
 | Clarify before guessing | **Implemented (unreleased; live-tested with question-bundling limits):** [Clarify before guessing](clarify-before-guessing.md). Ask one useful question when an essential detail is missing; proceed on clear requests. | Avoid invented assumptions, especially in troubleshooting and technical writing. Do not interrupt straightforward requests unnecessarily. |
 | Conversation working notes | **Implemented (unreleased):** [Working notes](conversation-working-notes.md). Keep compact notes of the current goal, confirmed facts, decisions and unresolved questions. | Improve continuity in long chats. Distinct from the existing on-demand recap: these notes support the model's active context. Define update timing, correction and deletion behavior before implementation. |
 | Break down larger requests | Split a substantial request into manageable steps, complete them and combine the results into a consistent answer. | Improve completeness without overwhelming a small context window. Bound steps and provide progress/cancellation. |
-| A second look button | Let the user flag a questionable answer; recheck assumptions and available evidence, then provide a corrected answer when warranted. | More useful than simple regeneration. Explain corrections and avoid treating agreement with an earlier answer as proof. |
 | Code checking before delivery | **Implemented (unreleased):** [Python syntax checks](python-code-checks.md) on completed replies, with per-block results before Copy/Save unlock. | Python syntax only; no execution, dependency/logic verification or automatic repair. Further languages and repair remain future work. |
-| Voice conversation mode and optional transcript | Start a hands-free spoken conversation without pressing microphone/playback for each exchange. Whisper transcribes the user; Kokoro or Piper speaks BEYOND’s replies. Optionally keep both sides as a transcript and export it after the session. | Candidate for the upcoming release, pending planning and testing; not yet implemented. Reuse actual reply text for BEYOND’s side rather than transcribing its audio. |
+| Voice conversation mode and optional transcript | **Implemented for testing (unreleased):** [Voice conversation](voice-conversation.md). Start a hands-free spoken conversation without pressing microphone/playback for each exchange. Whisper transcribes the user; Kokoro or Piper speaks BEYOND’s replies. Optionally keep both sides as a transcript and export it after the session. | Real microphone and playback testing remains before merge. Reuse actual reply text for BEYOND’s side rather than transcribing its audio. |
 
 ## Suggested order for discussion
 
@@ -41,13 +40,13 @@ The remaining suggestions are also candidates; this order is a recommendation, n
 
 Answer checking was selected first and is implemented. Conversation working notes are implemented. Think it through and the + menu are implemented and approved for merge with known small-model limitations; further quality improvements are deferred. Clarify before guessing was selected on 2026-10-26 and is implemented with live-tested with question-bundling limits. Other candidates await further instructions; no new release version has been selected.
 
-## Additional candidate: voice conversation and transcription
+## Voice conversation and transcription
 
-Added at the bottom of the feature list for consideration in the upcoming release.
+Selected for implementation; real microphone testing remains before merge.
 
 - A casual, hands-free conversation with clear start, pause and end controls.
 - Whisper transcribes the user’s speech; Kokoro or Piper handles spoken replies.
 - Optional session transcription records both speakers: transcribed user speech and BEYOND’s actual reply text.
 - Offer saving/exporting the complete transcript to a file when the conversation ends.
 - Plan turn detection, prevention of the bot hearing its own playback, microphone permissions and CPU/memory performance before implementation.
-- This is a candidate to try, not a committed release requirement or an instruction to begin building.
+- Implemented for testing. Voice-model availability, latency and microphone behavior still need real-device verification.
