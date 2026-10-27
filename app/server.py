@@ -888,8 +888,21 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
     (Stop), what was written so far is saved, marked as stopped; if nothing was written at all, undo() runs.
     `question`: checked for an automatic lookup (weather, news, web) first, whose results go in the notes."""
     from app import think_through as guided
+    from app import clarifications, working_notes
+    clarification = clarifications.question(history)
+    supplied_media = (any(m['role'] == 'user' and m['kind'] != 'chat'
+                          for m in chats.get(chat_id)['messages']) if clarification else False)
+    if clarification and (suppress_auto or prior_context or supplied_media or attachments.listing(chat_id)
+                          or working_notes.prompt_block(chat_id)):
+        clarification = ''  # The request may refer to supplied evidence; leave it to the normal path.
+    if clarification:
+        pickup = None
+
+    async def clarification_stream():
+        yield clarification
+
     budget = learning.max_tokens()
-    wanted = lookups.detect(question) if question and not suppress_auto else None
+    wanted = lookups.detect(question) if question and not suppress_auto and not clarification else None
     found = wanted if wanted and settings.load()['auto_lookup'] else None
     if wanted and not found:   # needs current information, but automatic lookups are off
         background = '\n\n'.join(part for part in (background, lookups.NOT_CHECKED) if part)
@@ -923,7 +936,9 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 yield json.dumps({'type': 'lookup', **lookup}) + '\n'
             try:
                 thinking, stats = False, None
-                stream = guided.stream(history, notes, max_tokens=budget, temperature=temperature) if think_through else engine.chat_stream(history, notes, max_tokens=budget, temperature=temperature)
+                stream = (clarification_stream() if clarification else
+                          guided.stream(history, notes, max_tokens=budget, temperature=temperature) if think_through else
+                          engine.chat_stream(history, notes, max_tokens=budget, temperature=temperature))
                 async for piece in stream:
                     if isinstance(piece,guided.Progress):
                         yield json.dumps({'type':'status','text':piece.text})+'\n'

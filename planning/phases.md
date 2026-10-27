@@ -580,3 +580,7 @@ The game **rules** come from the bot unchanged; only the **screens** are new (se
 - [Python code syntax checks](python-code-checks.md): completed labelled Python blocks, bounded local checks, persisted results, no execution or automatic repair (unreleased; implemented).
 
 - [Natural tool requests](natural-tool-requests.md): direct read-only tool dispatch for clear spoken/typed requests, including cat facts and live world time (unreleased; implemented).
+
+- [Clarify before guessing](clarify-before-guessing.md): shared chat guidance for one essential question, existing-context reuse and direct answers to clear requests (unreleased; live-tested with question-bundling limits).
+
+- [Prose-in-code-blocks bug](bug-prose-in-code-blocks.md): fixed email/letter formatting guidance, verified through live chat with actual Python formatting preserved; owner confirmed; fixed with further testing needed (unreleased).

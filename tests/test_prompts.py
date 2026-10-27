@@ -27,7 +27,7 @@ class PromptTests(unittest.TestCase):
 
     def test_default_prompt_has_a_small_budget_and_keeps_the_app_contract(self):
         self.assertFalse(settings.load()['custom_prompt_enabled'])
-        self.assertLess(len((prompts.default_prompt()+prompts.APP_CONTRACT).split()),500)
+        self.assertLess(len((prompts.default_prompt()+prompts.APP_CONTRACT).split()),600)
         text=engine.system_prompt()
         self.assertIn(prompts.default_prompt(),text)
         self.assertIn('Python runs tools',text)
@@ -85,6 +85,58 @@ class PromptTests(unittest.TestCase):
             self.assertEqual(asyncio.run(server.improve_prompt(body)).status_code,503)
         self.assertEqual(settings.FILE.read_text(encoding='utf-8'),before)
         self.assertEqual(asyncio.run(server.improve_prompt(server.PromptDraft(prompt=' '))).status_code,400)
+
+    def test_clarification_contract_preserves_context_in_default_and_custom_chat(self):
+        history = [
+            {'role': 'user', 'content': 'Python says ModuleNotFoundError: No module named requests.'},
+            {'role': 'assistant', 'content': 'Which interpreter are you using?'},
+            {'role': 'user', 'content': 'Python 3.14 in my project environment.'}]
+        original = [dict(message) for message in history]
+        for custom in (False, True):
+            settings.save({'custom_prompt_enabled': custom, 'custom_prompt': 'Be a helpful teacher.'})
+            for stream in (False, True):
+                with self.subTest(custom=custom, stream=stream), \
+                     patch.object(engine, '_server', return_value=('http://model.test', 'test-model')), \
+                     patch.object(engine, 'model_context', return_value=''):
+                    _, _, payload = engine._prepare(history, stream, 'Working context: the environment is on Windows.')
+                sent = payload['messages']
+                self.assertEqual(sent[0]['content'].count(prompts.CLARIFICATION_POLICY), 1)
+                self.assertEqual(sent[1:-1], history[:-1])
+                self.assertIn('Working context: the environment is on Windows.', sent[-1]['content'])
+                self.assertTrue(sent[-1]['content'].endswith(history[-1]['content']))
+                self.assertEqual(payload['stream'], stream)
+        self.assertEqual(history, original)
+
+    def test_writing_request_carries_prose_boundary_with_custom_prompt(self):
+        settings.save({'custom_prompt_enabled': True, 'custom_prompt': 'Be a helpful writer.'})
+        request = [{'role': 'user', 'content': 'Give me a generic polite email template declining an invitation.'}]
+        with patch.object(engine, '_server', return_value=('http://model.test', 'test-model')), \
+             patch.object(engine, 'model_context', return_value=''):
+            _, _, payload = engine._prepare(request, True)
+        self.assertIn('Emails, letters, templates and explanations are ordinary text.', payload['messages'][0]['content'])
+        self.assertIn('Fulfil writing requests as prose', payload['messages'][-1]['content'])
+        self.assertTrue(payload['messages'][-1]['content'].endswith(request[-1]['content']))
+        self.assertEqual(request[0]['content'], 'Give me a generic polite email template declining an invitation.')
+
+    def test_one_off_job_does_not_inherit_chat_clarification_instructions(self):
+        import asyncio
+        import json
+        from contextlib import nullcontext
+        import httpx
+        sent = []
+        messages = [{'role': 'system', 'content': 'Rewrite the supplied text only.'},
+                    {'role': 'user', 'content': 'Thanks for the invitation.'}]
+        def respond(request):
+            sent.append(json.loads(request.content))
+            return httpx.Response(200, json={'choices': [{'message': {'content': 'Thank you for inviting me.'}}]})
+        with patch.object(engine, '_server', return_value=('http://model.test', '')), \
+             patch.object(engine.builtin_engine, 'using_model', return_value=nullcontext()), \
+             patch.object(engine, '_client', side_effect=lambda: httpx.AsyncClient(transport=httpx.MockTransport(respond))):
+            result = asyncio.run(engine.complete(messages, max_tokens=60, temperature=0))
+        self.assertEqual(result, 'Thank you for inviting me.')
+        self.assertEqual(len(sent), 1)
+        self.assertEqual(sent[0]['messages'], messages)
+        self.assertNotIn(prompts.CLARIFICATION_POLICY, str(sent))
 
     def test_tool_details_are_attached_only_to_relevant_user_turns(self):
         greeting=[{'role':'user','content':'Hello how are you?'}]

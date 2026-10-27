@@ -79,3 +79,50 @@ class NaturalToolRouteTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('Tokyo', answer)
         self.assertIn('9:05 AM', answer)
         clock.now.assert_called_once_with(timezone.utc)
+
+    async def test_missing_email_asks_without_model_and_followup_keeps_intent(self):
+        with patch.object(engine, 'chat_stream', side_effect=AssertionError('Missing email must not reach AI')), \
+             patch.object(engine, 'complete', side_effect=AssertionError('No classification call')):
+            events = await self.ask('Reply to this email')
+        answer = ''.join(e.get('text', '') for e in events if e['type'] == 'token')
+        self.assertEqual(answer, 'Could you paste the email or message you want me to reply to?')
+        chat_id = next(e['id'] for e in events if e['type'] == 'chat')
+        saved = chats.get(chat_id)['messages']
+        self.assertEqual([m['kind'] for m in saved], ['chat', 'chat'])
+        self.assertEqual(saved[-1]['content'], answer)
+        self.assertIsNone(saved[-1]['stats'])
+        async def reply(history, *args, **kwargs):
+            self.assertEqual(history[0]['content'], 'Reply to this email')
+            self.assertEqual(history[1]['content'], answer)
+            self.assertIn('Can you attend Friday?', history[-1]['content'])
+            yield 'Thanks for inviting me. I can attend Friday.'
+        with patch.object(engine, 'chat_stream', reply):
+            followup_events = await self.ask('Hi, Can you attend Friday?', chat_id)
+        self.assertIn('I can attend Friday', str(followup_events))
+
+    async def test_attachment_or_working_notes_preserves_normal_inference(self):
+        async def reply(*args, **kwargs):
+            yield 'Answer from supplied context.'
+        for source in ('attachment', 'working_notes'):
+            with self.subTest(source=source), \
+                 patch.object(self.server.attachments, 'listing', return_value=[{'id': 1}] if source == 'attachment' else []), \
+                 patch('app.working_notes.prompt_block', return_value='Reviewed source' if source == 'working_notes' else ''), \
+                 patch.object(engine, 'chat_stream', reply):
+                events = await self.ask('Reply to this email')
+            self.assertIn('Answer from supplied context.', str(events))
+
+    async def test_bare_request_with_guided_mode_still_asks_without_preparatory_calls(self):
+        with patch.object(engine, 'complete', side_effect=AssertionError('No preparatory calls')), \
+             patch.object(engine, 'chat_stream', side_effect=AssertionError('No model needed')):
+            response = await self.client.post('/api/chat/stream', json={'content': 'Write a letter', 'think_through': True})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('What should the letter say?', response.text)
+
+    async def test_photo_context_does_not_trigger_bare_error_question(self):
+        chat_id = chats.create('Photo context')
+        chats.add_message(chat_id, 'user', 'An attached screenshot', kind='photo')
+        async def reply(*args, **kwargs):
+            yield 'Use screenshot evidence through the normal workflow.'
+        with patch.object(engine, 'chat_stream', reply):
+            events = await self.ask('Help me fix this error', chat_id)
+        self.assertIn('normal workflow', str(events))

@@ -1419,3 +1419,10 @@ copyright and licence notice stay with it. Python packages, native engines, AI m
 **⭐ Star this repo if it's useful to you**
 
 </div>
+
+
+### Clarify before guessing
+
+This is an unreleased addition after 1.2.0. When an essential detail is missing, chat is instructed to ask one short question before guessing. It uses recent conversation and supplied context first. Clear requests and generic examples should get a direct answer; optional preferences can use a stated assumption or placeholders. Reply normally to continue. This uses the existing chat request, with no separate model call. Live CPU testing confirmed useful clarification and direct-answer behavior, but small models can still bundle multiple details into one question or miss a needed clarification. See [implementation notes](planning/clarify-before-guessing.md).
+
+For a bare request in an otherwise empty chat?such as "Reply to this email", "Help me fix this error" or "Write a letter"?BEYOND asks a specific missing-input question itself, without calling the AI. Paste the missing content as your next message. Existing conversation, attached documents, photos, active working notes and file context keep the normal path; broader clarification decisions still depend on the model. Start a new chat to test the bare-request behavior.
