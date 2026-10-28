@@ -5,6 +5,8 @@ from app import break_down, engine
 class BreakdownTests(unittest.IsolatedAsyncioTestCase):
     def test_plan_bounds(self):
         self.assertEqual(break_down.parse_steps('["Outline", "Draft"]'), ['Outline', 'Draft'])
+        self.assertEqual(break_down.parse_steps('Here is the plan: ["Outline", "Draft"]'), ['Outline','Draft'])
+        self.assertEqual(break_down.parse_steps('1. Outline\n2. Draft'), ['Outline','Draft'])
         for value in ['[]', '{}', '["a","b","c","d"]', '[""]', 'not json']:
             with self.assertRaises(engine.EngineError):
                 break_down.parse_steps(value)

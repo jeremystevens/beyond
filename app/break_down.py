@@ -1,6 +1,7 @@
 """Explicit, bounded planning and drafting for larger requests; no autonomous actions."""
 import asyncio
 import json
+import re
 import time
 from app import engine, settings
 from app.think_through import Progress, prepare
@@ -14,8 +15,20 @@ def parse_steps(text):
         text = text.split('\n', 1)[-1].rsplit('```', 1)[0]
     try:
         steps = json.loads(text)
-    except (ValueError, TypeError) as exc:
-        raise engine.EngineError('The model could not produce a usable step plan. Retry or use ordinary chat.') from exc
+    except (ValueError, TypeError):
+        # Small models often wrap JSON in prose or return a numbered list instead.
+        steps = None
+        for match in re.finditer(r'\[', text):
+            try:
+                candidate, _ = json.JSONDecoder().raw_decode(text[match.start():])
+                if isinstance(candidate, list):
+                    steps = candidate
+                    break
+            except ValueError:
+                continue
+        if steps is None:
+            steps = [m.group(1).strip() for line in text.splitlines()
+                     if (m := re.match(r'^\s*(?:[-*•]|\d+[.)])\s+(.+)$', line))]
     if (not isinstance(steps, list) or not 1 <= len(steps) <= 3
             or any(not isinstance(s, str) or not s.strip() or len(s) > 240 for s in steps)):
         raise engine.EngineError('The step plan must contain one to three short tasks. Retry or use ordinary chat.')
@@ -47,8 +60,16 @@ async def stream(history, background='', max_tokens=None, temperature=None):
             raise engine.EngineError('A drafting step returned no text. Retry or use ordinary chat.')
         return result.strip()
     yield Progress('Breaking down request: planning up to three steps…')
-    steps = parse_steps(await complete('Return only a JSON array of one to three short, distinct drafting tasks. '
-                                       'These must collectively cover the request. Do not add outside actions.', source, 220))
+    plan = await complete('Return only a JSON array of one to three short, distinct drafting tasks. '
+                                       'These must collectively cover the request. Do not add outside actions.', source, 220)
+    try:
+        steps = parse_steps(plan)
+    except engine.EngineError:
+        yield Progress('Using a standard drafting plan because the model plan was not usable…')
+        steps = [
+            'Identify the requested deliverables, constraints and necessary assumptions.',
+            'Draft the requested deliverables with concrete details consistent with those constraints.',
+        ]
     drafts = []
     for index, step in enumerate(steps):
         yield Progress(f'Step {index + 1} of {len(steps)}: {step}')
