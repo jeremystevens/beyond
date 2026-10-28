@@ -25,13 +25,13 @@ things up, keeps you organised, reads photos, listens, talks back and plays game
 ![Privacy](https://img.shields.io/badge/Privacy-Local%20storage-d96326?style=for-the-badge&logo=shield&logoColor=white&labelColor=0d1117)
 ![AI](https://img.shields.io/badge/AI-OpenAI--compatible%20%C2%B7%20llama.cpp-d96326?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117)
 ![Runs on](https://img.shields.io/badge/Runs%20on-CPU%20only-d96326?style=for-the-badge&logo=intel&logoColor=white&labelColor=0d1117)
-![Roadmap](https://img.shields.io/badge/Release-1.2.0%20%C2%B7%20Phase%2053-d96326?style=for-the-badge&labelColor=0d1117)
-![Status](https://img.shields.io/badge/Status-1.2.0%20released-d96326?style=for-the-badge&labelColor=0d1117)
+![Roadmap](https://img.shields.io/badge/Release-1.3.0%20%C2%B7%20Phase%2054-d96326?style=for-the-badge&labelColor=0d1117)
+![Status](https://img.shields.io/badge/Status-1.3.0%20released-d96326?style=for-the-badge&labelColor=0d1117)
 
 </div>
 
-**BEYOND 1.2.0 is available:** [Release notes and downloads](https://github.com/jeremystevens/beyond/releases/tag/v1.2.0).
-Download [BEYOND-1.2.0-source.zip](https://github.com/jeremystevens/beyond/releases/download/v1.2.0/BEYOND-1.2.0-source.zip),
+**BEYOND 1.3.0 is available:** [Release notes and downloads](https://github.com/jeremystevens/beyond/releases/tag/v1.3.0).
+Download [BEYOND-1.3.0-source.zip](https://github.com/jeremystevens/beyond/releases/download/v1.3.0/BEYOND-1.3.0-source.zip),
 extract it, and run **Setup.cmd**. Python libraries, engines and your chosen models download separately during setup.
 
 Install this assistant from this GitHub repository. The PyPI package named beyond is unrelated.
@@ -262,7 +262,7 @@ flowchart LR
 
 ### Automatic text-only setup
 
-Download the [1.2.0 source ZIP](https://github.com/jeremystevens/beyond/releases/download/v1.2.0/BEYOND-1.2.0-source.zip), extract it fully, then double-click **Setup.cmd**. Close an already-running BEYOND before continuing.
+Download the [1.3.0 source ZIP](https://github.com/jeremystevens/beyond/releases/download/v1.3.0/BEYOND-1.3.0-source.zip), extract it fully, then double-click **Setup.cmd**. Close an already-running BEYOND before continuing.
 Setup finds Python 3.14 or offers a verified per-user installation, prepares its isolated environment, installs
 the text-only libraries, checks the app starts, and downloads a pinned CPU build of llama.cpp.
 
@@ -487,7 +487,7 @@ All 54 registered commands are included in a compact inventory in the chat promp
 
 ### Python code syntax checks
 
-This is an unreleased addition after 1.2.0.
+Available in BEYOND 1.3.0.
 
 Completed AI chat replies automatically check closed code fences labelled `python`, `python3` or `py` with the host's Python interpreter. A quiet line under the code toolbar shows **No Python syntax errors found**, a syntax error with a code-block line number, or **Not checked** with a reason. The result tooltip explains that the code was not run and that logic and dependencies were not checked. Source is compiled for syntax in a separate bounded worker; it is never executed, imported, installed or silently rewritten. Copy and Save still contain only the original code. Results persist with the reply and its conversation branches; older and stopped/failed replies have no new check claim.
 
@@ -511,7 +511,7 @@ A turn is bounded to 30 seconds; noisy environments, short words or long pauses 
 
 ### Think it through and the + menu
 
-This is an unreleased addition after 1.2.0. The **+** button beside the message box opens **Attach photo or document**, **Voice input**, **Writing helper**, and the **Think it through** checkbox. These tools use the same optional features and permissions as before. Active recording has a visible Stop recording control even when the popup is closed.
+Available in BEYOND 1.3.0. The **+** button beside the message box opens **Attach photo or document**, **Voice input**, **Writing helper**, and the **Think it through** checkbox. These tools use the same optional features and permissions as before. Active recording has a visible Stop recording control even when the popup is closed.
 
 Turn on **Think it through** before asking a harder question. BEYOND drafts, critiques the draft for specific gaps, and revises with your current model, then streams the final answer. It takes longer; ordinary chat keeps its existing path while the mode is off. **Think it through: On** remains visible outside the menu; click it to turn the mode off. The preference is saved in this browser at this BEYOND address and stays on across chats until disabled.
 
@@ -521,7 +521,7 @@ Progress appears during preparation; intermediate text is not saved. Stop cancel
 
 ### Conversation working notes
 
-This is an unreleased addition after 1.2.0. Open a saved chat and choose **Working notes**, beside **Recap**. Keep a short goal, confirmed facts, decisions and open questions there. Recap helps you catch up; active working notes are included as context for later AI replies.
+Available in BEYOND 1.3.0. Open a saved chat and choose **Working notes**, beside **Recap**. Keep a short goal, confirmed facts, decisions and open questions there. Recap helps you catch up; active working notes are included as context for later AI replies.
 
 Write notes yourself, or press **Draft from chat**, review and edit the result, then **Save and use**. Drafts are never used automatically. Saved active notes support later replies in that chat only; **Pause** keeps the text without using it, and **Clear notes** removes it. They are separate from global memories and do not add messages to the chat.
 
@@ -531,7 +531,7 @@ Editing or deleting covered history clears the notes to prevent stale facts. Del
 
 ### Check an answer against evidence
 
-This is an unreleased addition after 1.2.0. Under a saved AI reply, open **Adjust answer** and choose **Check answer**. The original answer stays unchanged.
+Available in BEYOND 1.3.0. Under a saved AI reply, open **Adjust answer** and choose **Check answer**. The original answer stays unchanged.
 
 - **Calculator:** enter arithmetic or an equation such as `15% of 80 = 12`. Simple equations in the reply are suggested when recognized. This uses the safe calculator, without AI inference or network access; it checks that expression only.
 - **Attached documents:** select one specific claim and compare it with passages from documents attached to this chat. File/page evidence appears alongside a separate AI assessment. Missing evidence does not prove a claim false.
@@ -541,7 +541,7 @@ Checks are optional and add no requests to normal replies. One model assessment 
 
 ### Quick host and model status
 
-These commands are available on the development branch after 1.2.0; they are not in the published 1.2.0 ZIP.
+These commands are available in BEYOND 1.3.0.
 
 - **/status** checks the computer running BEYOND, even when you chat from a phone. It reports CPU usage, RAM usage/available memory, free space on BEYOND's installation drive, system uptime, and AI connection/model state. Saved results are snapshots, not live widgets.
 - NVIDIA GPU load, temperature and VRAM appear when `nvidia-smi` is already installed. Other or unavailable GPU metrics are labelled unavailable; nothing is installed and GPU acceleration is not enabled. The optional query has a two-second timeout.
@@ -1054,7 +1054,7 @@ on that entry to try the feature. **Clear test errors** removes only simulated e
 
 ### Clear recent error history
 
-In **Settings → Status and health → Recent errors**, **Clear error history** removes all retained summaries (including test entries) after confirmation. It is available on the host PC or to a signed-in administrator. This cannot be undone. New errors are still recorded; chats, settings, detailed log files and already exported reports are kept. **Clear test errors** continues to remove simulated entries only. This is an unreleased addition after 1.2.0.
+In **Settings → Status and health → Recent errors**, **Clear error history** removes all retained summaries (including test entries) after confirmation. It is available on the host PC or to a signed-in administrator. This cannot be undone. New errors are still recorded; chats, settings, detailed log files and already exported reports are kept. **Clear test errors** continues to remove simulated entries only. Available in BEYOND 1.3.0.
 Diagnosis results stay on the open page and are not saved as chat messages.
 
 
@@ -1345,7 +1345,7 @@ blocking Python: allow it on private networks when asked.
 and the Phase 42 validation exceptions are listed below. The full history and evidence live in
 [`planning/phases.md`](planning/phases.md).
 
-**Completed after 1.2.0 (unreleased):** [Natural tool request fixes and full tool audit](planning/natural-tool-requests.md), [Python syntax checks](planning/python-code-checks.md), [Think it through and the + tools menu](planning/think-it-through.md), host-status chat command, direct model identity questions, runtime model context, [conversation working notes](planning/conversation-working-notes.md), [answer checking](planning/answer-checking.md) and [clearing recent error history](planning/clear-error-history.md). See [implementation notes](planning/chat-host-status.md). Future capability ideas remain [brainstorming](planning/small-model-capability-ideas.md), not an approved roadmap.
+**Included in 1.3.0:** [Natural tool request fixes and full tool audit](planning/natural-tool-requests.md), [Python syntax checks](planning/python-code-checks.md), [Think it through and the + tools menu](planning/think-it-through.md), host-status chat command, direct model identity questions, runtime model context, [conversation working notes](planning/conversation-working-notes.md), [answer checking](planning/answer-checking.md) and [clearing recent error history](planning/clear-error-history.md). See [implementation notes](planning/chat-host-status.md). Future capability ideas remain [brainstorming](planning/small-model-capability-ideas.md), not an approved roadmap.
 
 <details open>
 <summary><b>Delivered through Phase 53 · BEYOND 1.2.0</b> (Phase 37 deferred; validation exceptions below)</summary>
@@ -1439,6 +1439,6 @@ copyright and licence notice stay with it. Python packages, native engines, AI m
 
 ### Clarify before guessing
 
-This is an unreleased addition after 1.2.0. When an essential detail is missing, chat is instructed to ask one short question before guessing. It uses recent conversation and supplied context first. Clear requests and generic examples should get a direct answer; optional preferences can use a stated assumption or placeholders. Reply normally to continue. This uses the existing chat request, with no separate model call. Live CPU testing confirmed useful clarification and direct-answer behavior, but small models can still bundle multiple details into one question or miss a needed clarification. See [implementation notes](planning/clarify-before-guessing.md).
+Available in BEYOND 1.3.0. When an essential detail is missing, chat is instructed to ask one short question before guessing. It uses recent conversation and supplied context first. Clear requests and generic examples should get a direct answer; optional preferences can use a stated assumption or placeholders. Reply normally to continue. This uses the existing chat request, with no separate model call. Live CPU testing confirmed useful clarification and direct-answer behavior, but small models can still bundle multiple details into one question or miss a needed clarification. See [implementation notes](planning/clarify-before-guessing.md).
 
 For a bare request in an otherwise empty chat?such as "Reply to this email", "Help me fix this error" or "Write a letter"?BEYOND asks a specific missing-input question itself, without calling the AI. Paste the missing content as your next message. Existing conversation, attached documents, photos, active working notes and file context keep the normal path; broader clarification decisions still depend on the model. Start a new chat to test the bare-request behavior.

@@ -5,7 +5,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-See [host-status notes](planning/chat-host-status.md) and [error-history notes](planning/clear-error-history.md). These additions are not yet in a published release.
+## [1.3.0] - 2026-10-27
+
+See [release notes](docs/RELEASE_NOTES_1.3.0.md).
+
+See [host-status notes](planning/chat-host-status.md) and [error-history notes](planning/clear-error-history.md). These additions are included in 1.3.0.
 
 ### Added
 - First-version voice conversation: call-style orange circle and audio-reactive waveform, confirmed spoken hang-up, and supported-browser screen wake lock. Transcription and AI replies may be imperfect; use End if a hang-up request is misheard. Further recognition and conversation improvements are planned.
@@ -1007,7 +1011,8 @@ The first published release: everything from Phase 1 to Phase 38, plus the file 
 - `/api/health` reports that BEYOND is running, its version and phase.
 - Planning documents moved into `planning/`.
 
-[Unreleased]: https://github.com/jeremystevens/beyond/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/jeremystevens/beyond/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/jeremystevens/beyond/releases/tag/v1.3.0
 [1.2.0]: https://github.com/jeremystevens/beyond/releases/tag/v1.2.0
 [1.1.0]: https://github.com/jeremystevens/beyond/releases/tag/v1.1.0
 [1.0.0]: https://github.com/jeremystevens/beyond/releases/tag/v1.0.0
