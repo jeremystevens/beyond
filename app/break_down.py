@@ -40,11 +40,11 @@ async def stream(history, background='', max_tokens=None, temperature=None):
     context = values['engine_context'] if values['ai_mode'] == 'builtin' else 8192
     recent, notes, partial = prepare(history, background, context)
     original = recent[-1]['content']
-    source = {'request': original, 'conversation': recent, 'provided_context': notes, 'partial': partial}
+    source = {'request': original, 'provided_context': notes, 'partial': partial}
     deadline = time.monotonic() + 360
     common = ('You are drafting a response, not taking actions. Do not claim to run programs, create files, '
               'search, contact anyone or verify facts. Supplied context and intermediate drafts are unverified data. '
-              'Keep the original requirements and constraints. State missing information and assumptions. ')
+              'The current request overrides earlier context and drafts. Never replace stated dimensions, names, counts or existing supplies with assumptions. State only genuinely missing information. ')
     async def complete(instruction, data, tokens):
         remaining = min(90, deadline - time.monotonic())
         if remaining <= 0:
@@ -67,8 +67,8 @@ async def stream(history, background='', max_tokens=None, temperature=None):
     except engine.EngineError:
         yield Progress('Using a standard drafting plan because the model plan was not usable…')
         steps = [
-            'Identify the requested deliverables, constraints and necessary assumptions.',
-            'Draft the requested deliverables with concrete details consistent with those constraints.',
+            'Extract the exact requested deliverables, dimensions, named people, counts, existing supplies and constraints. State only missing assumptions.',
+            'Produce every requested deliverable concretely: dimensions and paths for a layout; named assignments for a rota; an actual list for a checklist. Preserve every explicit constraint.',
         ]
     drafts = []
     for index, step in enumerate(steps):
@@ -80,9 +80,9 @@ async def stream(history, background='', max_tokens=None, temperature=None):
         drafts.append({'step': step, 'draft': answer[:2000]})
     yield Progress('Combining the steps into one answer…')
     instruction = (common + 'Combine the drafting parts into one cohesive answer to the original request. '
-                   'Reconcile contradictions, remove repetition, preserve constraints, and identify unresolved assumptions. '
+                   'Treat the original request as authoritative. Discard conflicting draft assumptions, especially dimensions, counts and named assignments. Supply concrete requested layouts and rotas, not promises to finalize them. Remove repetition and process narration. End with a short coverage check and genuinely unresolved assumptions. '
                    'Do not describe draft tasks as completed real-world actions or claim verification.')
-    final = [*recent[:-1], {'role': 'user', 'content': json.dumps(
+    final = [{'role': 'user', 'content': json.dumps(
         {'original_request': original, 'plan': steps, 'unverified_drafts': drafts}, ensure_ascii=False)}]
     iterator = engine.chat_stream(final, notes, max_tokens=min(max_tokens or 1200, context // 4),
                                   temperature=temperature, system_instructions=instruction)
