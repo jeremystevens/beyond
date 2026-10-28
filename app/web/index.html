@@ -17,8 +17,8 @@
   <link rel="stylesheet" href="/static/chat-recap.css?v=1">
   <script src="/static/chat-recap.js?v=1"></script>
   <script src="/static/composer-tools.js?v=2"></script>
-  <script src="/static/voice-conversation.js?v=1"></script>
-  <link rel="stylesheet" href="/static/voice-conversation.css?v=1">
+  <script src="/static/voice-conversation.js?v=9"></script>
+  <link rel="stylesheet" href="/static/voice-conversation.css?v=3">
   <script src="/static/working-notes.js?v=1"></script>
   <link rel="stylesheet" href="/static/working-notes.css?v=1">
   <script src="/static/answer-checks.js?v=1"></script>
@@ -334,7 +334,15 @@
           <button type="button" class="ghost" id="remove-photo" aria-label="Remove attached photo">Remove</button>
         </div>
         <input id="photo-file" type="file" accept="image/png,image/jpeg,image/webp,.pdf,.docx,.txt,.md,.markdown,.csv,.tsv,.json,.html,.htm,.xml,.log,.ini,.cfg,.yaml,.yml,.toml,.py,.js,.ts,.css,.java,.c,.h,.cpp,.cs,.go,.rs,.rb,.php,.sh,.ps1,.bat,.sql,.rst,.tex" hidden>
-        <div id="voice-session" hidden aria-live="polite"><span id="voice-session-status" role="status">Listening…</span><button type="button" class="ghost" id="voice-session-pause">Pause</button><button type="button" class="ghost" id="voice-session-end">End</button></div>
+        <section id="voice-session" hidden aria-label="Voice conversation">
+          <div class="voice-call-content">
+            <h2>Voice conversation</h2>
+            <div class="voice-orb" aria-hidden="true"></div>
+            <div id="voice-waveform" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <span id="voice-session-status" role="status" aria-live="polite">Listening…</span>
+            <div class="voice-call-actions"><button type="button" class="ghost" id="voice-session-pause">Pause</button><button type="button" class="ghost" id="voice-session-end">End</button></div>
+          </div>
+        </section>
         <div class="composer">
           <button type="button" class="ghost" id="composer-more" aria-label="More chat tools" aria-expanded="false" aria-controls="composer-tools" title="More chat tools"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></button>
           <div id="composer-tools" role="group" aria-label="Chat tools" hidden>
@@ -2352,10 +2360,19 @@ Open questions:"></textarea><p id="notes-count">0 / 1,600</p>
       stopOwned: () => { if (current?.voiceTurn) stop(); },
       stopOtherAudio: () => list.querySelectorAll('audio').forEach(player => player.pause()),
       onActive: active => { if (active) list.querySelectorAll('audio').forEach(player => player.pause()); },
-      send: async (text, own) => {
+      send: async (text, own, recognizedText = text) => {
         if (current || scanning || pendingPhoto) throw new Error('Chat is busy. Resume after the current task finishes.');
-        const question = bubble('user', text), turn = {own, id:null, text:''};
-        const ok = await streamAnswer('/api/chat/stream', {chat_id:chatId,content:text,think_through:!!composerTools?.enabled()}, question, () => {}, null, turn);
+        const question = bubble('user', recognizedText), turn = {own, id:null, text:''};
+        const controls = {
+          '/speak Would you like me to end our conversation?': 'confirm_end',
+          '/speak Would you like me to end our conversation? Please say yes or no.': 'repeat_end',
+          '/speak Goodbye. Thanks for talking with me.': 'goodbye',
+          '/speak Okay, we can keep talking.': 'continue'
+        };
+        const control = text !== recognizedText ? controls[text] : null;
+        const payload = control ? {chat_id:chatId, content:recognizedText, voice_control:control}
+          : {chat_id:chatId,content:text,think_through:!!composerTools?.enabled()};
+        const ok = await streamAnswer('/api/chat/stream', payload, question, () => {}, null, turn);
         return ok ? turn : null;
       }
     });

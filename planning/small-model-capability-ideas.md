@@ -17,7 +17,7 @@ Help a small local model, such as google_gemma-3-4b-it-Q4_K_M, deliver a more ca
 | Conversation working notes | **Implemented (unreleased):** [Working notes](conversation-working-notes.md). Keep compact notes of the current goal, confirmed facts, decisions and unresolved questions. | Improve continuity in long chats. Distinct from the existing on-demand recap: these notes support the model's active context. Define update timing, correction and deletion behavior before implementation. |
 | Break down larger requests | Split a substantial request into manageable steps, complete them and combine the results into a consistent answer. | Improve completeness without overwhelming a small context window. Bound steps and provide progress/cancellation. |
 | Code checking before delivery | **Implemented (unreleased):** [Python syntax checks](python-code-checks.md) on completed replies, with per-block results before Copy/Save unlock. | Python syntax only; no execution, dependency/logic verification or automatic repair. Further languages and repair remain future work. |
-| Voice conversation mode and optional transcript | **Implemented for testing (unreleased):** [Voice conversation](voice-conversation.md). Start a hands-free spoken conversation without pressing microphone/playback for each exchange. Whisper transcribes the user; Kokoro or Piper speaks BEYOND’s replies. Optionally keep both sides as a transcript and export it after the session. | Real microphone and playback testing remains before merge. Reuse actual reply text for BEYOND’s side rather than transcribing its audio. |
+| Voice conversation mode and optional transcript | **Implemented for testing (unreleased):** [Voice conversation](voice-conversation.md). Start a hands-free spoken conversation without pressing microphone/playback for each exchange. Whisper transcribes the user; Kokoro or Piper speaks BEYOND’s replies. Optionally keep both sides as a transcript and export it after the session. | Desktop and mobile microphone, playback, waveform, transcript and hang-up testing completed; first-version recognition and reply limitations accepted. Reuse actual reply text for BEYOND’s side rather than transcribing its audio. |
 
 ## Suggested order for discussion
 
@@ -42,11 +42,11 @@ Answer checking was selected first and is implemented. Conversation working note
 
 ## Voice conversation and transcription
 
-Selected for implementation; real microphone testing remains before merge.
+Implemented and accepted after desktop and mobile testing; pending merge.
 
 - A casual, hands-free conversation with clear start, pause and end controls.
 - Whisper transcribes the user’s speech; Kokoro or Piper handles spoken replies.
 - Optional session transcription records both speakers: transcribed user speech and BEYOND’s actual reply text.
 - Offer saving/exporting the complete transcript to a file when the conversation ends.
 - Plan turn detection, prevention of the bot hearing its own playback, microphone permissions and CPU/memory performance before implementation.
-- Implemented for testing. Voice-model availability, latency and microphone behavior still need real-device verification.
+- Implemented for testing. Real-device testing completed; transcription and conversational quality improvements are deferred.

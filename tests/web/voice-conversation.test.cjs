@@ -8,7 +8,7 @@ function fixture(options={}) {
     'voice-conversation-open','voice-setup-error','voice-save-transcript','voice-setup-close','voice-setup-start',
     'voice-session-end','voice-export-summary','voice-export-save','voice-export-close'];
   const elements = Object.fromEntries(ids.map(id=>[id, {
-    id, hidden:false, checked:false, open:false, textContent:'', events:{},
+    id, dataset:{}, hidden:false, checked:false, open:false, textContent:'', events:{},
     showModal(){this.open=true;}, close(){this.open=false;this.events.close?.();},
     addEventListener(name,fn){this.events[name]=fn;}, scrollIntoView(){},
   }]));
@@ -36,7 +36,7 @@ function fixture(options={}) {
   }
   const document={hidden:false,events:{},getElementById:id=>elements[id],addEventListener(name,fn){this.events[name]=fn;},
     body:{append(){}},createElement(){return {click(){},remove(){}};}};
-  const navigator={mediaDevices:{async getUserMedia(){
+  const navigator={wakeLock:options.wakeLock ? {async request(){state.wakeRequests=(state.wakeRequests||0)+1;return {addEventListener(){},async release(){state.wakeReleases=(state.wakeReleases||0)+1;}};}} : undefined,mediaDevices:{async getUserMedia(){
     if(options.deny)throw Object.assign(new Error('denied'),{name:'NotAllowedError'});
     const track={stopped:false,stop(){this.stopped=true;}};state.tracks.push(track);
     if(options.holdMic)return new Promise(resolve=>{state.releaseMic=()=>resolve({getTracks:()=>[track]});});
@@ -50,7 +50,7 @@ function fixture(options={}) {
     if(url==='/api/transcribe' && options.holdTranscription) return new Promise((resolve,reject)=>{ state.releaseTranscription=()=>resolve({ok:true,json:async()=>({text:'Too late'})}); init.signal.addEventListener('abort',()=>{state.transcriptionAborted=true;reject(Object.assign(new Error('aborted'),{name:'AbortError'}));},{once:true}); });
     if(url==='/api/transcribe')return options.transcriptionError
       ? {ok:false,json:async()=>({error:'Voice input is not installed.'})}
-      : {ok:true,json:async()=>({text:'Hello there.'})};
+      : {ok:true,json:async()=>({text:options.words?.shift() || 'Hello there.'})};
     if(url==='/api/speech')return {ok:true,json:async()=>({state:'ready',url:'/sample.wav'})};
     throw new Error('Unexpected request '+url);
   };
@@ -120,3 +120,53 @@ test('an old audio completion cannot start listening in a later session',async()
   const old=f.state.players[0];f.voice.end();await f.start();const before=f.state.tracks.length;
   old.ended();await f.flush();assert.equal(f.state.tracks.length,before);f.voice.end();
 });
+
+test('spoken end asks first and closes only after confirmed goodbye playback',async()=>{
+  const f=fixture({words:['End the call','yes']});await f.start(true);
+  await f.tick(4,true);await f.tick(13,false);await f.flush();
+  assert.match(f.state.sent[0],/Would you like me to end/);assert.equal(f.voice.isActive(),true);
+  f.state.players[0].ended();await f.flush();
+  await f.tick(4,true);await f.tick(13,false);await f.flush();
+  assert.match(f.state.sent[1],/Goodbye/);assert.equal(f.voice.isActive(),true);
+  f.state.players[1].ended();await f.flush();
+  assert.equal(f.voice.isActive(),false);assert.equal(f.elements['voice-conversation-export'].open,true);
+});
+test('declining spoken end leaves the conversation active',async()=>{
+  const f=fixture({words:['End the call','no']});await f.start();
+  await f.tick(4,true);await f.tick(13,false);await f.flush();
+  f.state.players[0].ended();await f.flush();
+  await f.tick(4,true);await f.tick(13,false);await f.flush();
+  assert.match(f.state.sent[1],/keep talking/);
+  f.state.players[1].ended();await f.flush();assert.equal(f.voice.isActive(),true);f.voice.end();
+});
+
+for (const phrase of ["Hang up", "Stop voice chat", "Let's finish our conversation", "I'd like to end the conversation now.", "I’d like to end the conversation now.", 'It is time to end the conversation. Goodbye.', "Goodbye, let's end the conversation now."]) {
+  test('natural end request needs confirmation: '+phrase,async()=>{
+    const f=fixture({words:[phrase,'yes']});await f.start();
+    await f.tick(4,true);await f.tick(13,false);await f.flush();
+    assert.match(f.state.sent[0],/Would you like me to end/);assert.equal(f.voice.isActive(),true);
+    f.state.players[0].ended();await f.flush();
+    await f.tick(4,true);await f.tick(13,false);await f.flush();
+    f.state.players[1].ended();await f.flush();assert.equal(f.voice.isActive(),false);
+  });
+}
+
+test('screen wake lock follows start, pause, resume and end',async()=>{
+  const f=fixture({wakeLock:true});await f.start();await f.flush();
+  assert.equal(f.state.wakeRequests,1);
+  f.voice.pause();await f.flush();assert.equal(f.state.wakeReleases,1);
+  await f.elements['voice-session-pause'].onclick();await f.flush();assert.equal(f.state.wakeRequests,2);
+  f.voice.end();await f.flush();assert.equal(f.state.wakeReleases,2);
+});
+
+for (const answer of ['Yes, please hang up.', 'Yes I do.', 'Yeah go ahead.', 'Okay, end the call.']) {
+ test('natural confirmation: '+answer,async()=>{
+  const f=fixture({words:['Hang up please hang up',answer]});await f.start();
+  await f.tick(4,true);await f.tick(13,false);await f.flush();
+  assert.match(f.state.sent[0],/Would you like me to end/);
+  f.state.players[0].ended();await f.flush();
+  await f.tick(4,true);await f.tick(13,false);await f.flush();
+  assert.match(f.state.sent[1],/Goodbye/);
+  f.state.players[1].ended();await f.flush();assert.equal(f.voice.isActive(),false);
+ });
+}

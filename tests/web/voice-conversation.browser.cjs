@@ -83,7 +83,7 @@ const web=path.resolve(__dirname,'../../app/web');
   // Changing chats ends an active session, releases the microphone, and does not offer a disabled transcript.
   await page.locator('#composer-more').click();await page.locator('#voice-conversation-open').click();
   await page.locator('#voice-setup-start').click();await page.getByText('Listening…',{exact:true}).waitFor();
-  await page.locator('#menu').click();await page.locator('#newchat').click();
+  await page.evaluate(() => document.querySelector('#newchat').click());
   assert.equal(await page.locator('#voice-session').isVisible(),false);
   assert.equal(await page.locator('#voice-conversation-export').isVisible(),false);
   assert.equal(await page.evaluate(()=>window.fakeVoice.tracks.every(t=>t.stopped)),true);
