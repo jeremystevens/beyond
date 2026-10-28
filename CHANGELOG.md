@@ -5,6 +5,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- Add /steps for bounded multi-part drafting, progress updates and a combined final answer; no extra processing for ordinary chat.
+
 See [host-status notes](planning/chat-host-status.md) and [error-history notes](planning/clear-error-history.md). These additions are not yet in a published release.
 
 ### Added

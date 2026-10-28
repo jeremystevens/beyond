@@ -253,6 +253,7 @@ class SendRequest(BaseModel):
     chat_id: int | None = None      # None = start a new chat
     content: str = Field(min_length=1, max_length=20000)
     think_through: bool = False
+    break_down: bool = False
     voice_control: str | None = Field(default=None, max_length=20)
 
 
@@ -771,6 +772,14 @@ async def chat_stream(body: SendRequest, request: Request):
         answer = replies[body.voice_control]
         return _command_reply(body.chat_id, content,
                               prepared=commands.Reply(answer, speech_text=answer))
+    steps_command = re.match(r'^/steps(?:@\w+)?(?:\s+([\s\S]*))?$', content, re.I)
+    if steps_command:
+        from app.break_down import HELP
+        question = (steps_command.group(1) or '').strip()
+        if not question or question.startswith('/'):
+            return _command_reply(body.chat_id, content, prepared=commands.Reply(HELP))
+        content = question
+        body = body.model_copy(update={'content': question, 'break_down': True, 'think_through': False})
     think_command=re.match(r'^/think(?:@\w+)?(?:\s+([\s\S]*))?$',content,re.I)
     if think_command:
         question=(think_command.group(1) or '').strip()
@@ -884,7 +893,7 @@ def _ai_answer(body, content, request, followup=None, read=''):
                    pickup=content if values['auto_facts'] else None,
                    prior_context=followup['state'] if followup else None,
                    suppress_auto=bool(followup) or bool(reading),
-                   status=f'📖 Reading {reading}…' if reading and not follow_up else '', retain_on_error=True, think_through=body.think_through)
+                   status=f'📖 Reading {reading}…' if reading and not follow_up else '', retain_on_error=True, think_through=body.think_through, break_down=body.break_down)
 
 
 def _background(question, sent_ids, values, extra='', chat_id=None):
@@ -898,10 +907,11 @@ def _background(question, sent_ids, values, extra='', chat_id=None):
 
 
 def _answer(chat_id, history, background, opening, undo, question=None, pickup=None, retry_of=None,
-            temperature=None, prior_context=None, suppress_auto=False, status='', retain_on_error=False, think_through=False):
+            temperature=None, prior_context=None, suppress_auto=False, status='', retain_on_error=False, think_through=False, break_down=False):
     """Stream an AI answer to the end of `history` and save it with 👍 👎 🔄 under it. If the page disconnects
     (Stop), what was written so far is saved, marked as stopped; if nothing was written at all, undo() runs.
     `question`: checked for an automatic lookup (weather, news, web) first, whose results go in the notes."""
+    from app import break_down as stepped
     from app import think_through as guided
     from app import clarifications, working_notes
     clarification = clarifications.question(history)
@@ -952,6 +962,7 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
             try:
                 thinking, stats = False, None
                 stream = (clarification_stream() if clarification else
+                          stepped.stream(history, notes, max_tokens=budget, temperature=temperature) if break_down else
                           guided.stream(history, notes, max_tokens=budget, temperature=temperature) if think_through else
                           engine.chat_stream(history, notes, max_tokens=budget, temperature=temperature))
                 async for piece in stream:
