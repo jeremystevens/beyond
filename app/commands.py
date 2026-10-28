@@ -1213,6 +1213,7 @@ def _model(args):
 
 
 COMMANDS = [
+    Command('steps', 'Break a larger request into parts and combine the drafts; takes longer', '/steps Plan a small project', lambda _: __import__('app.break_down', fromlist=['HELP']).HELP, group='Help'),
     Command('think', 'Plan, draft and review a question with the current model; takes longer', '/think Plan a small project', lambda _: THINK_HELP, group='Help'),
     Command('model', 'Show the currently loaded or selected AI model', '/model', _model, group='Help'),
     Command('status', 'Live host CPU, RAM, disk, uptime, GPU and AI status', '/status', _status, group='Help'),

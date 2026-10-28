@@ -269,6 +269,14 @@ Completed AI chat replies automatically check closed code fences labelled `pytho
 
 This first version checks syntax only—not dependencies, undefined names, missing logic, program behavior, security or compatibility with other Python versions. Other languages and unfenced code are not checked. Incomplete/empty blocks, blocks over 100,000 UTF-8 bytes, and work beyond eight blocks or 200,000 total bytes per reply are skipped. The worker has a three-second timeout; failure keeps the reply with a Not checked label. No model request or runtime dependency is added. Streaming stays visible while completion controls remain disabled until the reply is finalized.
 
+### Break down larger requests
+
+Use **/steps <request>** for a larger writing or planning task. BEYOND plans up to three parts, drafts each part, then combines them into one answer. Progress appears while it works; **Stop** cancels. This takes longer on CPU and uses at most five model calls with a six-minute total limit.
+
+This drafts content; it does not carry out real-world actions, execute programs, or independently verify facts. Check important details. Ordinary chat is unchanged. **Think it through** reviews a draft; **/steps** develops separate parts before combining them. Retry currently uses ordinary chat; send /steps again to repeat the full workflow.
+
+Example: `/steps Plan a small community garden: include a planting plan, a volunteer schedule, and a starter equipment checklist. State assumptions.`
+
 ### Voice conversation
 
 **First-version limitations:** Transcription can mishear words, and AI replies may be awkward, inaccurate, or misunderstand your intent. Background noise and microphone quality affect results. Spoken hang-up requests may not always be recognized; use **End** if necessary. Review important information and exported transcripts. Recognition and conversational quality are planned for improvement in later versions. CPU-only systems may pause noticeably between listening, generating a reply, and speaking.
