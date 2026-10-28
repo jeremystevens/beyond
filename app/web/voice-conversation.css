@@ -1,0 +1,26 @@
+#voice-session { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; padding:24px; box-sizing:border-box; background:var(--panel); color:var(--text); }
+#voice-session[hidden] { display:none; }
+.voice-call-content { width:min(100%, 440px); min-height:min(520px, 75dvh); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:24px; }
+.voice-call-content h2 { margin:0; font-size:1.2rem; }
+.voice-orb { width:clamp(140px, 42vw, 220px); aspect-ratio:1; border-radius:50%; background:radial-gradient(circle at 35% 30%, #ffba8c, #e46125 54%, #a93e16); box-shadow:0 10px 32px rgba(184,76,29,.2); transition:transform .3s ease, box-shadow .3s ease; }
+#voice-session[data-state=listening] .voice-orb { animation:voice-pulse 2.8s ease-in-out infinite; }
+#voice-session[data-state=speaking] .voice-orb { animation:voice-pulse 1.2s ease-in-out infinite; }
+#voice-session[data-state=working] .voice-orb { animation:voice-pulse 2s ease-in-out infinite; opacity:.8; }
+#voice-session[data-state=paused] .voice-orb { opacity:.45; }
+#voice-session-status { min-height:2.6em; max-width:100%; font-size:1rem; overflow-wrap:anywhere; }
+.voice-call-actions { display:flex; gap:12px; }
+.voice-call-actions button { min-width:100px; min-height:44px; }
+@keyframes voice-pulse { 50% { transform:scale(1.06); box-shadow:0 12px 45px rgba(184,76,29,.35); } }
+@media (prefers-reduced-motion:reduce) { .voice-orb { animation:none !important; } }
+.voice-dialog { width:min(440px,calc(100vw - 32px)); box-sizing:border-box; max-height:85dvh; overflow:auto; margin:auto; padding:20px; border:1px solid var(--border); border-radius:14px; background:var(--panel); color:var(--text); }
+.voice-dialog::backdrop { background:rgba(0,0,0,.45); }
+.voice-dialog h2 { font-size:1.2rem; margin:0; }
+.voice-dialog label { display:flex; align-items:center; gap:10px; margin:16px 0; }
+.voice-dialog input[type=checkbox] { width:18px; height:18px; flex:none; margin:0; }
+.voice-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; margin-top:16px; }
+#voice-setup-error { color:var(--text); overflow-wrap:anywhere; }
+@media(max-width:760px) { #voice-session button {min-height:44px;} }
+
+#voice-waveform { height:36px; display:flex; align-items:center; justify-content:center; gap:4px; }
+#voice-waveform i { display:block; width:4px; height:3px; border-radius:3px; background:currentColor; opacity:.65; transition:height 80ms linear; }
+@media(prefers-reduced-motion:reduce) { #voice-waveform i { transition:none; } }

@@ -493,6 +493,22 @@ Completed AI chat replies automatically check closed code fences labelled `pytho
 
 This first version checks syntax only—not dependencies, undefined names, missing logic, program behavior, security or compatibility with other Python versions. Other languages and unfenced code are not checked. Incomplete/empty blocks, blocks over 100,000 UTF-8 bytes, and work beyond eight blocks or 200,000 total bytes per reply are skipped. The worker has a three-second timeout; failure keeps the reply with a Not checked label. No model request or runtime dependency is added. Streaming stays visible while completion controls remain disabled until the reply is finalized.
 
+### Voice conversation
+
+**First-version limitations:** Transcription can mishear words, and AI replies may be awkward, inaccurate, or misunderstand your intent. Background noise and microphone quality affect results. Spoken hang-up requests may not always be recognized; use **End** if necessary. Review important information and exported transcripts. Recognition and conversational quality are planned for improvement in later versions. CPU-only systems may pause noticeably between listening, generating a reply, and speaking.
+
+Choose **+ → Voice conversation**, optionally check **Save a transcript**, then press **Start voice conversation**. Whisper voice input and spoken replies (Kokoro or Piper) must be installed; enable Spoken replies in Settings. The browser needs microphone permission and localhost or a secure HTTPS address.
+
+A dedicated call view with an orange circle and an audio-reactive waveform shows **Listening**, **Transcribing**, **Thinking**, **Preparing spoken reply**, or **Speaking**. BEYOND detects speech and a pause, turns your words into a normal chat message, and speaks the reply. The microphone stops before transcription and remains off while BEYOND replies, so it does not hear its own playback. **Pause/Resume** and **End** control the session; switching chats ends it, and backgrounding the tab pauses it. If browser autoplay blocks a reply, tap Resume. The existing Voice input button remains available for a single message.
+
+Say **Hang up**, **Stop voice chat**, or **End the call** to request a spoken confirmation. A recognized yes plays a goodbye and closes the session after playback; no continues the conversation. The **End** button closes immediately. Repeated unclear confirmations pause with instructions instead of repeating indefinitely.
+
+On supported browsers, BEYOND requests that the screen stay awake while a foreground call is active. Pause or End releases this request. Battery settings or the operating system can refuse it; deliberately locking the device or switching apps still pauses the call.
+
+The transcript option is off by default. If enabled, End offers a text download with recognized user speech and BEYOND’s actual reply text. Save before closing or refreshing the tab; the unsaved transcript is held only in that tab. Conversation messages and generated speech use their existing chat and audio storage settings whether transcript export is enabled or not. Playback may shorten long replies; the transcript retains the full reply.
+
+A turn is bounded to 30 seconds; noisy environments, short words or long pauses can affect detection. Voice mode uses the existing local Whisper and speech engines and the same model as chat, with one turn at a time. Pausing or ending releases the microphone and cancels the session’s active chat request where possible; a speech job already preparing may finish in the background. Other chat keeps its existing behavior.
+
 ### Think it through and the + menu
 
 This is an unreleased addition after 1.2.0. The **+** button beside the message box opens **Attach photo or document**, **Voice input**, **Writing helper**, and the **Think it through** checkbox. These tools use the same optional features and permissions as before. Active recording has a visible Stop recording control even when the popup is closed.

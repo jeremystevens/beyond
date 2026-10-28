@@ -253,6 +253,7 @@ class SendRequest(BaseModel):
     chat_id: int | None = None      # None = start a new chat
     content: str = Field(min_length=1, max_length=20000)
     think_through: bool = False
+    voice_control: str | None = Field(default=None, max_length=20)
 
 
 class Rename(BaseModel):
@@ -756,6 +757,20 @@ async def chat_stream(body: SendRequest, request: Request):
     content = body.content.strip()
     if not content:
         return JSONResponse({'error': 'The message is empty.'}, status_code=400)
+    if body.voice_control is not None:
+        replies = {
+            'confirm_end': 'Would you like me to end our conversation?',
+            'repeat_end': 'Would you like me to end our conversation? Please say yes or no.',
+            'goodbye': 'Goodbye. Thanks for talking with me.',
+            'continue': 'Okay, we can keep talking.',
+        }
+        if body.voice_control not in replies:
+            return JSONResponse({'error': 'Unknown voice control.'}, status_code=400)
+        if body.chat_id is not None and not chats.exists(body.chat_id):
+            return JSONResponse({'error': 'That chat no longer exists.'}, status_code=404)
+        answer = replies[body.voice_control]
+        return _command_reply(body.chat_id, content,
+                              prepared=commands.Reply(answer, speech_text=answer))
     think_command=re.match(r'^/think(?:@\w+)?(?:\s+([\s\S]*))?$',content,re.I)
     if think_command:
         question=(think_command.group(1) or '').strip()

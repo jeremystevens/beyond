@@ -40,9 +40,9 @@ const web=path.resolve(__dirname,'../../app/web');
     assert.ok(row.inline&&row.compact,JSON.stringify(row));
    }
    await page.locator('#composer-more').click();
-   for(const id of ['attach-photo','mic','writing-open'])assert.equal(await page.locator('#'+id).isVisible(),true);
+   for(const id of ['attach-photo','mic','voice-conversation-open','writing-open'])assert.equal(await page.locator('#'+id).isVisible(),true);
    const alignment=await page.evaluate(()=>{
-    const rows=['attach-photo','mic','writing-open'].map(id=>document.getElementById(id));
+    const rows=['attach-photo','mic','voice-conversation-open','writing-open'].map(id=>document.getElementById(id));
     const icons=rows.map(el=>el.querySelector('svg').getBoundingClientRect().left);
     const labels=rows.map(el=>el.querySelector('span').getBoundingClientRect().left);
     return {icons:Math.max(...icons)-Math.min(...icons),labels:Math.max(...labels)-Math.min(...labels)};

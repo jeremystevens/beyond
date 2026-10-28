@@ -1,4 +1,9 @@
 """One-shot CPU speech worker, adapted from PromptetheusBot's speech_output.py."""
+import os
+
+# Keep the separate speech process light enough to run alongside local AI models.
+os.environ['OPENBLAS_NUM_THREADS'] = '1'
+
 import io
 import json
 import logging
