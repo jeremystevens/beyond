@@ -1341,14 +1341,14 @@ blocking Python: allow it on private networks when asked.
 <a id="roadmap"></a>
 ## `▸ ROADMAP`
 
-**BEYOND 1.2.0 is released**, adding Phases 49–53: Writing helper, recaps, screenshot troubleshooting, local reports and optional GitHub reporting/duplicate checks. Phase 37 remains deferred,
+**BEYOND 1.3.0 is released**, adding voice conversation, answer checking, working notes, syntax checks, improved tool routing and host status. Version 1.2.0 delivered Phases 49–53: Writing helper, recaps, screenshot troubleshooting, local reports and optional GitHub reporting/duplicate checks. Phase 37 remains deferred,
 and the Phase 42 validation exceptions are listed below. The full history and evidence live in
 [`planning/phases.md`](planning/phases.md).
 
 **Included in 1.3.0:** [Natural tool request fixes and full tool audit](planning/natural-tool-requests.md), [Python syntax checks](planning/python-code-checks.md), [Think it through and the + tools menu](planning/think-it-through.md), host-status chat command, direct model identity questions, runtime model context, [conversation working notes](planning/conversation-working-notes.md), [answer checking](planning/answer-checking.md) and [clearing recent error history](planning/clear-error-history.md). See [implementation notes](planning/chat-host-status.md). Future capability ideas remain [brainstorming](planning/small-model-capability-ideas.md), not an approved roadmap.
 
 <details open>
-<summary><b>Delivered through Phase 53 · BEYOND 1.2.0</b> (Phase 37 deferred; validation exceptions below)</summary>
+<summary><b>Delivered through Phase 54 · BEYOND 1.3.0</b> (Phase 37 deferred; validation exceptions below)</summary>
 
 <br>
 
