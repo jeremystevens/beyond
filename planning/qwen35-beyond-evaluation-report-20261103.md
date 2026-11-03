@@ -1,7 +1,10 @@
 # Beyond evaluation report
-**Completed:** 3 November 2026 UTC (2 November evening, Pacific time)  
-**Application:** BEYOND 1.3.0, running on MSI  
-**Model:** Qwen3.5-4B-Q4_K_M  
+**Completed:** 3 November 2026 UTC (2 November evening, Pacific time)
+
+**Application:** BEYOND 1.3.0, running on MSI
+
+**Model:** Qwen3.5-4B-Q4_K_M
+
 **Status:** Testing stopped; six issues filed; no application fixes implemented.
 
 ## Recommendation
@@ -61,10 +64,12 @@ These are individual observations, not a general accuracy score. A corrected las
 
 ### The two isolated Python defects
 
-**1. “Latest corrections” supplies false public-search intent.**  
+**1. “Latest corrections” supplies false public-search intent.**
+
 The question “What color and pin does each case have now? Use the latest corrections.” caused a real five-result web search, despite being answerable from the current fictional inventory. The router matched “latest” in the instruction but searched only the first question. Offline, the full message produced a web route and the first question alone produced none. The unrelated public results were not needed for the correct final answer. See [#27](https://github.com/jeremystevens/beyond/issues/27).
 
-**2. Deadline “before” supplies false recall intent.**  
+**2. Deadline “before” supplies false recall intent.**
+
 In an isolated in-memory database containing only “Suggest a Monday lunch” / “Try a sandwich,” the query “Which parcel arrives before Monday?” recalled lunch. Changing only “before” to “on” returned no history. The recall regex treats bare “before” as a past-conversation cue and lowers the required overlap to one content keyword. No production database changes were made for this fixture. See [#28](https://github.com/jeremystevens/beyond/issues/28).
 
 ### What the lower-level comparison establishes
