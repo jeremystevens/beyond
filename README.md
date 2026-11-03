@@ -487,6 +487,12 @@ You can type or speak clear requests such as **Tell me a fact about cats**, **Gi
 
 All 54 registered commands are included in a compact inventory in the chat prompt; help for a named command or alias uses its current registered summary and example. The complete [routing audit](planning/tool-routing-audit.md) is maintained alongside the registry. Typed and transcribed messages use the same routes. Explicit read-only tool requests work independently of automatic web lookup; tools retain their normal internet requirements and error handling. Routing itself makes no AI request. Only recognized complete requests are matched: ordinary explanations, quoted commands, negation, multiple actions and ambiguous wording stay in chat. Writes/deletions and other side effects keep their existing explicit commands and confirmation flows. Pending file contents take precedence. Slash commands remain the reliable fallback for unrecognized wording; this is not unrestricted natural-language control of every module.
 
+### Calculations from supplied quantities
+
+BEYOND can answer supported English word problems directly from local calculations: option costs versus a budget, remaining recording time, whole-item shelf capacity, sealed-pack price comparisons, and checkout change with no tax or extra charges. Explicit budget corrections use the recent user-provided prices in the same chat and preserve the supplied finish day. Earlier assistant calculations are not treated as facts.
+
+For recognized cases, the reply shows the arithmetic and a **Calculated locally** status; no model draft or review is needed. These replies remain ordinary saved chat messages for follow-up questions. Only the supplied quantities are checked: prices, physical limits and other real-world facts are not independently verified. Ambiguous wording, extra conditions, mixed currencies, unsupported operations and ordinary prose with numbers continue through normal chat without a calculation claim. /calc and /convert remain available for explicit expressions and conversions. This is a bounded set of supported forms, not a general word-problem solver.
+
 ### Python code syntax checks
 
 Available in BEYOND 1.3.0.

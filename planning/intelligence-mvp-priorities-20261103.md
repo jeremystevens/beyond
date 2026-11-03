@@ -23,3 +23,7 @@ This file records priorities only; it does not mark any issue fixed or authorize
 ## First batch status (2026-11-03)
 
 Issues #27 and #28 are implemented and verified locally; all six acceptance items in each issue have supporting evidence. See [verification notes](context-routing-fix-verification-20261103.md) for tests, live checks and recall measurements. Publication and the closing commit are tracked in the linked issues. No release or model/settings change is included in this batch. Items #23–#26 are not claimed fixed.
+
+## Verified arithmetic status (2026-11-03)
+
+Issue #26 is implemented and active locally for supported budget, time/capacity, pack-price and checkout-change forms. All eight acceptance items have supporting evidence. See [verification notes](arithmetic-fix-verification-20261103.md) for supported boundaries, tests, live replies and latency. Publication is tracked in GitHub issue #26. This does not claim a general word-problem solver or fixes for #23–#25.

@@ -903,7 +903,8 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
     (Stop), what was written so far is saved, marked as stopped; if nothing was written at all, undo() runs.
     `question`: checked for an automatic lookup (weather, news, web) first, whose results go in the notes."""
     from app import think_through as guided
-    from app import clarifications, working_notes
+    from app import clarifications, working_notes, word_math
+    calculated = word_math.solve(history)
     clarification = clarifications.question(history)
     supplied_media = (any(m['role'] == 'user' and m['kind'] != 'chat'
                           for m in chats.get(chat_id)['messages']) if clarification else False)
@@ -913,11 +914,19 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
     if clarification:
         pickup = None
 
+    if calculated:
+        clarification = ''
+        pickup = None   # Numeric task data is not a request to learn personal facts.
+
+    async def calculation_stream():
+        yield guided.Progress('🧮 Calculated locally from the quantities you supplied.')
+        yield calculated.text
+
     async def clarification_stream():
         yield clarification
 
     budget = learning.max_tokens()
-    wanted = lookups.detect(question) if question and not suppress_auto and not clarification else None
+    wanted = lookups.detect(question) if question and not suppress_auto and not clarification and not calculated else None
     found = wanted if wanted and settings.load()['auto_lookup'] else None
     if wanted and not found:   # needs current information, but automatic lookups are off
         background = '\n\n'.join(part for part in (background, lookups.NOT_CHECKED) if part)
@@ -951,7 +960,8 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 yield json.dumps({'type': 'lookup', **lookup}) + '\n'
             try:
                 thinking, stats = False, None
-                stream = (clarification_stream() if clarification else
+                stream = (calculation_stream() if calculated else
+                          clarification_stream() if clarification else
                           guided.stream(history, notes, max_tokens=budget, temperature=temperature) if think_through else
                           engine.chat_stream(history, notes, max_tokens=budget, temperature=temperature))
                 async for piece in stream:
