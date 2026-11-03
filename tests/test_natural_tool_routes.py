@@ -126,3 +126,32 @@ class NaturalToolRouteTests(unittest.IsolatedAsyncioTestCase):
         with patch.object(engine, 'chat_stream', reply):
             events = await self.ask('Help me fix this error', chat_id)
         self.assertIn('normal workflow', str(events))
+
+    async def test_device_temperature_question_reaches_model_without_any_lookup(self):
+        from tests.test_weather_intent import REPORTED
+        settings.save({'auto_lookup': True})
+        seen = []
+        async def reply(history, *args, **kwargs):
+            seen.append(history[-1]['content'])
+            yield 'No; exactly 40°C is not below 40°C.'
+        with patch.object(engine, 'chat_stream', reply), \
+             patch.object(self.server.commands, 'run', side_effect=AssertionError('Must not dispatch a weather command')), \
+             patch.object(self.server.lookups, 'run', side_effect=AssertionError('Must not perform a lookup')):
+            events = await self.ask(REPORTED)
+        self.assertEqual(seen, [REPORTED])
+        self.assertIn('exactly 40°C', str(events))
+        chat_id = next(e['id'] for e in events if e['type'] == 'chat')
+        self.assertTrue(all(row['kind'] == 'chat' for row in chats.get(chat_id)['messages']))
+
+    async def test_actual_weather_request_still_runs_weather_handler(self):
+        from app.commands import Command
+        seen = []
+        def weather(place):
+            seen.append(place)
+            return 'Weather for London\nNow: 17°C\nSource: test fixture'
+        settings.save({'auto_lookup': True})
+        with patch.dict(self.server.commands._BY_NAME, {'weather': Command('weather', 'test', '/weather', weather)}), \
+             patch.object(engine, 'chat_stream', side_effect=AssertionError('Weather should use the tool')):
+            events = await self.ask('What is the temperature in London?')
+        self.assertEqual(seen, ['London'])
+        self.assertIn('Weather for London', str(events))

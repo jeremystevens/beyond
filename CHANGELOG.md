@@ -5,6 +5,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- Automatic weather routing no longer treats device-temperature reasoning as a weather request or extracts a later reply-format instruction (such as "in one sentence") as a location. Supported temperature/weather questions and location follow-ups retain their tool route. Technical temperature questions also stop inheriting stale weather context. See [issue #22](https://github.com/jeremystevens/beyond/issues/22).
+
+
 ## [1.3.0] - 2026-10-27
 
 See [release notes](docs/RELEASE_NOTES_1.3.0.md).

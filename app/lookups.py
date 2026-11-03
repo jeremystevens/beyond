@@ -15,6 +15,20 @@ from app.tools import news, weather, web_search
 _WEATHER = re.compile(r'\b(weather|forecast|temperature|temp|degrees|celsius|fahrenheit|rain(?:ing|y)?|snow(?:ing|y)?|'
                       r'sunny|cloudy|windy|wind|humid(?:ity)?|storm(?:s|y)?|hot|cold|warm|freezing|umbrella)\b', re.I)
 _STRONG_WEATHER = re.compile(r'\b(weather|forecast|temperature)\b', re.I)
+# Bare temperature is ambiguous (devices, cooking, medicine, logic exercises).
+# Treat it as weather only in a supported weather-question shape, not anywhere in prose.
+_TEMPERATURE_QUESTION = re.compile(
+    r"^\s*(?:(?:please[ ,]*|can you|could you|would you)\s+)*"
+    r"(?:what(?:'s| is)\s+(?:the\s+|current\s+|outside\s+)(?:current\s+)?(?:temperature|temp)|"
+    r"(?:check|show(?: me)?|tell me|give me)\s+(?:the\s+)?(?:current\s+)?(?:temperature|temp)|"
+    r"(?:what about|how about|and)\s+(?:the\s+)?(?:temperature|temp)|"
+    r"(?:current\s+)?(?:temperature|temp))"
+    r"(?:\s+(?:is|like|outside|outdoors|here|there|today|tomorrow|tonight|now|please))*"
+    r"(?:\s+(?:in|at|for|near)\s+[^?!;\n]+)?"
+    r"(?:[ ,]+(?:right now|today|tomorrow|tonight|please))*[?!.]*\s*$", re.I)
+_NON_WEATHER_TEMPERATURE = re.compile(
+    r"\b(?:device|sensor|battery|router|oven|fridge|refrigerator|freezer|body|fever|food|"
+    r"cooking|water|boiling|melting|threshold|setpoint|reading)\b", re.I)
 _PC_WORDS = re.compile(r'\b(cpu|gpu|pc|computer|laptop|processor|graphics|server|machine|core|fan)\b', re.I)
 _TIME_WORDS = (r'(?:right\s+now|now|currently|today|tonight|tomorrow|this\s+(?:morning|afternoon|evening|week|weekend)|'
                r'at\s+the\s+moment)')
@@ -37,7 +51,8 @@ _CLIMATE = re.compile(r'\b(?:in|during)\s+(?:january|february|march|april|may|ju
                       r'november|december|summer|winter|spring|fall|autumn)\b|\b(?:usually|typically|average|normally|'
                       r'generally|climate)\b', re.I)
 _NOT_PLACES = {'here', 'there', 'the house', 'my area', 'my city', 'my town', 'the area', 'the morning', 'the evening',
-               'the afternoon', 'general', 'degrees', 'celsius', 'fahrenheit'}
+               'the afternoon', 'general', 'degrees', 'celsius', 'fahrenheit', 'one sentence', 'two sentences',
+               'plain english', 'simple terms', 'detail', 'brief'}
 FAILED = re.compile(r"^(?:I couldn't find a place|No web results|No recent headlines|Tell me|That place name|"
                     r"Web search needs)", re.I)
 SOURCES = {'weather': 'Open-Meteo weather', 'news': 'news headlines', 'web': 'web search'}
@@ -45,7 +60,7 @@ WORDS = {'weather': 'Checking the weather for {}…', 'news': 'Checking the news
 
 
 def _clean_place(text):
-    text = re.split(r'[?!.;]|\s+(?:and|but|give|with|please|also|so|then|because)\s+', text, maxsplit=1)[0]
+    text = re.split(r'[?!;]|(?<!St)(?<!Mt)(?<!Ft)\.(?:\s|$)|\s+(?:and|but|give|with|please|also|so|then|because)\s+', text, maxsplit=1)[0]
     text = re.sub(rf'[\s,]*\b{_TIME_WORDS}\b.*$', '', text, flags=re.I)
     parts = [p.strip(" '\"") for p in text.split(',') if p.strip(" '\"")]
     parts = [p for p in parts if re.fullmatch(r"[A-Za-zÀ-ÿ.'\- ]{2,40}", p)]
@@ -53,15 +68,41 @@ def _clean_place(text):
     return '' if place.lower() in _NOT_PLACES else place
 
 
+def weather_clauses(message):
+    """Separate instructions without splitting common abbreviations in place names."""
+    return re.split(r'[?!;\n]+|(?<!St)(?<!Mt)(?<!Ft)\.(?=\s+[A-Z])', message)
+
+
+def weather_intent(message):
+    """A weather request, not a temperature mentioned in supplied/technical content."""
+    text = message.strip().replace('’', "'")
+    if _PC_WORDS.search(text) or _CLIMATE.search(text):
+        return False
+    if re.search(r'\b(?:weather|forecast)\b', text, re.I):
+        return True
+    return any(_TEMPERATURE_QUESTION.fullmatch(clause.strip()) and not _NON_WEATHER_TEMPERATURE.search(clause)
+               for clause in weather_clauses(text))
+
+
 def weather_place(message):
-    """'What is the current temperature in Reykjavík, Iceland, right now?' -> 'Reykjavík, Iceland' (or '')."""
+    """Extract a place from the weather clause, never a later formatting instruction."""
     if not _WEATHER.search(message) or _PC_WORDS.search(message) or _CLIMATE.search(message):
         return ''
-    match = re.search(r"\b(?:in|at|for|near)\s+((?:the\s+)?[A-ZÀ-Þ][\w'À-ÿ.\-]*(?:[ ,]+[\wÀ-ÿ.'\-]+){0,6})", message)
-    if not match and _STRONG_WEATHER.search(message):   # "weather in paris" typed in lower case
-        match = re.search(r"\b(?:weather|forecast|temperature)\b.*?\b(?:in|at|for|near)\s+([a-zà-ÿ][\w'À-ÿ.\-]*"
-                          r"(?:[ ,]+[\wÀ-ÿ.'\-]+){0,3})", message, re.I)
-    return _clean_place(match.group(1)) if match else ''
+    if re.search(r'\b(?:temperature|temp)\b', message, re.I) and not weather_intent(message):
+        return ''
+    # Keep common place abbreviations intact while separating sentences/instructions.
+    clauses = weather_clauses(message)
+    for clause in clauses:
+        if not _WEATHER.search(clause):
+            continue
+        match = re.search(r"\b(?:in|at|for|near)\s+((?:the\s+)?[A-ZÀ-Þ][\w'À-ÿ.\-]*(?:[ ,]+[\wÀ-ÿ.'\-]+){0,6})", clause)
+        if not match and _STRONG_WEATHER.search(clause):
+            match = re.search(r"\b(?:weather|forecast|temperature)\b.*?\b(?:in|at|for|near)\s+([a-zà-ÿ][\w'À-ÿ.\-]*"
+                              r"(?:[ ,]+[\wÀ-ÿ.'\-]+){0,3})", clause, re.I)
+        place = _clean_place(match.group(1)) if match else ''
+        if place:
+            return place
+    return ''
 
 
 def news_topic(message):

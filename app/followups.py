@@ -259,8 +259,7 @@ def weather_request(chat_id, message):
     """A location or confirmation can complete a recent user weather request."""
     from app import lookups
     def intent(text):
-        return bool(lookups._STRONG_WEATHER.search(text) and
-                    not lookups._PC_WORDS.search(text) and not lookups._CLIMATE.search(text))
+        return lookups.weather_intent(text)
     def place(text):
         if re.search(r'\b(?:write|make|create|fix|explain|recipe|code|movie|help|joke|forget|cancel|stop)\b',text,re.I):
             return ''
@@ -357,6 +356,10 @@ def resolve(chat_id, message):
     if field:
         return {'kind':'fact','field':field,'state':state}
     if state['tool']=='weather':
+        from app import lookups
+        if re.search(r'\b(?:temperature|temp)\b', text, re.I) and not lookups.weather_intent(text):
+            clear(chat_id)
+            return None  # New technical/supplied content must not inherit a weather lookup.
         place_day=re.fullmatch(r'(?:what about|how about|and) (?:in |for )?(.+?) (today|tomorrow)',text,re.I)
         if place_day and not REFERENCE.search(place_day[1]):
             return {'kind':'weather_day','command':'/weather '+place_day[1],
