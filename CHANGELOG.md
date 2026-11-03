@@ -6,6 +6,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Fixed
+- Automatic web routing checks current-data intent within the question being searched; reply instructions such as "use the latest corrections" and explicit supplied-reference/chat-only context no longer trigger unrelated automatic public searches. Explicit searches and current public-data questions remain supported. See [issue #27](https://github.com/jeremystevens/beyond/issues/27).
+- Memory recall no longer treats a deadline such as "before Monday" as a request to recall an old conversation. Explicit conversation recall and ordinary topic matches remain supported; recalled assistant text is labeled as unverified historical claims with its source/date. See [issue #28](https://github.com/jeremystevens/beyond/issues/28).
 - Automatic weather routing no longer treats device-temperature reasoning as a weather request or extracts a later reply-format instruction (such as "in one sentence") as a location. Supported temperature/weather questions and location follow-ups retain their tool route. Technical temperature questions also stop inheriting stale weather context. See [issue #22](https://github.com/jeremystevens/beyond/issues/22).
 
 

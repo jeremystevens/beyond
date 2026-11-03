@@ -764,7 +764,10 @@ The lookup commands (see [Commands](#commands)) use free public services with no
 type after the command is sent, and without internet each one says so plainly.
 
 **Automatic lookups.** For everyday questions you don't need the commands. When a message clearly needs current
-information, BEYOND looks it up first and the AI answers from the results:
+information, BEYOND looks it up first and the AI answers from the results. Current-data intent is checked in
+the question being searched, so a later instruction such as "use the latest corrections" does not trigger a search.
+Questions explicitly grounded in supplied references or this conversation stay in chat; explicit web-search
+requests remain available:
 
 - weather words and a place ("do I need an umbrella in London tomorrow?") → Open-Meteo;
 - "latest news about…", "any breaking news?" → the news feeds;

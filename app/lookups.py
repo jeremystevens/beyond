@@ -46,6 +46,17 @@ _QUESTION = re.compile(r"\?|^\s*(?:who|what|when|where|which|how|is|are|was|were
 _PERSONAL = re.compile(r"\b(my|me|mine|i|i'm|you|your|yourself|reminders?|notes?|list|memories)\b", re.I)
 _TIME_ONLY = {'today', 'tonight', 'now', 'right', 'current', 'currently', 'latest', 'newest', 'recent', 'recently',
               'week', 'month', 'year', 'season', 'weekend'}
+# A request explicitly grounded in supplied text/current chat does not ask for public facts.
+# Explicit /web and natural search commands are handled before automatic lookup detection.
+_SUPPLIED_CONTEXT = re.compile(
+    r'^\s*(?:reference|quoted text|source text|excerpt)\s*:|'
+    r'\b(?:use|using|based on|according to|from)\s+(?:only\s+)?(?:the\s+)?'
+    r'(?:supplied|provided|quoted|pasted|attached|following|above)\s+'
+    r'(?:reference|source|text|notes?|facts?|excerpt|conversation|chat)\b|'
+    r'\b(?:in|from)\s+(?:this|our|the current)\s+(?:chat|conversation)\b', re.I)
+_REPLY_RECENCY = re.compile(
+    r'\b(?:use|using|apply|follow)\s+(?:only\s+)?(?:the\s+)?'
+    r'(?:latest|newest|most recent|recent|current)\s+(?:corrections?|edits?|chat notes?|conversation notes?)\b', re.I)
 # "is it hot in Phoenix in July?", "what's the weather usually like in Rome": climate, not current weather
 _CLIMATE = re.compile(r'\b(?:in|during)\s+(?:january|february|march|april|may|june|july|august|september|october|'
                       r'november|december|summer|winter|spring|fall|autumn)\b|\b(?:usually|typically|average|normally|'
@@ -126,9 +137,13 @@ def with_real_dates(text, today=None):
 
 def web_query(message):
     """A question that needs current information -> the search text; else ''."""
-    if len(message) > 400 or not _QUESTION.search(message) or not _CURRENT.search(message):
+    if len(message) > 400 or _SUPPLIED_CONTEXT.search(message):
         return ''
     question = re.split(r'(?<=\?)\s', message.strip(), maxsplit=1)[0]   # first question only
+    # Judge the same question we would search. Later reply instructions ("use the latest
+    # corrections") must not supply current-public-information intent to a chat follow-up.
+    if not _QUESTION.search(question) or not _CURRENT.search(_REPLY_RECENCY.sub('', question)):
+        return ''
     content = [w for w in memory.keywords(question) if w not in _TIME_ONLY]
     if len(content) < 2 or (_PERSONAL.search(question) and len(content) < 3):
         return ''   # small talk ("how are you today?") or about the user / BEYOND
@@ -190,6 +205,8 @@ def offer_search(question, answer):
 
 def detect(message):
     """At most one (kind, argument) for this message; the most specific kind wins."""
+    if _SUPPLIED_CONTEXT.search(message):
+        return None
     place = weather_place(message)
     if place:
         return 'weather', place

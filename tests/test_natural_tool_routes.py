@@ -155,3 +155,61 @@ class NaturalToolRouteTests(unittest.IsolatedAsyncioTestCase):
             events = await self.ask('What is the temperature in London?')
         self.assertEqual(seen, ['London'])
         self.assertIn('Weather for London', str(events))
+
+    async def test_latest_corrections_followup_does_not_run_external_lookup(self):
+        settings.save({'auto_lookup': True})
+        replies = iter(('Case A is red with pin 4; case B is green with pin 7.',
+                        'Case A is blue with pin 4; case B is green with pin 9.',
+                        'Case A is blue with pin 4; case B is green with pin 9.'))
+        seen = []
+        async def reply(history, *args, **kwargs):
+            seen.append(history)
+            yield next(replies)
+        with patch.object(engine, 'chat_stream', reply), \
+             patch.object(self.server.lookups, 'run', side_effect=AssertionError('No external lookup')):
+            first = await self.ask('For a fictional inventory exercise: case A is red and has pin 4; '
+                                   'case B is green and has pin 7. Repeat the two records briefly.')
+            chat_id = next(event['id'] for event in first if event['type'] == 'chat')
+            await self.ask('Correction: case A is now blue, and case B now has pin 9. '
+                           'Only those two fields changed. State both updated records.', chat_id)
+            events = await self.ask('What color and pin does each case have now? '
+                                    'Use the latest corrections.', chat_id)
+        self.assertEqual(len(seen), 3)
+        self.assertIn('case A is now blue', seen[-1][-3]['content'])
+        self.assertFalse(any(event['type'] == 'lookup' for event in events))
+        self.assertTrue(all(not row.get('lookup') for row in chats.get(chat_id)['messages']))
+
+    async def test_current_public_question_and_explicit_web_still_run_tools(self):
+        from app.commands import Command
+        settings.save({'auto_lookup': True})
+        async def reply(*args, **kwargs):
+            yield 'Answer from the supplied test lookup.'
+        found = {'kind': 'web', 'argument': 'What is the latest Python release',
+                 'ok': True, 'source': 'test web source', 'raw': 'Synthetic release information.'}
+        with patch.object(engine, 'chat_stream', reply), \
+             patch.object(self.server.lookups, 'run', return_value=found) as lookup:
+            events = await self.ask('What is the latest Python release? Answer briefly.')
+        lookup.assert_called_once_with('What is the latest Python release? Answer briefly.',
+                                       'web', 'What is the latest Python release')
+        self.assertTrue(any(event['type'] == 'lookup' for event in events))
+        with patch.dict(self.server.commands._BY_NAME, {
+                'web': Command('web', 'test', '/web', lambda query: 'Explicit web result: ' + query)}), \
+             patch.object(engine, 'chat_stream', side_effect=AssertionError('Explicit tool needs no model')):
+            events = await self.ask('/web latest Python release')
+        self.assertIn('Explicit web result: latest Python release', str(events))
+
+    async def test_supplied_reference_stays_local_but_explicit_natural_search_still_runs(self):
+        from app.commands import Command
+        settings.save({'auto_lookup': True})
+        async def reply(history, *args, **kwargs):
+            yield 'The indicator is blue, according to the supplied reference.'
+        with patch.object(engine, 'chat_stream', reply), \
+             patch.object(self.server.lookups, 'run', side_effect=AssertionError('Source needs no search')):
+            events = await self.ask('Reference: "The current indicator is blue." '
+                                    'What color is the indicator?')
+        self.assertFalse(any(event['type'] == 'lookup' for event in events))
+        with patch.dict(self.server.commands._BY_NAME, {
+                'web': Command('web', 'test', '/web', lambda query: 'Explicit search: ' + query)}), \
+             patch.object(engine, 'chat_stream', side_effect=AssertionError('Explicit search uses tool')):
+            events = await self.ask('Search the web for the latest Python reference manual')
+        self.assertIn('Explicit search:', str(events))
