@@ -64,6 +64,32 @@ npm run test:browser
 
 The **Tests** workflow runs these too, as the "Code blocks, Chromium" job.
 
+## Checking the loaded model
+
+Run this smoke test after changing chat formatting or routing, or when comparing models. Start Beyond,
+load a built-in model, and run the command from the checkout you want to test while the model is idle.
+
+```powershell
+.\.venv\Scripts\python.exe -m tools.model_smoke
+.\.venv\Scripts\python.exe -m tools.model_smoke --case json --case budget
+```
+
+The command exercises the checkout's streaming chat route with the loaded model and temporary chat storage.
+It uses default chat style, enables automatic lookup routing but blocks actual outbound lookups, and leaves
+your saved settings and conversations alone. It shares the model with the running app, so run it when no
+one is chatting. Use `--port` if your Beyond instance uses a different port.
+
+It checks bullet count, strict JSON, budget arithmetic, and accidental weather and web routing. The report
+under `data/model-validation/` includes model name, elapsed times, raw stream events, and saved answers.
+The command exits with 0 when all cases pass, 1 for a failed case, or 2 when it cannot start or finish.
+If a case fails, rerun it with the same model and a single `--case`. Compare the raw
+streamed text, final reply, and saved reply in the report. If the streamed text is correct but the final
+reply differs, inspect the stream's replacement events. If the report says an automatic lookup was
+blocked, start with routing. For a bug report, include the model name, commit, failing case, and relevant
+report excerpt. Use the same case selection when comparing models and repeat any intermittent failure.
+
+This is an opt-in model check. The regular test suite still runs without a model.
+
 ## How the code is organised
 
 | Where | What |
