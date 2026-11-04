@@ -108,7 +108,8 @@ def _budget_frame(text, earlier=()):
     finish = list(re.finditer(r'\bboth(?:\s+(?:options|choices))?\s+finish\s+on\s+day\s+(\d{1,3})\b', text, re.I))
     if len(finish) > 1 or not budgets or not _covered(text, costs + budgets + finish):
         return None
-    if re.search(r'\b(?:tax|fees?|shipping|monthly|annual|per|percent|free|%)\b', text, re.I):
+    qualifiers = re.sub(r',\s*one per option\s*,', ',', text, flags=re.I)
+    if re.search(r'\b(?:tax|fees?|shipping|monthly|annual|per|percent|free|%)\b', qualifiers, re.I):
         return None
     money = list(re.finditer(MONEY, text))
     if len(money) != len(costs) + len(budgets):

@@ -909,7 +909,9 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
     (Stop), what was written so far is saved, marked as stopped; if nothing was written at all, undo() runs.
     `question`: checked for an automatic lookup (weather, news, web) first, whose results go in the notes."""
     from app import think_through as guided
-    from app import clarifications, source_facts, working_notes, word_math
+    from app import answer_format, clarifications, source_facts, working_notes, word_math
+    reference = engine.quoted_reference(question) if question else None
+    format_request = answer_format.requested_format(reference[1] if reference else question or '')
     calculated = word_math.solve(history)
     clarification = clarifications.question(history)
     supplied_media = (any(m['role'] == 'user' and m['kind'] != 'chat'
@@ -1013,6 +1015,8 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 notify.show('error', 'BEYOND: the AI had a problem', str(exc), chat_id)
             text = ''.join(answer).strip()
             cleaned = lookups.without_fake_mark(text)
+            if finished and cleaned and format_request and not clarification:
+                cleaned = answer_format.unwrap(cleaned, format_request)
             if cleaned != text and cleaned:
                 text = cleaned
                 yield json.dumps({'type': 'replace', 'text': text}) + '\n'
