@@ -894,8 +894,12 @@ def _background(question, sent_ids, values, extra='', chat_id=None):
     if engine.reference_only(question):
         return ''
     from app import working_notes
-    parts = [working_notes.prompt_block(chat_id), memory.recall_block(question, sent_ids) if values['recall'] else '',
-             learning.prompt_block(question, sent_ids), extra, attachments.notes_for(chat_id, question)]
+    parts = []
+    if not engine.supplied_facts_only(question):
+        parts = [working_notes.prompt_block(chat_id),
+                 memory.recall_block(question, sent_ids) if values['recall'] else '',
+                 learning.prompt_block(question, sent_ids)]
+    parts.extend((extra, attachments.notes_for(chat_id, question)))
     return '\n\n'.join(part for part in parts if part)
 
 
@@ -928,7 +932,10 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
         yield clarification
 
     budget = learning.max_tokens()
-    wanted = lookups.detect(question) if question and not suppress_auto and not clarification and not calculated else None
+    scoped = bool(question and engine.supplied_facts_only(question))
+    wanted = (lookups.detect(question)
+              if question and not suppress_auto and not clarification and not calculated
+              and not scoped else None)
     found = wanted if wanted and settings.load()['auto_lookup'] else None
     if wanted and not found:   # needs current information, but automatic lookups are off
         background = '\n\n'.join(part for part in (background, lookups.NOT_CHECKED) if part)
@@ -946,7 +953,7 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
             if status:
                 yield json.dumps({'type': 'status', 'text': status}) + '\n'
             notes = background
-            if not found:
+            if not found and not scoped:
                 notes='\n\n'.join(part for part in (background,
                     'No new lookup was performed for this reply. Never promise to check/search later: your reply '
                     'cannot trigger a tool after it ends. BEYOND has built-in web search through /web <query>; '
