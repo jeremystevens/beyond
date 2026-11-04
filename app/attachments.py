@@ -7,6 +7,7 @@ a processor-sized AI can't read a long document at once. "Summarise this" gets t
 passages. The text is data for the AI to read, never instructions. Removing an attachment (✕) or deleting the chat
 deletes its text.
 """
+import json
 import io
 import re
 import zipfile
@@ -326,6 +327,6 @@ def notes_for(chat_id, question):
              f'"page 4").{shown}{task}]']
     for row in chosen:
         where = f"{row['name']}, page {row['page']}" if row['page'] else row['name']
-        lines.append(f'----- {where} -----\n{row["text"]}')
+        lines.append("Attachment passage (JSON data): " + json.dumps({"source": where, "text": row["text"]}, ensure_ascii=False))
     lines.append('----- end of attached documents -----')
     return '\n'.join(lines)

@@ -168,14 +168,14 @@ class ChatTests(unittest.IsolatedAsyncioTestCase):
         chat = (await self.attach('manual.pdf', manual())).json()['chat_id']
         await self.ask('How long is the warranty?', chat)
         notes = self.notes[-1]
-        self.assertIn('----- manual.pdf, page 4 -----', notes)
+        self.assertIn('"source": "manual.pdf, page 4"', notes)
         self.assertIn('two years', notes)
         self.assertIn('only the parts most related', notes)
         self.assertLess(len(notes), attachments.BUDGET_CHARS + 2000)
         await self.ask('What does page 9 say?', chat)
-        self.assertIn('page 9 -----', self.notes[-1])
+        self.assertIn('"source": "manual.pdf, page 9"', self.notes[-1])
         await self.ask('Summarise this document', chat)
-        self.assertIn('page 1 -----', self.notes[-1])
+        self.assertIn('"source": "manual.pdf, page 1"', self.notes[-1])
 
     async def test_other_replies_also_read_the_attachment(self):
         chat = (await self.attach('quote.docx', make_docx(['Total: 1,200 dollars']))).json()['chat_id']

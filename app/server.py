@@ -891,6 +891,8 @@ def _background(question, sent_ids, values, extra='', chat_id=None):
     """Notes for this reply only: related exchanges from older conversations (any chat), what the ratings taught,
     anything else for this reply (Try again's note), and the parts of the chat's attached documents that fit the
     question (Phase 48)."""
+    if engine.reference_only(question):
+        return ''
     from app import working_notes
     parts = [working_notes.prompt_block(chat_id), memory.recall_block(question, sent_ids) if values['recall'] else '',
              learning.prompt_block(question, sent_ids), extra, attachments.notes_for(chat_id, question)]
@@ -903,7 +905,7 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
     (Stop), what was written so far is saved, marked as stopped; if nothing was written at all, undo() runs.
     `question`: checked for an automatic lookup (weather, news, web) first, whose results go in the notes."""
     from app import think_through as guided
-    from app import clarifications, working_notes, word_math
+    from app import clarifications, source_facts, working_notes, word_math
     calculated = word_math.solve(history)
     clarification = clarifications.question(history)
     supplied_media = (any(m['role'] == 'user' and m['kind'] != 'chat'
@@ -958,9 +960,27 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 notes = '\n\n'.join(part for part in (background, lookups.notes(result)) if part)
                 # Written by BEYOND, so "Looked up" only ever appears when a lookup really ran.
                 yield json.dumps({'type': 'lookup', **lookup}) + '\n'
+            source_answer = None
+            if question and not calculated and not clarification:
+                attachment_prefix = 'According to the attached document, '
+                if question.lower().startswith(attachment_prefix.lower()):
+                    source_request = source_facts.source_request(question[len(attachment_prefix):])
+                    if source_request:
+                        passages = attachments._all_passages(chat_id)
+                        if passages:
+                            source_answer = source_facts.answer(source_request, (row['text'] for row in passages))
+                elif found and result['ok'] and result['kind'] == 'web':
+                    source_request = source_facts.source_request(question)
+                    if source_request:
+                        source_answer = source_facts.answer(source_request, [result['raw']])
+
+            async def source_stream():
+                yield source_answer
+
             try:
                 thinking, stats = False, None
                 stream = (calculation_stream() if calculated else
+                          source_stream() if source_answer is not None else
                           clarification_stream() if clarification else
                           guided.stream(history, notes, max_tokens=budget, temperature=temperature) if think_through else
                           engine.chat_stream(history, notes, max_tokens=budget, temperature=temperature))
@@ -1018,7 +1038,7 @@ def _answer(chat_id, history, background, opening, undo, question=None, pickup=N
                 _release_chat_answer(chat_id)
                 writing = False
                 notify.show('reply', 'BEYOND replied', text, chat_id)   # only if you're not looking at the page
-                if pickup and memory.wants_pickup(pickup):
+                if source_answer is None and pickup and memory.wants_pickup(pickup):
                     note = await _pick_up_facts(pickup)
                     if note:
                         note_id = chats.add_message(chat_id, 'assistant', note, kind='note')
