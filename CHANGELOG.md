@@ -5,6 +5,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-04
+
+See the [release notes](docs/RELEASE_NOTES_1.4.0.md).
+
 ### Fixed
 - Explicit chat format requests take priority over default style. For supported JSON-object and counted-bullet requests, Beyond can remove recognizable wrappers while preserving the answer content. Budget requests for one bullet per option retain verified arithmetic. Second-model verification is pending. See [issue #24](https://github.com/jeremystevens/beyond/issues/24).
 - Explicit supplied-facts requests bypass automatic lookup, recalled conversations, and learned feedback while retaining supplied attachment evidence. Some conflicting or incomplete sources still need verification. See [issue #23](https://github.com/jeremystevens/beyond/issues/23).
@@ -13,6 +17,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Automatic web routing checks current-data intent within the question being searched; reply instructions such as "use the latest corrections" and explicit supplied-reference/chat-only context no longer trigger unrelated automatic public searches. Explicit searches and current public-data questions remain supported. See [issue #27](https://github.com/jeremystevens/beyond/issues/27).
 - Memory recall no longer treats a deadline such as "before Monday" as a request to recall an old conversation. Explicit conversation recall and ordinary topic matches remain supported; recalled assistant text is labeled as unverified historical claims with its source/date. See [issue #28](https://github.com/jeremystevens/beyond/issues/28).
 - Automatic weather routing no longer treats device-temperature reasoning as a weather request or extracts a later reply-format instruction (such as "in one sentence") as a location. Supported temperature/weather questions and location follow-ups retain their tool route. Technical temperature questions also stop inheriting stale weather context. See [issue #22](https://github.com/jeremystevens/beyond/issues/22).
+
+
+### Added
+- An opt-in model smoke test for contributors checks formatting, budget arithmetic, and accidental lookup routing against the loaded model. Reports include raw replies and timings.
 
 
 ## [1.3.0] - 2026-10-27
